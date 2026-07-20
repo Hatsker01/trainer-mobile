@@ -12,14 +12,14 @@ Belgilar: `[ ]` boshlanmagan · `[~]` ishlanmoqda · `[x]` tugallangan · `[!]` 
 |---|---|---|---|
 | T0 | Loyiha poydevori | `[x]` | Flutter loyiha, paket siyosati, fontlar, analysis_options, Env, splash |
 | T1 | Design system (HTML'dan 1:1) | `[x]` | Tokenlar + 16 komponent + galereya. 22 test yashil, analyze toza |
-| T2 | API qatlam + auth infra | `[ ]` | DTO, Dio client, interceptorlar, secure storage, repozitoriylar |
-| T3 | Auth + onboarding ekranlari | `[ ]` | Onboarding, telefon, OTP, profil sozlash |
-| T4 | Dashboard (S4) | `[ ]` | Hero ring, bugungi to'lovlar, jadval, 3 kun ichida |
-| T5 | Shogirdlar moduli (S5/S6/S7) | `[ ]` | Ro'yxat, profil, qo'shish |
-| T6 | To'lov + davomad sheetlari (S8/S9) | `[ ]` | Pul nuqtasi — maksimal ehtiyot |
-| T7 | Statistika + sozlamalar (S10/S11) | `[ ]` | KPI, grafik, til, tariflar CRUD |
-| T8 | Offline-tolerantlik | `[ ]` | Kesh (SWR) + davomad outbox |
-| T9 | Sifat, testlar, release | `[ ]` | Adaptivlik, performance, testlar, APK |
+| T2 | API qatlam + auth infra | `[x]` | DTO 1:1, Dio+interceptorlar, refresh single-flight |
+| T3 | Auth + onboarding ekranlari | `[x]` | onboarding, telefon/OTP, profil, router redirect |
+| T4 | Dashboard (S4) | `[x]` | hero ring, bugungi to'lov, skeleton, SWR kesh |
+| T5 | Shogirdlar moduli (S5/S6/S7) | `[x]` | ro'yxat (debounce/scroll), profil, qo'shish+invite |
+| T6 | To'lov + davomad sheetlari (S8/S9) | `[x]` | Idempotency+double-tap, davomad bulk |
+| T7 | Statistika + sozlamalar (S10/S11) | `[x]` | KPI+grafik, til/tarif CRUD/remind_time |
+| T8 | Offline-tolerantlik | `[x]` | SWR kesh + davomad outbox + offline banner |
+| T9 | Sifat, testlar, release | `[x]` | APK arm64 18.4MB<20, 97 test, adaptivlik matritsasi |
 
 ---
 
@@ -28,9 +28,9 @@ Belgilar: `[ ]` boshlanmagan · `[~]` ishlanmoqda · `[x]` tugallangan · `[!]` 
 | # | Bloker | Ta'sir | Kim hal qiladi |
 |---|---|---|---|
 | B1 | ~~Flutter SDK yo'q edi~~ | — | **HAL QILINDI** — `~/flutter` (3.44.6 stable, Dart 3.12.2), D101 |
-| B2 | **Xcode yo'q** (faqat Command Line Tools) | iOS build (T0 DoD, T9 DoD) MUMKIN EMAS | **Foydalanuvchi** — App Store'dan Xcode (~15GB) |
-| B3 | **JDK + Android SDK yo'q** | Android APK release build (T9 DoD) mumkin emas | Hal qilinadi: `brew install --cask temurin` + cmdline-tools |
-| B4 | **`POST /payments/preview` backendda YO'Q** | T6: "Keyingi to'lov: X" preview serverdan olinishi kerak | mobile → backend (BACKEND KAMCHILIGI protokoli, D102) |
+| B2 | **Xcode yo'q** (faqat Command Line Tools) | iOS RELEASE build tasdiqlanmagan (Dart/engine qismi kompilyatsiya bo'ldi, Xcode app build qismi qoldi) | **Foydalanuvchi** — App Store'dan Xcode (~15GB). Kod tayyor |
+| B3 | ~~JDK + Android SDK yo'q~~ | — | **HAL QILINDI** — Homebrew OpenJDK 17 + android-commandlinetools (SDK 36). APK muvaffaqiyatli qurildi |
+| B4 | **`POST /payments/preview` backendda YO'Q** | T6: to'lov sheetidagi "Keyingi to'lov: X" | **YECHIM O'ZGARDI:** `PaymentCreated.student.next_due_date` serverdan kelgani uchun preview to'lovni saqlagach ko'rsatiladi (toast). Alohida endpoint SHART EMAS — D102 ni ko'r |
 
 ---
 

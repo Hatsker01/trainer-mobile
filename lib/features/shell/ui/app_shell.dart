@@ -11,6 +11,7 @@ import 'package:ustoz_trainer/core/theme/app_spacing.dart';
 import 'package:ustoz_trainer/core/theme/app_text.dart';
 import 'package:ustoz_trainer/core/widgets/press_scale.dart';
 import 'package:ustoz_trainer/features/attendance/ui/attendance_sheet.dart';
+import 'package:ustoz_trainer/features/shell/ui/offline_banner.dart';
 
 /// Asosiy qobiq: kontent + suzuvchi tabbar.
 ///
@@ -31,7 +32,12 @@ class AppShell extends ConsumerWidget {
       // ko'rinishi uchun). Ekranlar pastdan `AppSpacing.screenBottom`
       // padding oladi.
       extendBody: true,
-      body: child,
+      body: Column(
+        children: <Widget>[
+          const OfflineBanner(),
+          Expanded(child: child),
+        ],
+      ),
       bottomNavigationBar: _TabBar(location: location),
     );
   }

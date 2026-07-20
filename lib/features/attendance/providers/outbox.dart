@@ -28,6 +28,13 @@ class OutboxEntry {
   };
 }
 
+/// Tarmoq o'zgarishlari oqimi — testda `Stream.empty()` bilan override
+/// qilinadi (platforma `EventChannel` i unit testda yo'q).
+final Provider<Stream<List<ConnectivityResult>>> connectivityStreamProvider =
+    Provider<Stream<List<ConnectivityResult>>>(
+      (Ref ref) => Connectivity().onConnectivityChanged,
+    );
+
 /// Davomad outbox'i (T8).
 ///
 /// **FAQAT davomad uchun.** To'lov offline qilinmaydi (D110) — pul
@@ -52,7 +59,11 @@ class OutboxNotifier extends Notifier<List<OutboxEntry>> {
     unawaited(_restore());
 
     // Tarmoq qaytganda avtomatik yuborish.
-    _sub = Connectivity().onConnectivityChanged.listen((
+    //
+    // `onConnectivityChanged` — platforma `EventChannel` i, unit testda
+    // mavjud emas. `connectivityStreamProvider` override qilinsa
+    // (testda `Stream.empty`), bu qatlam platforma kanaliga tegmaydi.
+    _sub = ref.read(connectivityStreamProvider).listen((
       List<ConnectivityResult> result,
     ) {
       final bool online = result.any(

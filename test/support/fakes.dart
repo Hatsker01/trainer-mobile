@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // `Override` tipi Riverpod 3 da asosiy eksportda emas — `misc.dart` da.
@@ -16,6 +17,7 @@ import 'package:ustoz_trainer/core/providers.dart';
 import 'package:ustoz_trainer/core/storage/local_store.dart';
 import 'package:ustoz_trainer/core/storage/token_storage.dart';
 import 'package:ustoz_trainer/core/theme/app_theme.dart';
+import 'package:ustoz_trainer/features/attendance/providers/outbox.dart';
 
 // Testlar ham `Override` dan foydalanadi — shu barreldan qayta eksport.
 export 'package:flutter_riverpod/misc.dart' show Override;
@@ -401,6 +403,10 @@ List<Override> testOverrides({
   LocalStore? store,
 }) => <Override>[
   localStoreProvider.overrideWithValue(store ?? FakeLocalStore()),
+  // Platforma `EventChannel` iga tegmaslik uchun — testda bo'sh oqim.
+  connectivityStreamProvider.overrideWithValue(
+    const Stream<List<ConnectivityResult>>.empty(),
+  ),
   tokenStorageProvider.overrideWithValue(
     TokenStorage(FakeSecureStorage(tokens ?? <String, String>{})),
   ),

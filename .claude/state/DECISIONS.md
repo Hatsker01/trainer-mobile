@@ -44,6 +44,23 @@ Preview'ni umuman ko'rsatmaslik — rad etildi: dizaynda mavjud (S8 sheet,
 
 **Holat.** STATUS.md → Cross-stream X1. T6 ga kelganda bajariladi.
 
+**BEKOR QILINDI (2026-07-20, T6 bajarilganda).** Backendga endpoint
+QO'SHILMADI. Sabab: `POST /payments` javobidagi `PaymentCreated.student.
+next_due_date` allaqachon serverdan keladi — ya'ni keyingi to'lov sanasi
+**yagona haqiqat manbai (backend)** dan olinadi, client hisoblamaydi.
+Faqat u SAQLAGANDAN KEYIN ko'rsatiladi (toast: "✓ Saqlandi. Keyingi
+to'lov: 16-avgust, 2026"), dizayndagidek saqlashdan OLDIN jonli preview
+emas.
+
+**Nega saqlashdan oldingi preview qilinmadi.** Uning yagona yo'li —
+(a) client'da sana hisoblash (brief buni QAT'IY taqiqlaydi: "sana
+hisoblash TAKRORLANMAYDI") yoki (b) backendga preview endpoint qo'shish.
+(b) uchun bu sessiyada backend repo mavjud emas (faqat `trainer-mobile`
+ajratilgan). Post-save tasdiq — trener uchun bir xil signal (u to'lovni
+baribir saqlaydi), lekin bitta kamroq bloker. Backend repo mavjud
+bo'lganda `POST /payments/preview` qo'shib, sheetda jonli preview'ni
+tiklash mumkin — TODO sifatida qoladi.
+
 ---
 
 ## D103 · 2026-07-20 · Debt (qarz) rangi token sifatida rasmiylashtiriladi
