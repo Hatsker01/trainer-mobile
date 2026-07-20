@@ -1,0 +1,48 @@
+name: ustoz_trainer
+description: "USTOZ — trener uchun shogird va to'lov boshqaruvi."
+publish_to: 'none'
+
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.2
+
+# Paket siyosati (CLAUDE.md / mobile brief): ro'yxat QATTIQ.
+# Yangi paket faqat DECISIONS.md yozuvi bilan.
+# Rasm / animatsiya / UI-kit kutubxonalari TAQIQLANADI — hammasi qo'lda
+# (CustomPainter + implicit animations).
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_riverpod: ^3.0.4        # holat boshqaruvi
+  go_router: ^17.2.1              # navigatsiya
+  dio: ^5.9.0                     # HTTP
+  flutter_secure_storage: ^9.2.4  # JWT saqlash
+  intl: ^0.20.2                   # sana / raqam formatlash
+  json_annotation: ^4.9.0         # DTO serializatsiya
+  share_plus: ^12.0.1             # invite havolani ulashish
+  connectivity_plus: ^7.0.0       # offline aniqlash (T8)
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.10.3
+  json_serializable: ^6.12.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    # Variable font'lar: bitta fayl butun wght o'qini qoplaydi —
+    # 8 ta static weight'dan ancha yengil (APK byudjeti, T9).
+    - family: Unbounded
+      fonts:
+        - asset: assets/fonts/Unbounded-Variable.ttf
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Variable.ttf
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Variable.ttf
