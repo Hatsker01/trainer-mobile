@@ -4,4 +4,11 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Lokal backend TLS'siz ishlaydi (http://10.0.2.2:8080). Android 9+
+         cleartext'ni standart holda bloklaydi — busiz Dio darhol
+         "CLEARTEXT communication not permitted" xatosi beradi.
+         Bu fayl `src/debug/` da — release APK ga TUSHMAYDI. -->
+    <application
+        android:networkSecurityConfig="@xml/network_security_config" />
 </manifest>
