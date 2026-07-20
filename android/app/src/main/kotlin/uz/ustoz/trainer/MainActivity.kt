@@ -1,4 +1,4 @@
-package uz.ustoz.ustoz_trainer
+package uz.ustoz.trainer
 
 import io.flutter.embedding.android.FlutterActivity
 
