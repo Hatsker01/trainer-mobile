@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>USTOZ — v2 Premium Prototip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   USTOZ v2 — "KECHKI ZAL" (dark iron · chalk · anor glow)
+   ============================================================ */
+:root{
+  --bg0:#0C0D10;            /* chuqur temir */
+  --bg1:#131519;
+  --glass:rgba(255,255,255,.055);
+  --glass-hi:rgba(255,255,255,.09);
+  --ink:#F4F2EC;            /* mel (chalk) */
+  --soft:#9C9FA8;
+  --dim:#5E626C;
+  --anor:#FF5340;
+  --anor2:#E2264B;
+  --anor-glow:rgba(255,83,64,.35);
+  --ok:#3DD68C;  --ok-soft:rgba(61,214,140,.14);
+  --warn:#FFC24D;--warn-soft:rgba(255,194,77,.14);
+  --line:rgba(255,255,255,.08);
+  --r:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Manrope',system-ui,sans-serif;color:var(--ink);
+  background:#08090B;
+  display:flex;align-items:center;justify-content:center;gap:40px;
+  min-height:100vh;padding:40px 20px;
+}
+
+/* ---------- Chap panel: ekran tanlash ---------- */
+#panel{width:210px;flex:none}
+#panel .logo{font-family:'Unbounded';font-weight:700;font-size:20px;margin-bottom:6px}
+#panel .logo b{color:var(--anor)}
+#panel p{font-size:12px;color:var(--dim);margin-bottom:22px;line-height:1.5}
+#panel button{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  font-family:'Manrope';font-size:13.5px;font-weight:600;color:var(--soft);
+  background:none;border:0;border-radius:12px;padding:11px 14px;cursor:pointer;
+  transition:.18s;
+}
+#panel button:hover{background:var(--glass)}
+#panel button.on{background:var(--glass-hi);color:var(--ink)}
+#panel button .k{font-family:'JetBrains Mono';font-size:11px;color:var(--dim);width:26px}
+#panel button.on .k{color:var(--anor)}
+
+/* ---------- Telefon korpusi ---------- */
+#phone{
+  width:393px;height:830px;flex:none;position:relative;
+  background:var(--bg0);border-radius:54px;overflow:hidden;
+  box-shadow:0 0 0 10px #1B1D22,0 0 0 12px #2A2D34,0 50px 120px rgba(0,0,0,.7);
+}
+/* nozik nur teksturasi */
+#phone::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:
+    radial-gradient(120% 55% at 50% -8%, rgba(255,83,64,.10), transparent 55%),
+    radial-gradient(90% 40% at 85% 110%, rgba(226,38,75,.07), transparent 60%);
+}
+.island{
+  position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  width:122px;height:34px;background:#000;border-radius:20px;z-index:60;
+}
+.statusbar{
+  position:absolute;top:0;left:0;right:0;height:58px;z-index:55;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 32px 0;font-size:14px;font-weight:700;
+}
+.statusbar .icons{display:flex;gap:6px;align-items:center}
+.statusbar svg{display:block}
+
+/* ---------- Ekranlar ---------- */
+.screen{
+  position:absolute;inset:0;z-index:5;overflow-y:auto;overscroll-behavior:contain;
+  padding:74px 20px 120px;display:none;scrollbar-width:none;
+}
+.screen::-webkit-scrollbar{display:none}
+.screen.on{display:block;animation:sIn .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes sIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ---------- Umumiy primitivlar ---------- */
+.glass{
+  background:var(--glass);border:1px solid var(--line);border-radius:var(--r);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+}
+.card{padding:16px}
+.mono{font-family:'JetBrains Mono';font-feature-settings:"tnum"}
+.disp{font-family:'Unbounded'}
+.soft{color:var(--soft)}.dim{color:var(--dim)}
+.okc{color:var(--ok)}.warnc{color:var(--warn)}.anorc{color:var(--anor)}
+.row{display:flex;align-items:center}
+.sp{flex:1}
+
+.sec{margin-top:26px}
+.sec-h{display:flex;align-items:baseline;margin-bottom:12px}
+.sec-h .t{font-family:'Unbounded';font-weight:600;font-size:15px;letter-spacing:.2px}
+.sec-h .n{margin-left:8px;font-size:12px;font-weight:800;color:var(--anor);
+  background:rgba(255,83,64,.12);border-radius:20px;padding:2px 9px}
+.sec-h .all{margin-left:auto;font-size:13px;font-weight:600;color:var(--dim)}
+
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-family:'Manrope';font-weight:700;font-size:15px;color:#fff;
+  border:0;border-radius:18px;height:54px;width:100%;cursor:pointer;
+  background:linear-gradient(135deg,var(--anor),var(--anor2));
+  box-shadow:0 12px 30px -8px var(--anor-glow), inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .15s;
+}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--glass);box-shadow:none;border:1px solid var(--line);color:var(--ink)}
+.btn.sm{height:38px;font-size:13px;border-radius:12px;width:auto;padding:0 14px}
+
+.chip{
+  font-size:13px;font-weight:700;color:var(--soft);white-space:nowrap;
+  background:var(--glass);border:1px solid var(--line);border-radius:20px;
+  padding:8px 14px;cursor:pointer;transition:.15s;
+}
+.chip.on{color:#fff;background:linear-gradient(135deg,var(--anor),var(--anor2));border-color:transparent}
+.chip b{opacity:.65;font-weight:800;margin-left:4px}
+
+.badge{font-size:11px;font-weight:800;letter-spacing:.4px;border-radius:8px;padding:4px 8px}
+.badge.ok{color:var(--ok);background:var(--ok-soft)}
+.badge.warn{color:var(--warn);background:var(--warn-soft)}
+.badge.debt{color:#FF7A6B;background:rgba(255,83,64,.14)}
+
+.avatar{
+  width:44px;height:44px;border-radius:16px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Unbounded';font-weight:600;font-size:14px;
+  background:linear-gradient(145deg,#23262D,#17191E);
+  border:1px solid var(--line);color:var(--soft);
+}
+
+/* ---------- PlitaRing (SVG) ---------- */
+.ring{position:relative;flex:none}
+.ring svg{transform:rotate(-90deg);display:block}
+.ring .track{stroke:rgba(255,255,255,.09);fill:none}
+.ring .val{fill:none;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)}
+.ring .hole{fill:var(--bg0)}
+.ring .lbl{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;transform:none;
+}
+
+/* ---------- Tab bar ---------- */
+#tabbar{
+  position:absolute;left:16px;right:16px;bottom:16px;height:76px;z-index:50;
+  background:rgba(19,21,25,.72);border:1px solid var(--line);border-radius:28px;
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  display:flex;align-items:center;justify-content:space-around;padding:0 8px;
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+}
+#tabbar .tab{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-size:10.5px;font-weight:700;color:var(--dim);
+  background:none;border:0;cursor:pointer;width:62px;transition:.15s;
+}
+#tabbar .tab.on{color:var(--ink)}
+#tabbar .tab svg{opacity:.85}
+#tabbar .plus{
+  width:56px;height:56px;border-radius:20px;border:0;cursor:pointer;flex:none;
+  background:linear-gradient(135deg,var(--anor),var(--anor2));
+  box-shadow:0 12px 28px -6px var(--anor-glow), inset 0 1px 0 rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;margin-top:-26px;
+}
+.sheet-open #tabbar .plus{transform:rotate(45deg)}
+.plus svg{display:block}
+
+/* ---------- Bottom sheet ---------- */
+#scrim{
+  position:absolute;inset:0;z-index:70;background:rgba(0,0,0,.55);
+  opacity:0;pointer-events:none;transition:.3s;backdrop-filter:blur(3px);
+}
+.sheet-open #scrim{opacity:1;pointer-events:auto}
+#sheet{
+  position:absolute;left:0;right:0;bottom:0;z-index:80;
+  background:#17191E;border-radius:32px 32px 0 0;border-top:1px solid var(--line);
+  padding:10px 22px 34px;transform:translateY(105%);
+  transition:transform .38s cubic-bezier(.2,.9,.25,1);
+}
+.sheet-open #sheet{transform:none}
+#sheet .handle{width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);margin:6px auto 18px}
+
+/* ---------- Heatmap ---------- */
+.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:5px}
+.heat i{aspect-ratio:1;border-radius:4px;background:rgba(255,255,255,.06)}
+.heat i.l1{background:rgba(61,214,140,.25)}
+.heat i.l2{background:rgba(61,214,140,.55)}
+.heat i.l3{background:var(--ok)}
+
+/* ---------- Bar chart ---------- */
+.bars{display:flex;align-items:flex-end;gap:12px;height:140px;padding-top:8px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.bars .fill{
+  width:100%;border-radius:10px 10px 6px 6px;min-height:8px;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
+  transition:height 1s cubic-bezier(.2,.8,.2,1);
+}
+.bars .b.hot .fill{background:linear-gradient(180deg,var(--anor),var(--anor2));box-shadow:0 8px 24px -6px var(--anor-glow)}
+.bars .m{font-size:11px;font-weight:700;color:var(--dim)}
+
+/* ---------- Timeline (bugungi jadval) ---------- */
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:6px;top:8px;bottom:8px;width:2px;background:var(--line);border-radius:2px}
+.tl .ev{position:relative;padding:10px 0}
+.tl .ev::before{
+  content:"";position:absolute;left:-21px;top:16px;width:12px;height:12px;border-radius:50%;
+  background:var(--bg0);border:2.5px solid var(--dim);
+}
+.tl .ev.done::before{border-color:var(--ok);background:var(--ok)}
+.tl .ev.now::before{border-color:var(--anor);box-shadow:0 0 0 5px rgba(255,83,64,.18)}
+
+/* ---------- List row ---------- */
+.lrow{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.lrow:last-child{border-bottom:0}
+
+/* ---------- Tavsiyalar ---------- */
+.rec{padding:14px 16px;border-bottom:1px solid var(--line)}
+.rec:last-child{border-bottom:0}
+.rec .cat{font-size:11px;font-weight:800;letter-spacing:.4px;border-radius:8px;padding:3px 8px;
+  background:var(--glass-hi);color:var(--soft)}
+.prod{
+  display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;
+  background:rgba(255,83,64,.07);border:1px solid rgba(255,83,64,.2);border-radius:14px;
+}
+.prod .ph{width:40px;height:40px;border-radius:10px;flex:none;
+  background:linear-gradient(145deg,#2A2D34,#1B1D22);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:18px}
+.refchip{font-size:10.5px;font-weight:800;color:var(--anor);
+  background:rgba(255,83,64,.12);border-radius:6px;padding:2px 7px}
+
+/* ---------- Sheet #2 (Tavsiya qo'shish) ---------- */
+#sheet2{
+  position:absolute;left:0;right:0;bottom:0;z-index:80;
+  background:#17191E;border-radius:32px 32px 0 0;border-top:1px solid var(--line);
+  padding:10px 22px 34px;transform:translateY(105%);
+  transition:transform .38s cubic-bezier(.2,.9,.25,1);
+}
+.sheet2-open #sheet2{transform:none}
+.sheet2-open #scrim{opacity:1;pointer-events:auto}
+#sheet2 .handle{width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);margin:6px auto 18px}
+.ta{
+  width:100%;min-height:88px;resize:none;margin-top:14px;
+  font-family:'Manrope';font-size:14.5px;line-height:1.5;color:var(--ink);
+  background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:14px;
+  outline:none;transition:border-color .15s;
+}
+.ta:focus{border-color:rgba(255,83,64,.5)}
+.ta::placeholder{color:var(--dim)}
+.linkrow{
+  display:flex;align-items:center;gap:10px;margin-top:12px;padding:13px 14px;cursor:pointer;
+  background:var(--glass);border:1px dashed rgba(255,255,255,.18);border-radius:16px;
+  font-size:13.5px;font-weight:700;color:var(--soft);transition:.15s;
+}
+.linkrow:hover{border-color:rgba(255,83,64,.4);color:var(--ink)}
+#prodlist{display:none;margin-top:10px}
+#prodlist.show{display:block}
+#prodlist .pl{
+  display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer;border-radius:12px;
+}
+#prodlist .pl:hover{background:var(--glass-hi)}
+.chk{display:flex;align-items:center;gap:10px;margin-top:16px;cursor:pointer;
+  font-size:13.5px;font-weight:600;color:var(--soft)}
+.chk .box{width:20px;height:20px;border-radius:7px;border:1.5px solid var(--dim);flex:none;
+  display:flex;align-items:center;justify-content:center;transition:.15s;font-size:12px;color:#fff}
+.chk.on .box{background:linear-gradient(135deg,var(--anor),var(--anor2));border-color:transparent}
+
+/* ---------- Toast ---------- */
+#toast{
+  position:absolute;left:24px;right:24px;bottom:110px;z-index:90;
+  background:#1E2126;border:1px solid var(--line);border-radius:16px;
+  padding:14px 16px;font-size:13.5px;font-weight:700;text-align:center;
+  box-shadow:0 16px 40px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(14px);pointer-events:none;
+  transition:.32s cubic-bezier(.2,.8,.2,1);
+}
+#toast.show{opacity:1;transform:none}
+
+@media (max-width:760px){
+  body{flex-direction:column;padding:16px}
+  #panel{width:100%;display:flex;flex-wrap:wrap;gap:4px}
+  #panel .logo,#panel p{width:100%}
+  #panel button{width:auto}
+  #phone{transform:scale(.92);transform-origin:top center}
+}
+</style>
+</head>
+<body>
+
+<aside id="panel">
+  <div class="logo">UST<b>O</b>Z <span style="font-size:11px;color:var(--dim);font-family:Manrope;font-weight:600">v2</span></div>
+  <p>"Kechki zal" — temir, mel, anor nur.<br>Yadro ekranlar, jonli logika bilan.</p>
+  <button data-s="s4" class="on"><span class="k">S4</span>Asosiy</button>
+  <button data-s="s5"><span class="k">S5</span>Shogirdlar</button>
+  <button data-s="s6"><span class="k">S6</span>Shogird profili</button>
+  <button data-s="s10"><span class="k">S10</span>Statistika</button>
+  <button data-s="sheet"><span class="k">S8</span>To'lov (sheet)</button>
+  <button data-s="sheet2"><span class="k">S13</span>Tavsiya (sheet)</button>
+</aside>
+
+<div id="phone">
+  <div class="island"></div>
+  <div class="statusbar">
+    <span>21:47</span>
+    <span class="icons">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="1" fill="#F4F2EC"/><rect x="5" y="5" width="3" height="7" rx="1" fill="#F4F2EC"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="#F4F2EC"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#F4F2EC" opacity=".4"/></svg>
+      <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="0" y="0" width="21" height="12" rx="4" stroke="#F4F2EC" opacity=".5"/><rect x="2" y="2" width="13" height="8" rx="2" fill="#F4F2EC"/><rect x="22" y="4" width="2" height="4" rx="1" fill="#F4F2EC" opacity=".5"/></svg>
+    </span>
+  </div>
+
+<!-- ==================== S4 · ASOSIY ==================== -->
+<section class="screen on" id="s4">
+  <div class="row">
+    <div>
+      <div style="font-size:13px;font-weight:600" class="dim">Yakshanba, 19-iyul</div>
+      <div class="disp" style="font-weight:700;font-size:24px;margin-top:3px">Salom, Jamshid</div>
+    </div>
+    <div class="sp"></div>
+    <div class="glass row" style="gap:6px;padding:8px 12px;border-radius:14px">
+      <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1l1.5 4.5H14l-3.7 2.8 1.4 4.5L8 10.2 4.3 12.8l1.4-4.5L2 5.5h4.5z" fill="#FFC24D"/></svg>
+      <span style="font-size:13px;font-weight:800">14 kun</span>
+    </div>
+  </div>
+
+  <!-- HERO: oylik daromad plita-ringi -->
+  <div class="glass" style="margin-top:20px;padding:22px;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:radial-gradient(80% 90% at 20% 0%,rgba(255,83,64,.14),transparent 60%)"></div>
+    <div class="row" style="gap:20px;position:relative">
+      <div class="ring" id="heroRing">
+        <svg width="118" height="118" viewBox="0 0 118 118">
+          <defs><linearGradient id="ag" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#FF6A3D"/><stop offset="1" stop-color="#E2264B"/>
+          </linearGradient></defs>
+          <circle class="track" cx="59" cy="59" r="50" stroke-width="11"/>
+          <circle class="val" cx="59" cy="59" r="50" stroke-width="11" stroke="url(#ag)"
+                  stroke-dasharray="314" stroke-dashoffset="314" data-p="0.68"/>
+          <circle class="hole" cx="59" cy="59" r="14"/>
+          <circle cx="59" cy="59" r="14" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1.5"/>
+        </svg>
+        <div class="lbl"><span style="font-size:17px;font-weight:800" class="disp">68%</span></div>
+      </div>
+      <div>
+        <div style="font-size:12.5px;font-weight:600" class="soft">Iyul daromadi</div>
+        <div class="mono" style="font-size:24px;font-weight:600;margin:4px 0 2px">6 800 000</div>
+        <div style="font-size:12px" class="dim">maqsad: <span class="mono">10 mln so'm</span></div>
+        <div class="row" style="gap:6px;margin-top:10px">
+          <span class="badge ok">▲ 12% o'tgan oyga</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUGUN TO'LOV -->
+  <div class="sec">
+    <div class="sec-h"><span class="t">Bugun to'lov</span><span class="n">2</span><span class="all">800 000 so'm</span></div>
+
+    <div class="glass card" style="margin-bottom:10px">
+      <div class="row" style="gap:12px">
+        <div class="avatar" style="color:#FF7A6B;border-color:rgba(255,83,64,.3)">AK</div>
+        <div>
+          <div style="font-weight:700;font-size:15px">Aziz Karimov</div>
+          <div style="font-size:12.5px" class="dim">Oylik · <span class="mono">400 000</span></div>
+        </div>
+        <div class="sp"></div>
+        <span class="badge debt">3 KUN KECHIKDI</span>
+      </div>
+      <div class="row" style="gap:8px;margin-top:14px">
+        <button class="btn sm" style="flex:1">✓ To'landi</button>
+        <button class="btn sm ghost" style="flex:1">Eslatish</button>
+      </div>
+    </div>
+
+    <div class="glass card">
+      <div class="row" style="gap:12px">
+        <div class="avatar">DM</div>
+        <div>
+          <div style="font-weight:700;font-size:15px">Dilnoza Mirzayeva</div>
+          <div style="font-size:12.5px" class="dim">Oylik · <span class="mono">400 000</span></div>
+        </div>
+        <div class="sp"></div>
+        <span class="badge warn">BUGUN</span>
+      </div>
+      <div class="row" style="gap:8px;margin-top:14px">
+        <button class="btn sm" style="flex:1">✓ To'landi</button>
+        <button class="btn sm ghost" style="flex:1">Eslatish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUGUNGI JADVAL -->
+  <div class="sec">
+    <div class="sec-h"><span class="t">Bugungi jadval</span><span class="all">3 / 5 keldi</span></div>
+    <div class="glass card tl">
+      <div class="ev done row" style="gap:10px">
+        <div><b style="font-size:14px">07:00</b> <span class="soft" style="font-size:14px">— Sardor B.</span></div>
+        <div class="sp"></div><span class="okc" style="font-size:12px;font-weight:800">KELDI</span>
+      </div>
+      <div class="ev done row" style="gap:10px">
+        <div><b style="font-size:14px">08:30</b> <span class="soft" style="font-size:14px">— Aziz K.</span></div>
+        <div class="sp"></div><span class="okc" style="font-size:12px;font-weight:800">KELDI</span>
+      </div>
+      <div class="ev now row" style="gap:10px">
+        <div><b style="font-size:14px">18:00</b> <span class="soft" style="font-size:14px">— Dilnoza M.</span></div>
+        <div class="sp"></div><span class="anorc" style="font-size:12px;font-weight:800">HOZIR</span>
+      </div>
+      <div class="ev row" style="gap:10px">
+        <div><b style="font-size:14px">19:30</b> <span class="soft" style="font-size:14px">— Jasur T.</span></div>
+        <div class="sp"></div><span class="dim" style="font-size:12px;font-weight:700">KUTILMOQDA</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 KUN ICHIDA -->
+  <div class="sec" style="margin-bottom:8px">
+    <div class="sec-h"><span class="t">3 kun ichida</span><span class="n" style="color:var(--warn);background:var(--warn-soft)">3</span></div>
+    <div class="glass card">
+      <div class="lrow"><div class="avatar" style="width:38px;height:38px;font-size:12px">JT</div>
+        <div><div style="font-weight:700;font-size:14px">Jasur Toshpo'latov</div><div style="font-size:12px" class="dim">21-iyul · <span class="mono">500 000</span></div></div>
+        <div class="sp"></div><span class="badge warn">2 KUN</span></div>
+      <div class="lrow"><div class="avatar" style="width:38px;height:38px;font-size:12px">MS</div>
+        <div><div style="font-weight:700;font-size:14px">Malika Sodiqova</div><div style="font-size:12px" class="dim">22-iyul · <span class="mono">400 000</span></div></div>
+        <div class="sp"></div><span class="badge warn">3 KUN</span></div>
+      <div class="lrow"><div class="avatar" style="width:38px;height:38px;font-size:12px">BR</div>
+        <div><div style="font-weight:700;font-size:14px">Bekzod Rahimov</div><div style="font-size:12px" class="dim">Paket: 2 mashg'ulot qoldi</div></div>
+        <div class="sp"></div><span class="badge warn">PAKET</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== S5 · SHOGIRDLAR ==================== -->
+<section class="screen" id="s5">
+  <div class="row">
+    <div class="disp" style="font-weight:700;font-size:24px">Shogirdlar</div>
+    <div class="sp"></div>
+    <span class="dim" style="font-size:13px;font-weight:700">23 aktiv</span>
+  </div>
+
+  <div class="glass row" style="margin-top:16px;padding:13px 16px;gap:10px;border-radius:16px">
+    <svg width="17" height="17" viewBox="0 0 17 17" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="#5E626C" stroke-width="2"/><path d="M12 12l3.5 3.5" stroke="#5E626C" stroke-width="2" stroke-linecap="round"/></svg>
+    <span class="dim" style="font-size:14.5px">Ism yoki telefon…</span>
+  </div>
+
+  <div class="row" style="gap:8px;margin-top:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px">
+    <span class="chip on">Hammasi <b>23</b></span>
+    <span class="chip" style="color:#FF7A6B">Qarzdor <b>2</b></span>
+    <span class="chip">Yaqin <b>3</b></span>
+    <span class="chip">Paket <b>6</b></span>
+    <span class="chip">Arxiv</span>
+  </div>
+
+  <div class="sec" style="margin-top:18px">
+    <!-- qarzdor doim tepada -->
+    <div class="glass card" style="margin-bottom:10px;border-color:rgba(255,83,64,.25)" onclick="go('s6')">
+      <div class="row" style="gap:12px">
+        <div class="ring"><svg width="50" height="50" viewBox="0 0 50 50">
+          <circle class="track" cx="25" cy="25" r="20" stroke-width="5"/>
+          <circle class="val" cx="25" cy="25" r="20" stroke-width="5" stroke="#FF5340" stroke-dasharray="126" stroke-dashoffset="126" data-p="1"/>
+          <circle class="hole" cx="25" cy="25" r="6"/></svg>
+          <div class="lbl"><span style="font-size:13px;font-weight:800;color:#FF7A6B">!</span></div>
+        </div>
+        <div><div style="font-weight:700;font-size:15px">Aziz Karimov</div>
+          <div style="font-size:12.5px" class="dim">Oylik · muddat 16-iyul edi</div></div>
+        <div class="sp"></div>
+        <div style="text-align:right"><span class="badge debt">QARZDOR</span>
+          <div class="mono dim" style="font-size:12px;margin-top:5px">400 000</div></div>
+      </div>
+    </div>
+
+    <div class="glass card" style="margin-bottom:10px" onclick="go('s6')">
+      <div class="row" style="gap:12px">
+        <div class="ring"><svg width="50" height="50" viewBox="0 0 50 50">
+          <circle class="track" cx="25" cy="25" r="20" stroke-width="5"/>
+          <circle class="val" cx="25" cy="25" r="20" stroke-width="5" stroke="#FFC24D" stroke-dasharray="126" stroke-dashoffset="126" data-p="0.12"/>
+          <circle class="hole" cx="25" cy="25" r="6"/></svg>
+        </div>
+        <div><div style="font-weight:700;font-size:15px">Dilnoza Mirzayeva</div>
+          <div style="font-size:12.5px" class="dim">Oylik · bugun to'lov kuni</div></div>
+        <div class="sp"></div><span class="badge warn">BUGUN</span>
+      </div>
+    </div>
+
+    <div class="glass card" style="margin-bottom:10px" onclick="go('s6')">
+      <div class="row" style="gap:12px">
+        <div class="ring"><svg width="50" height="50" viewBox="0 0 50 50">
+          <circle class="track" cx="25" cy="25" r="20" stroke-width="5"/>
+          <circle class="val" cx="25" cy="25" r="20" stroke-width="5" stroke="#3DD68C" stroke-dasharray="126" stroke-dashoffset="126" data-p="0.83"/>
+          <circle class="hole" cx="25" cy="25" r="6"/></svg>
+        </div>
+        <div><div style="font-weight:700;font-size:15px">Sardor Bekmurodov</div>
+          <div style="font-size:12.5px" class="dim">Paket 12 · <b class="okc">9 qoldi</b></div></div>
+        <div class="sp"></div><span class="badge ok">AKTIV</span>
+      </div>
+    </div>
+
+    <div class="glass card" style="margin-bottom:10px" onclick="go('s6')">
+      <div class="row" style="gap:12px">
+        <div class="ring"><svg width="50" height="50" viewBox="0 0 50 50">
+          <circle class="track" cx="25" cy="25" r="20" stroke-width="5"/>
+          <circle class="val" cx="25" cy="25" r="20" stroke-width="5" stroke="#3DD68C" stroke-dasharray="126" stroke-dashoffset="126" data-p="0.62"/>
+          <circle class="hole" cx="25" cy="25" r="6"/></svg>
+        </div>
+        <div><div style="font-weight:700;font-size:15px">Malika Sodiqova</div>
+          <div style="font-size:12.5px" class="dim">Oylik · 22-iyulgacha</div></div>
+        <div class="sp"></div><span class="badge ok">AKTIV</span>
+      </div>
+    </div>
+
+    <div class="glass card" onclick="go('s6')">
+      <div class="row" style="gap:12px">
+        <div class="ring"><svg width="50" height="50" viewBox="0 0 50 50">
+          <circle class="track" cx="25" cy="25" r="20" stroke-width="5"/>
+          <circle class="val" cx="25" cy="25" r="20" stroke-width="5" stroke="#3DD68C" stroke-dasharray="126" stroke-dashoffset="126" data-p="0.9"/>
+          <circle class="hole" cx="25" cy="25" r="6"/></svg>
+        </div>
+        <div><div style="font-weight:700;font-size:15px">Jasur Toshpo'latov</div>
+          <div style="font-size:12.5px" class="dim">Oylik · 21-iyulgacha</div></div>
+        <div class="sp"></div><span class="badge ok">AKTIV</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== S6 · SHOGIRD PROFILI ==================== -->
+<section class="screen" id="s6">
+  <div class="row" style="gap:12px">
+    <button class="btn sm ghost" style="width:40px;height:40px;padding:0;border-radius:14px" onclick="go('s5')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#F4F2EC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="disp" style="font-weight:600;font-size:17px">Shogird</div>
+    <div class="sp"></div>
+    <button class="btn sm ghost">⋯</button>
+  </div>
+
+  <!-- Profil hero -->
+  <div class="glass" style="margin-top:18px;padding:22px;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:radial-gradient(70% 80% at 80% 0%,rgba(255,83,64,.12),transparent 60%)"></div>
+    <div class="row" style="gap:18px;position:relative">
+      <div class="ring">
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle class="track" cx="48" cy="48" r="40" stroke-width="9"/>
+          <circle class="val" cx="48" cy="48" r="40" stroke-width="9" stroke="url(#ag)" stroke-dasharray="251" stroke-dashoffset="251" data-p="1"/>
+          <circle class="hole" cx="48" cy="48" r="11"/>
+        </svg>
+        <div class="lbl"><span style="font-size:13px;font-weight:800;color:#FF7A6B" class="disp">3 kun</span>
+        <span class="dim" style="font-size:9px;font-weight:700;letter-spacing:.5px">KECHIKDI</span></div>
+      </div>
+      <div>
+        <div class="disp" style="font-weight:600;font-size:19px">Aziz Karimov</div>
+        <div class="soft" style="font-size:13px;margin-top:3px">+998 90 123 45 67</div>
+        <div class="row" style="gap:6px;margin-top:10px">
+          <span class="badge debt">QARZDOR · 400 000</span>
+          <span class="badge" style="color:var(--soft);background:var(--glass)">TG ✓</span>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="gap:8px;margin-top:18px;position:relative">
+      <button class="btn sm" style="flex:1" onclick="openSheet()">To'lov qo'shish</button>
+      <button class="btn sm ghost" style="flex:1">🔔 Eslatish</button>
+      <button class="btn sm ghost" style="width:44px;padding:0">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M3 3.5c0-.8.7-1.5 1.5-1.5h1.6c.6 0 1.2.4 1.4 1l.7 2c.2.6 0 1.3-.5 1.7l-.9.7a10.5 10.5 0 004.8 4.8l.7-.9c.4-.5 1.1-.7 1.7-.5l2 .7c.6.2 1 .8 1 1.4v1.6c0 .8-.7 1.5-1.5 1.5C8 16 1 9 3 3.5z" stroke="#F4F2EC" stroke-width="1.6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Statlar -->
+  <div class="row" style="gap:10px;margin-top:14px">
+    <div class="glass card" style="flex:1;text-align:center;padding:14px 8px">
+      <div class="mono" style="font-size:17px;font-weight:600">2.4M</div>
+      <div class="dim" style="font-size:11px;font-weight:700;margin-top:3px">JAMI TO'LADI</div>
+    </div>
+    <div class="glass card" style="flex:1;text-align:center;padding:14px 8px">
+      <div class="mono" style="font-size:17px;font-weight:600">6 oy</div>
+      <div class="dim" style="font-size:11px;font-weight:700;margin-top:3px">SIZ BILAN</div>
+    </div>
+    <div class="glass card" style="flex:1;text-align:center;padding:14px 8px">
+      <div class="mono okc" style="font-size:17px;font-weight:600">87%</div>
+      <div class="dim" style="font-size:11px;font-weight:700;margin-top:3px">DAVOMAD</div>
+    </div>
+  </div>
+
+  <!-- Davomad heatmap -->
+  <div class="sec">
+    <div class="sec-h"><span class="t">Davomad</span><span class="all">oxirgi 8 hafta</span></div>
+    <div class="glass card">
+      <div class="heat" id="heatmap"></div>
+      <div class="row" style="margin-top:12px;gap:5px;justify-content:flex-end">
+        <span class="dim" style="font-size:11px;margin-right:4px">kam</span>
+        <i style="width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,.06)"></i>
+        <i style="width:10px;height:10px;border-radius:3px;background:rgba(61,214,140,.25)"></i>
+        <i style="width:10px;height:10px;border-radius:3px;background:rgba(61,214,140,.55)"></i>
+        <i style="width:10px;height:10px;border-radius:3px;background:#3DD68C"></i>
+        <span class="dim" style="font-size:11px;margin-left:4px">ko'p</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tavsiyalar -->
+  <div class="sec">
+    <div class="sec-h"><span class="t">Tavsiyalar</span><span class="n">3</span>
+      <span class="all" style="color:var(--anor);cursor:pointer" onclick="openSheet2()">+ Qo'shish</span></div>
+    <div class="glass">
+      <div class="rec">
+        <div class="row"><span class="cat">SPORT PIT</span><div class="sp"></div>
+          <span class="dim" style="font-size:11.5px">kecha</span></div>
+        <div style="font-size:14px;line-height:1.5;margin-top:9px">Mashg'ulotdan keyin 30 daqiqa ichida 1 porsiya protein iching.</div>
+        <div class="prod">
+          <div class="ph">🥤</div>
+          <div><div style="font-size:13px;font-weight:700">Whey Gold 2kg</div>
+            <div class="mono dim" style="font-size:11.5px">450 000 so'm</div></div>
+          <div class="sp"></div><span class="refchip">REFERAL 3%</span>
+        </div>
+      </div>
+      <div class="rec">
+        <div class="row"><span class="cat">SUV</span><div class="sp"></div>
+          <span class="dim" style="font-size:11.5px">3 kun oldin</span></div>
+        <div style="font-size:14px;line-height:1.5;margin-top:9px">Kuniga kamida 2.5 litr suv. Mashg'ulot kunlari — 3 litr.</div>
+      </div>
+      <div class="rec">
+        <div class="row"><span class="cat">UYQU</span><div class="sp"></div>
+          <span class="dim" style="font-size:11.5px">1 hafta oldin</span></div>
+        <div style="font-size:14px;line-height:1.5;margin-top:9px">Uyqu 23:00 dan kechikmasin — tiklanish shunda bo'ladi.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- To'lovlar tarixi -->
+  <div class="sec" style="margin-bottom:8px">
+    <div class="sec-h"><span class="t">To'lovlar</span><span class="all">tarix</span></div>
+    <div class="glass card">
+      <div class="lrow">
+        <div><div style="font-weight:700;font-size:14px">16-iyun — 16-iyul</div><div class="dim" style="font-size:12px">Naqd · 16-iyun</div></div>
+        <div class="sp"></div><span class="mono" style="font-size:14px">400 000</span>
+      </div>
+      <div class="lrow">
+        <div><div style="font-weight:700;font-size:14px">16-may — 16-iyun</div><div class="dim" style="font-size:12px">Payme · 15-may</div></div>
+        <div class="sp"></div><span class="mono" style="font-size:14px">400 000</span>
+      </div>
+      <div class="lrow">
+        <div><div style="font-weight:700;font-size:14px">16-apr — 16-may</div><div class="dim" style="font-size:12px">Naqd · 16-apr</div></div>
+        <div class="sp"></div><span class="mono" style="font-size:14px">400 000</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== S10 · STATISTIKA ==================== -->
+<section class="screen" id="s10">
+  <div class="disp" style="font-weight:700;font-size:24px">Statistika</div>
+
+  <div class="row" style="gap:10px;margin-top:18px">
+    <div class="glass card" style="flex:1">
+      <div class="dim" style="font-size:11.5px;font-weight:700">IYUL DAROMADI</div>
+      <div class="mono" style="font-size:21px;font-weight:600;margin-top:6px">6.8M</div>
+      <span class="badge ok" style="margin-top:8px;display:inline-block">▲ 12%</span>
+    </div>
+    <div class="glass card" style="flex:1">
+      <div class="dim" style="font-size:11.5px;font-weight:700">QARZDORLIK</div>
+      <div class="mono" style="font-size:21px;font-weight:600;margin-top:6px;color:#FF7A6B">800K</div>
+      <span class="badge debt" style="margin-top:8px;display:inline-block">2 shogird</span>
+    </div>
+  </div>
+  <div class="row" style="gap:10px;margin-top:10px">
+    <div class="glass card" style="flex:1">
+      <div class="dim" style="font-size:11.5px;font-weight:700">AKTIV SHOGIRD</div>
+      <div class="mono" style="font-size:21px;font-weight:600;margin-top:6px">23</div>
+      <span class="badge ok" style="margin-top:8px;display:inline-block">+3 yangi</span>
+    </div>
+    <div class="glass card" style="flex:1">
+      <div class="dim" style="font-size:11.5px;font-weight:700">O'RTACHA DAVOMAD</div>
+      <div class="mono" style="font-size:21px;font-weight:600;margin-top:6px">81%</div>
+      <span class="badge warn" style="margin-top:8px;display:inline-block">▼ 4%</span>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="t">Daromad dinamikasi</span><span class="all">6 oy</span></div>
+    <div class="glass card">
+      <div class="bars" id="bars">
+        <div class="b" data-h="42"><div class="fill"></div><span class="m">Fev</span></div>
+        <div class="b" data-h="55"><div class="fill"></div><span class="m">Mar</span></div>
+        <div class="b" data-h="48"><div class="fill"></div><span class="m">Apr</span></div>
+        <div class="b" data-h="70"><div class="fill"></div><span class="m">May</span></div>
+        <div class="b" data-h="61"><div class="fill"></div><span class="m">Iyn</span></div>
+        <div class="b hot" data-h="88"><div class="fill"></div><span class="m">Iyl</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-bottom:8px">
+    <div class="sec-h"><span class="t">Tariflar bo'yicha</span></div>
+    <div class="glass card">
+      <div class="lrow"><div style="font-weight:700;font-size:14px">Oylik obuna</div><div class="sp"></div>
+        <span class="dim" style="font-size:13px;margin-right:10px">14 shogird</span><span class="mono" style="font-size:14px">5.6M</span></div>
+      <div class="lrow"><div style="font-weight:700;font-size:14px">Paket (12)</div><div class="sp"></div>
+        <span class="dim" style="font-size:13px;margin-right:10px">6 shogird</span><span class="mono" style="font-size:14px">0.9M</span></div>
+      <div class="lrow"><div style="font-weight:700;font-size:14px">Individual</div><div class="sp"></div>
+        <span class="dim" style="font-size:13px;margin-right:10px">3 shogird</span><span class="mono" style="font-size:14px">0.3M</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TAB BAR ==================== -->
+<nav id="tabbar">
+  <button class="tab on" data-s="s4">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 9.5L11 3l8 6.5V18a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 013 18z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    Asosiy</button>
+  <button class="tab" data-s="s5">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="7.5" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 18c.7-3 2.9-4.5 5.5-4.5S12.8 15 13.5 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="15.5" cy="8.5" r="2.6" stroke="currentColor" stroke-width="1.8"/><path d="M15 13.6c2.3.1 4 1.5 4.5 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    Shogirdlar</button>
+  <button class="plus" onclick="openSheet()">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 4v14M4 11h14" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
+  </button>
+  <button class="tab" data-s="s10">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M4 18V11M11 18V4M18 18v-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Statistika</button>
+  <button class="tab" data-s="s6">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="7.5" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M4 18.5c1-3.6 3.8-5.3 7-5.3s6 1.7 7 5.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    Profil</button>
+</nav>
+
+<!-- ==================== S8 · TO'LOV SHEET ==================== -->
+<div id="scrim" onclick="closeSheet()"></div>
+<div id="sheet">
+  <div class="handle"></div>
+  <div class="row">
+    <div class="disp" style="font-weight:600;font-size:18px">To'lov qo'shish</div>
+    <div class="sp"></div>
+    <button class="btn sm ghost" onclick="closeSheet()" style="width:36px;height:36px;padding:0;border-radius:12px">✕</button>
+  </div>
+
+  <div class="glass row" style="gap:12px;padding:12px 14px;margin-top:18px;border-radius:16px">
+    <div class="avatar" style="width:38px;height:38px;font-size:12px;color:#FF7A6B">AK</div>
+    <div><div style="font-weight:700;font-size:14px">Aziz Karimov</div>
+      <div class="dim" style="font-size:12px">Oylik · 400 000 so'm</div></div>
+    <div class="sp"></div>
+    <span class="dim" style="font-size:13px">o'zgartirish ›</span>
+  </div>
+
+  <div style="text-align:center;margin:26px 0 6px">
+    <span class="mono" style="font-size:40px;font-weight:600">400 000</span>
+    <span class="soft" style="font-size:16px;font-weight:600"> so'm</span>
+    <div class="okc" style="font-size:12.5px;font-weight:700;margin-top:8px">
+      ✓ Keyingi to'lov: 16-avgust, 2026
+    </div>
+  </div>
+
+  <div class="row" style="gap:8px;margin-top:16px">
+    <span class="chip on" style="flex:1;text-align:center">Naqd</span>
+    <span class="chip" style="flex:1;text-align:center">Karta</span>
+    <span class="chip" style="flex:1;text-align:center">Payme</span>
+    <span class="chip" style="flex:1;text-align:center">Click</span>
+  </div>
+
+  <button class="btn" style="margin-top:20px" onclick="paid()">To'lovni saqlash</button>
+  <div class="dim center" style="font-size:12px;margin-top:12px">
+    Shogirdga Telegram orqali chek yuboriladi 📨
+  </div>
+</div>
+
+<!-- ==================== TAVSIYA QO'SHISH SHEET ==================== -->
+<div id="sheet2">
+  <div class="handle"></div>
+  <div class="row">
+    <div class="disp" style="font-weight:600;font-size:18px">Tavsiya qo'shish</div>
+    <div class="sp"></div>
+    <button class="btn sm ghost" onclick="closeSheet2()" style="width:36px;height:36px;padding:0;border-radius:12px">✕</button>
+  </div>
+
+  <div class="row" style="gap:8px;margin-top:16px;overflow-x:auto;scrollbar-width:none">
+    <span class="chip c2 on">Sport pit</span>
+    <span class="chip c2">Ovqatlanish</span>
+    <span class="chip c2">Suv</span>
+    <span class="chip c2">Uyqu</span>
+    <span class="chip c2">Mashq</span>
+  </div>
+
+  <textarea class="ta" placeholder="Masalan: mashg'ulotdan keyin 30 daqiqa ichida protein iching…">Mashg'ulotdan keyin 30 daqiqa ichida 1 porsiya protein iching.</textarea>
+
+  <div class="linkrow" id="linkrow" onclick="toggleProds()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6.5 9.5a3.5 3.5 0 005 0l2-2a3.5 3.5 0 00-5-5l-1 1M9.5 6.5a3.5 3.5 0 00-5 0l-2 2a3.5 3.5 0 005 5l1-1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <span id="linktxt">Mahsulot bog'lash — do'kondan tanlang</span>
+    <div class="sp"></div>
+    <span class="refchip">REFERAL 3%</span>
+  </div>
+
+  <div id="prodlist" class="glass" style="border-radius:16px;padding:6px">
+    <div class="pl" onclick="pickProd('Whey Gold 2kg','450 000','🥤')">
+      <div class="prod" style="margin:0;background:none;border:0;padding:0;gap:10px"><div class="ph">🥤</div></div>
+      <div><div style="font-size:13px;font-weight:700">Whey Gold 2kg</div>
+        <div class="mono dim" style="font-size:11.5px">450 000 so'm · SportPit UZ</div></div>
+    </div>
+    <div class="pl" onclick="pickProd('Kreatin monohidrat 300g','180 000','💊')">
+      <div class="prod" style="margin:0;background:none;border:0;padding:0;gap:10px"><div class="ph">💊</div></div>
+      <div><div style="font-size:13px;font-weight:700">Kreatin monohidrat 300g</div>
+        <div class="mono dim" style="font-size:11.5px">180 000 so'm · IronStore</div></div>
+    </div>
+    <div class="pl" onclick="pickProd('BCAA 2:1:1 400g','220 000','⚡')">
+      <div class="prod" style="margin:0;background:none;border:0;padding:0;gap:10px"><div class="ph">⚡</div></div>
+      <div><div style="font-size:13px;font-weight:700">BCAA 2:1:1 400g</div>
+        <div class="mono dim" style="font-size:11.5px">220 000 so'm · SportPit UZ</div></div>
+    </div>
+  </div>
+
+  <div id="picked"></div>
+
+  <label class="chk" id="bcast" onclick="this.classList.toggle('on')">
+    <span class="box">✓</span> Barcha shogirdlarga yuborish (23 kishi)
+  </label>
+
+  <button class="btn" style="margin-top:18px" onclick="sendRec()">Yuborish</button>
+  <div class="dim center" style="font-size:12px;margin-top:12px">
+    Shogird app'ida va Telegram'da ko'radi 📨
+  </div>
+</div>
+
+<div id="toast">✓ Aziz'ga yuborildi — app + Telegram</div>
+
+</div><!-- /phone -->
+
+<script>
+const phone=document.getElementById('phone');
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+  document.querySelectorAll('#tabbar .tab').forEach(t=>t.classList.toggle('on',t.dataset.s===id));
+  document.querySelectorAll('#panel button').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
+  document.querySelector('.screen.on').scrollTop=0;
+  animRings();
+}
+document.querySelectorAll('#tabbar .tab').forEach(t=>t.onclick=()=>go(t.dataset.s));
+document.querySelectorAll('#panel button').forEach(b=>b.onclick=()=>{
+  if(b.dataset.s==='sheet'){openSheet();document.querySelectorAll('#panel button').forEach(x=>x.classList.toggle('on',x===b));}
+  else if(b.dataset.s==='sheet2'){go('s6');openSheet2();document.querySelectorAll('#panel button').forEach(x=>x.classList.toggle('on',x===b));}
+  else go(b.dataset.s);
+});
+
+function openSheet(){phone.classList.add('sheet-open')}
+function closeSheet(){phone.classList.remove('sheet-open')}
+function openSheet2(){phone.classList.add('sheet2-open')}
+function closeSheet2(){phone.classList.remove('sheet2-open')}
+document.getElementById('scrim').onclick=()=>{closeSheet();closeSheet2()};
+
+document.querySelectorAll('#sheet2 .chip.c2').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('#sheet2 .chip.c2').forEach(x=>x.classList.remove('on'));
+  c.classList.add('on');
+});
+function toggleProds(){document.getElementById('prodlist').classList.toggle('show')}
+function pickProd(name,price,emoji){
+  document.getElementById('prodlist').classList.remove('show');
+  document.getElementById('linktxt').textContent='Mahsulot almashtirish';
+  document.getElementById('picked').innerHTML=
+    `<div class="prod"><div class="ph">${emoji}</div>
+     <div><div style="font-size:13px;font-weight:700">${name}</div>
+     <div class="mono dim" style="font-size:11.5px">${price} so'm</div></div>
+     <div class="sp"></div><span class="refchip">REFERAL 3%</span></div>`;
+}
+function sendRec(){
+  closeSheet2();
+  const t=document.getElementById('toast');
+  const bc=document.getElementById('bcast').classList.contains('on');
+  t.textContent=bc?'✓ 23 shogirdga yuborildi — app + Telegram':"✓ Aziz'ga yuborildi — app + Telegram";
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+function paid(){
+  closeSheet();
+  const btn=document.querySelector('#sheet .btn');
+  setTimeout(()=>go('s4'),300);
+}
+
+/* Ring animatsiyasi — stroke-dashoffset */
+function animRings(){
+  document.querySelectorAll('.screen.on .val,#sheet .val').forEach(c=>{
+    const len=parseFloat(c.getAttribute('stroke-dasharray'));
+    const p=parseFloat(c.dataset.p||0);
+    c.style.strokeDashoffset=len;           // reset
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      c.style.strokeDashoffset=len*(1-p);
+    }));
+  });
+  /* barlar */
+  document.querySelectorAll('.screen.on .bars .b').forEach(b=>{
+    const f=b.querySelector('.fill');
+    f.style.height='0%';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      f.style.height=b.dataset.h+'%';
+    }));
+  });
+}
+
+/* Heatmap 8 hafta x 14 (2 hafta ustun ko'rinishida 56 katak) */
+(function(){
+  const h=document.getElementById('heatmap');
+  const pattern=[0,2,0,3,0,2,0, 1,0,3,0,2,0,0, 3,0,2,0,3,0,1, 0,2,0,3,0,0,2,
+                 0,3,0,2,0,3,0, 2,0,3,0,1,0,3, 0,2,0,3,0,2,0, 3,0,2,0,3,1,0];
+  pattern.forEach(v=>{
+    const i=document.createElement('i');
+    if(v)i.className='l'+v;
+    h.appendChild(i);
+  });
+})();
+
+animRings();
+</script>
+</body>
+</html>

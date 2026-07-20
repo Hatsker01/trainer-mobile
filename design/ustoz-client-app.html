@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>USTOZ Client — Prototip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   USTOZ CLIENT — dual theme: "Kechki zal" (dark) / "Gips" (light)
+   ============================================================ */
+#phone{
+  /* DARK default */
+  --bg:#0C0D10;
+  --sheet-bg:#17191E;
+  --surface:rgba(255,255,255,.055);
+  --surface-hi:rgba(255,255,255,.09);
+  --ink:#F4F2EC; --soft:#9C9FA8; --dim:#5E626C;
+  --g1:#FF6A3D; --g2:#E2264B;
+  --accent:#FF5340;
+  --glow:0 12px 30px -8px rgba(255,83,64,.35);
+  --card-shadow:none;
+  --ok:#3DD68C; --ok-soft:rgba(61,214,140,.14);
+  --warn:#FFC24D; --warn-soft:rgba(255,194,77,.14);
+  --debt:#FF7A6B; --debt-soft:rgba(255,83,64,.14);
+  --line:rgba(255,255,255,.08);
+  --track:rgba(255,255,255,.09);
+  --heat0:rgba(255,255,255,.06);
+  --halo1:rgba(255,83,64,.10); --halo2:rgba(226,38,75,.07);
+}
+#phone[data-theme="light"]{
+  --bg:#F6F4EF;
+  --sheet-bg:#FFFFFF;
+  --surface:#FFFFFF;
+  --surface-hi:#EFECE4;
+  --ink:#1C1E22; --soft:#5A5E66; --dim:#8A8E96;
+  --g1:#E8452F; --g2:#C4203F;
+  --accent:#D63A2F;
+  --glow:0 10px 26px -8px rgba(214,58,47,.30);
+  --card-shadow:0 8px 24px rgba(28,30,34,.07);
+  --ok:#1F7A4D; --ok-soft:#E3F2EA;
+  --warn:#A87908; --warn-soft:#FFF3D6;
+  --debt:#C22E22; --debt-soft:#FBE4E1;
+  --line:#E5E1D8;
+  --track:#EAE7DF;
+  --heat0:#ECE9E1;
+  --halo1:rgba(214,58,47,.06); --halo2:rgba(196,32,63,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Manrope',system-ui,sans-serif;color:#F4F2EC;
+  background:#08090B;
+  display:flex;align-items:center;justify-content:center;gap:40px;
+  min-height:100vh;padding:40px 20px;
+}
+
+/* ---------- Chap panel ---------- */
+#panel{width:220px;flex:none}
+#panel .logo{font-family:'Unbounded';font-weight:700;font-size:20px;margin-bottom:4px}
+#panel .logo b{color:#FF5340}
+#panel .sub{font-size:11px;color:#5E626C;font-weight:700;letter-spacing:1px;margin-bottom:16px}
+#panel .theme{display:flex;gap:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:4px;margin-bottom:18px}
+#panel .theme button{flex:1;font-family:'Manrope';font-size:12px;font-weight:700;color:#9C9FA8;
+  background:none;border:0;border-radius:9px;padding:7px 0;cursor:pointer}
+#panel .theme button.on{background:rgba(255,255,255,.1);color:#F4F2EC}
+#panel .nav{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  font-family:'Manrope';font-size:13.5px;font-weight:600;color:#9C9FA8;
+  background:none;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;transition:.18s}
+#panel .nav:hover{background:rgba(255,255,255,.05)}
+#panel .nav.on{background:rgba(255,255,255,.09);color:#F4F2EC}
+#panel .nav .k{font-family:'JetBrains Mono';font-size:11px;color:#5E626C;width:26px}
+#panel .nav.on .k{color:#FF5340}
+
+/* ---------- Telefon ---------- */
+#phone{
+  width:393px;height:830px;flex:none;position:relative;
+  background:var(--bg);border-radius:54px;overflow:hidden;color:var(--ink);
+  box-shadow:0 0 0 10px #1B1D22,0 0 0 12px #2A2D34,0 50px 120px rgba(0,0,0,.7);
+  transition:background .35s,color .35s;
+}
+#phone::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:
+    radial-gradient(120% 55% at 50% -8%, var(--halo1), transparent 55%),
+    radial-gradient(90% 40% at 85% 110%, var(--halo2), transparent 60%);
+}
+.island{position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  width:122px;height:34px;background:#000;border-radius:20px;z-index:60}
+.statusbar{position:absolute;top:0;left:0;right:0;height:58px;z-index:55;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 32px 0;font-size:14px;font-weight:700;color:var(--ink)}
+.statusbar .icons{display:flex;gap:6px;align-items:center;color:var(--ink)}
+
+/* ---------- Ekranlar ---------- */
+.screen{position:absolute;inset:0;z-index:5;overflow-y:auto;overscroll-behavior:contain;
+  padding:74px 20px 120px;display:none;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.screen.on{display:block;animation:sIn .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes sIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ---------- Primitivlar ---------- */
+.glass{background:var(--surface);border:1px solid var(--line);border-radius:20px;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:var(--card-shadow);transition:background .35s,border-color .35s}
+.card{padding:16px}
+.mono{font-family:'JetBrains Mono';font-feature-settings:"tnum"}
+.disp{font-family:'Unbounded'}
+.soft{color:var(--soft)}.dim{color:var(--dim)}
+.okc{color:var(--ok)}.warnc{color:var(--warn)}.debtc{color:var(--debt)}.acc{color:var(--accent)}
+.row{display:flex;align-items:center}
+.sp{flex:1}
+.sec{margin-top:24px}
+.sec-h{display:flex;align-items:baseline;margin-bottom:12px}
+.sec-h .t{font-family:'Unbounded';font-weight:600;font-size:15px}
+.sec-h .n{margin-left:8px;font-size:12px;font-weight:800;color:var(--accent);
+  background:var(--debt-soft);border-radius:20px;padding:2px 9px}
+.sec-h .all{margin-left:auto;font-size:13px;font-weight:600;color:var(--dim)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;
+  font-family:'Manrope';font-weight:700;font-size:15px;color:#fff;
+  border:0;border-radius:18px;height:54px;width:100%;cursor:pointer;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  box-shadow:var(--glow), inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--surface);box-shadow:var(--card-shadow);border:1px solid var(--line);color:var(--ink)}
+.btn.sm{height:38px;font-size:13px;border-radius:12px;width:auto;padding:0 14px}
+.btn.ok{background:var(--ok);box-shadow:none}
+.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+
+.chip{font-size:13px;font-weight:700;color:var(--soft);white-space:nowrap;
+  background:var(--surface);border:1px solid var(--line);border-radius:20px;
+  padding:8px 14px;cursor:pointer;transition:.15s}
+.chip.on{color:#fff;background:linear-gradient(135deg,var(--g1),var(--g2));border-color:transparent}
+
+.badge{font-size:11px;font-weight:800;letter-spacing:.4px;border-radius:8px;padding:4px 8px}
+.badge.ok{color:var(--ok);background:var(--ok-soft)}
+.badge.warn{color:var(--warn);background:var(--warn-soft)}
+.badge.debt{color:var(--debt);background:var(--debt-soft)}
+.badge.soon{color:var(--dim);background:var(--surface-hi)}
+
+.avatar{width:44px;height:44px;border-radius:16px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Unbounded';font-weight:600;font-size:14px;
+  background:var(--surface-hi);border:1px solid var(--line);color:var(--soft)}
+
+.ring{position:relative;flex:none}
+.ring svg{transform:rotate(-90deg);display:block}
+.ring .track{stroke:var(--track);fill:none}
+.ring .val{fill:none;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)}
+.ring .hole{fill:var(--bg)}
+.ring .lbl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+.lrow{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.lrow:last-child{border-bottom:0}
+
+/* ---------- Tab bar ---------- */
+#tabbar{position:absolute;left:16px;right:16px;bottom:16px;height:76px;z-index:50;
+  background:var(--sheet-bg);border:1px solid var(--line);border-radius:28px;
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  display:flex;align-items:center;justify-content:space-around;padding:0 8px;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);opacity:.98}
+#tabbar .tab{display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-size:10px;font-weight:700;color:var(--dim);
+  background:none;border:0;cursor:pointer;width:64px;transition:.15s}
+#tabbar .tab.on{color:var(--accent)}
+
+/* ---------- Sheets ---------- */
+#scrim{position:absolute;inset:0;z-index:70;background:rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:.3s;backdrop-filter:blur(3px)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:80;
+  background:var(--sheet-bg);border-radius:32px 32px 0 0;border-top:1px solid var(--line);
+  padding:10px 22px 34px;transform:translateY(105%);
+  transition:transform .38s cubic-bezier(.2,.9,.25,1)}
+.sheet .handle{width:44px;height:5px;border-radius:3px;background:var(--track);margin:6px auto 18px}
+#phone.sh-order #orderSheet,#phone.sh-order #scrim{transform:none;opacity:1;pointer-events:auto}
+
+/* ---------- Heatmap ---------- */
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.heat i{aspect-ratio:1;border-radius:6px;background:var(--heat0);position:relative}
+.heat i.on{background:var(--ok)}
+.heat i.miss{background:var(--debt-soft)}
+.heat i.today{outline:2px solid var(--accent);outline-offset:1.5px}
+.heat .d{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:var(--dim)}
+.heat i.on .d{color:#fff}
+
+/* ---------- XP bar ---------- */
+.xp{height:12px;border-radius:8px;background:var(--track);overflow:hidden}
+.xp i{display:block;height:100%;border-radius:8px;width:0;
+  background:linear-gradient(90deg,var(--g1),var(--g2));
+  transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- Badge grid ---------- */
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bd{background:var(--surface);border:1px solid var(--line);border-radius:18px;
+  padding:16px 8px;text-align:center;box-shadow:var(--card-shadow)}
+.bd .ic{font-size:26px;display:block;margin-bottom:8px}
+.bd .nm{font-size:11.5px;font-weight:800}
+.bd .ds{font-size:10px;color:var(--dim);margin-top:3px;font-weight:600}
+.bd.lock{opacity:.42;filter:grayscale(1)}
+.bd.earn{border-color:var(--accent);background:var(--debt-soft)}
+
+/* ---------- Do'kon grid ---------- */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:20px;
+  overflow:hidden;cursor:pointer;box-shadow:var(--card-shadow);position:relative;transition:.15s}
+.pcard:active{transform:scale(.97)}
+.pcard .ph{height:110px;display:flex;align-items:center;justify-content:center;
+  font-size:42px;background:var(--surface-hi)}
+.pcard .bd2{padding:12px}
+.pcard .tag{position:absolute;top:10px;left:10px;font-size:9.5px;font-weight:800;
+  letter-spacing:.4px;color:#fff;background:linear-gradient(135deg,var(--g1),var(--g2));
+  border-radius:7px;padding:3px 7px}
+
+/* ---------- Countdown / hero ---------- */
+.count{font-family:'JetBrains Mono';font-weight:600;font-size:13px;
+  color:var(--accent);background:var(--debt-soft);border-radius:10px;padding:5px 10px}
+
+/* ---------- Blur teaser ---------- */
+.teaser{position:relative;border-radius:20px;overflow:hidden}
+.teaser .inner{filter:blur(7px);opacity:.55;pointer-events:none}
+.teaser .over{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px}
+
+/* ---------- Toast ---------- */
+#toast{position:absolute;left:24px;right:24px;bottom:110px;z-index:90;
+  background:var(--sheet-bg);border:1px solid var(--line);border-radius:16px;
+  padding:14px 16px;font-size:13.5px;font-weight:700;text-align:center;color:var(--ink);
+  box-shadow:0 16px 40px rgba(0,0,0,.35);
+  opacity:0;transform:translateY(14px);pointer-events:none;
+  transition:.32s cubic-bezier(.2,.8,.2,1)}
+#toast.show{opacity:1;transform:none}
+
+/* ---------- Segmented (profil, theme) ---------- */
+.seg3{display:flex;gap:4px;background:var(--surface-hi);border-radius:14px;padding:4px}
+.seg3 button{flex:1;font-family:'Manrope';font-size:12.5px;font-weight:700;color:var(--soft);
+  background:none;border:0;border-radius:10px;padding:9px 0;cursor:pointer}
+.seg3 button.on{background:var(--sheet-bg);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+
+.switch{width:46px;height:27px;border-radius:16px;background:var(--track);position:relative;
+  cursor:pointer;transition:.2s;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;
+  border-radius:50%;background:#fff;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.switch.on{background:var(--ok)}
+.switch.on::after{left:22px}
+
+@media (max-width:760px){
+  body{flex-direction:column;padding:16px}
+  #panel{width:100%}
+  #phone{transform:scale(.92);transform-origin:top center}
+}
+</style>
+</head>
+<body>
+
+<aside id="panel">
+  <div class="logo">UST<b>O</b>Z</div>
+  <div class="sub">CLIENT APP · SHOGIRD</div>
+  <div class="theme">
+    <button class="on" onclick="setTheme('dark',this)">🌙 Dark</button>
+    <button onclick="setTheme('light',this)">☀️ Light</button>
+  </div>
+  <button class="nav on" data-s="c3"><span class="k">C3</span>Asosiy</button>
+  <button class="nav" data-s="c4"><span class="k">C4</span>Mashg'ulotlar</button>
+  <button class="nav" data-s="c6"><span class="k">C6</span>Tavsiyalar</button>
+  <button class="nav" data-s="c7"><span class="k">C7</span>Do'kon</button>
+  <button class="nav" data-s="c9"><span class="k">C9</span>Yutuqlar</button>
+  <button class="nav" data-s="c5"><span class="k">C5</span>To'lovlar</button>
+  <button class="nav" data-s="c8"><span class="k">C8</span>Trenerim</button>
+  <button class="nav" data-s="c10"><span class="k">C10</span>Profil</button>
+  <button class="nav" data-s="order"><span class="k">C7b</span>Buyurtma (sheet)</button>
+</aside>
+
+<div id="phone" data-theme="dark">
+  <div class="island"></div>
+  <div class="statusbar">
+    <span>18:47</span>
+    <span class="icons">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".35"/></svg>
+      <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x=".5" y=".5" width="20" height="11" rx="3.5" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="13" height="8" rx="2" fill="currentColor"/><rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".5"/></svg>
+    </span>
+  </div>
+
+<!-- ==================== C3 · ASOSIY ==================== -->
+<section class="screen on" id="c3">
+  <div class="row">
+    <div>
+      <div class="dim" style="font-size:13px;font-weight:600">Yakshanba, 19-iyul</div>
+      <div class="disp" style="font-weight:700;font-size:24px;margin-top:3px">Salom, Aziz</div>
+    </div>
+    <div class="sp"></div>
+    <div class="glass row" style="gap:6px;padding:8px 12px;border-radius:14px">
+      <span style="font-size:15px">🔥</span>
+      <span style="font-size:13px;font-weight:800">6 hafta</span>
+    </div>
+  </div>
+
+  <!-- HERO: keyingi mashg'ulot -->
+  <div class="glass" style="margin-top:20px;padding:20px;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:radial-gradient(80% 90% at 15% 0%,var(--halo1),transparent 60%)"></div>
+    <div style="position:relative">
+      <div class="row">
+        <span class="dim" style="font-size:12px;font-weight:800;letter-spacing:.5px">KEYINGI MASHG'ULOT</span>
+        <div class="sp"></div>
+        <span class="count" id="cd">1:13:24</span>
+      </div>
+      <div class="row" style="gap:14px;margin-top:14px">
+        <div class="disp" style="font-weight:700;font-size:30px">18:00</div>
+        <div>
+          <div style="font-weight:700;font-size:14.5px">Jamshid bilan</div>
+          <div class="dim" style="font-size:12.5px">Atlant Gym · Chilonzor</div>
+        </div>
+      </div>
+      <div class="row" style="gap:8px;margin-top:16px">
+        <button class="btn sm ok" style="flex:1" onclick="toast('✓ Trenerga yuborildi: Boraman')">Boraman ✓</button>
+        <button class="btn sm ghost" style="flex:1" onclick="toast('Trenerga yuborildi: Kelolmayman')">Kelolmayman</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- To'lov strip -->
+  <div class="glass row" style="margin-top:12px;padding:13px 16px;gap:10px;border-color:var(--warn)" onclick="go('c5')">
+    <span style="font-size:16px">💳</span>
+    <div>
+      <div style="font-size:13.5px;font-weight:700">To'lovga 3 kun qoldi</div>
+      <div class="dim" style="font-size:12px">22-iyul · <span class="mono">400 000 so'm</span></div>
+    </div>
+    <div class="sp"></div>
+    <span class="dim" style="font-weight:700">›</span>
+  </div>
+
+  <!-- Haftalik maqsad + tavsiya -->
+  <div class="row" style="gap:12px;margin-top:12px;align-items:stretch">
+    <div class="glass card" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px">
+      <div class="ring">
+        <svg width="86" height="86" viewBox="0 0 86 86">
+          <defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#FF6A3D"/><stop offset="1" stop-color="#E2264B"/>
+          </linearGradient></defs>
+          <circle class="track" cx="43" cy="43" r="35" stroke-width="9"/>
+          <circle class="val" cx="43" cy="43" r="35" stroke-width="9" stroke="url(#cg)"
+                  stroke-dasharray="220" stroke-dashoffset="220" data-p="0.667"/>
+          <circle class="hole" cx="43" cy="43" r="10"/>
+        </svg>
+        <div class="lbl"><span class="disp" style="font-size:14px;font-weight:700">2/3</span></div>
+      </div>
+      <div class="dim" style="font-size:11px;font-weight:800;text-align:center">HAFTALIK<br>MAQSAD</div>
+    </div>
+    <div class="glass card" style="flex:1.35;cursor:pointer" onclick="go('c6')">
+      <span class="badge debt" style="font-size:9.5px">YANGI TAVSIYA</span>
+      <div style="font-size:13px;line-height:1.45;margin-top:9px;font-weight:600">
+        "Mashg'ulotdan keyin 30 daqiqada protein iching"
+      </div>
+      <div class="row" style="gap:8px;margin-top:10px">
+        <div style="width:30px;height:30px;border-radius:9px;background:var(--surface-hi);
+          display:flex;align-items:center;justify-content:center;font-size:15px">🥤</div>
+        <div class="dim" style="font-size:11.5px;font-weight:700">Whey Gold 2kg<br><span class="mono">450 000</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Motivatsiya -->
+  <div class="sec" style="margin-bottom:8px">
+    <div class="sec-h"><span class="t">So'nggi yutuq</span><span class="all" style="color:var(--accent);cursor:pointer" onclick="go('c9')">Hammasi →</span></div>
+    <div class="glass row card" style="gap:14px">
+      <div style="width:48px;height:48px;border-radius:16px;background:var(--debt-soft);
+        display:flex;align-items:center;justify-content:center;font-size:24px">💪</div>
+      <div>
+        <div style="font-weight:800;font-size:14.5px">"O'nlik" yutug'i!</div>
+        <div class="dim" style="font-size:12.5px">10-mashg'ulotingiz · +50 XP</div>
+      </div>
+      <div class="sp"></div>
+      <span class="badge ok">+50 XP</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== C4 · MASHG'ULOTLAR ==================== -->
+<section class="screen" id="c4">
+  <div class="disp" style="font-weight:700;font-size:24px">Mashg'ulotlar</div>
+
+  <div class="row" style="gap:10px;margin-top:16px">
+    <div class="glass card" style="flex:1;text-align:center;padding:14px 6px">
+      <div class="mono okc" style="font-size:18px;font-weight:600">87%</div>
+      <div class="dim" style="font-size:10.5px;font-weight:800;margin-top:3px">DAVOMAD</div>
+    </div>
+    <div class="glass card" style="flex:1;text-align:center;padding:14px 6px">
+      <div class="mono" style="font-size:18px;font-weight:600">46</div>
+      <div class="dim" style="font-size:10.5px;font-weight:800;margin-top:3px">JAMI</div>
+    </div>
+    <div class="glass card" style="flex:1;text-align:center;padding:14px 6px">
+      <div class="mono" style="font-size:18px;font-weight:600">🔥 6</div>
+      <div class="dim" style="font-size:10.5px;font-weight:800;margin-top:3px">STREAK</div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="t">Iyul</span><span class="all">15 / 18 reja</span></div>
+    <div class="glass card">
+      <div class="row" style="margin-bottom:10px">
+        <span class="dim" style="font-size:10.5px;font-weight:800;flex:1;text-align:center">Du</span>
+        <span class="dim" style="font-size:10.5px;font-weight:800;flex:1;text-align:center">Se</span>
+        <span class="dim" style="font-size:10.5px;font-weight:800;flex:1;text-align:center">Cho</span>
+        <span class="dim" style="font-size:10.5px;font-weight:800;flex:1;text-align:center">Pa</span>
+        <span class="dim" style="font-size:10.5px;font-weight:800;flex:1;text-align:center">Ju</span>
+        <span class="dim" style="font-size:10.5px;font-weight:800;flex:1;text-align:center">Sha</span>
+        <span class="dim" style="font-size:10.5px;font-weight:800;flex:1;text-align:center">Ya</span>
+      </div>
+      <div class="heat" id="cal"></div>
+      <div class="row" style="margin-top:14px;gap:14px;justify-content:center">
+        <span class="row" style="gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--ok)"></i><span class="dim" style="font-size:11px;font-weight:700">Keldi</span></span>
+        <span class="row" style="gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--debt-soft)"></i><span class="dim" style="font-size:11px;font-weight:700">Qoldirdi</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-bottom:8px">
+    <div class="sec-h"><span class="t">Yaqin jadval</span></div>
+    <div class="glass card">
+      <div class="lrow">
+        <div class="avatar" style="width:40px;height:40px;font-size:11px;color:var(--accent)">BU</div>
+        <div><div style="font-weight:700;font-size:14px">Bugun · 18:00</div><div class="dim" style="font-size:12px">Jamshid · Atlant Gym</div></div>
+        <div class="sp"></div><span class="badge debt">2 SOAT</span>
+      </div>
+      <div class="lrow">
+        <div class="avatar" style="width:40px;height:40px;font-size:11px">SE</div>
+        <div><div style="font-weight:700;font-size:14px">Seshanba · 18:00</div><div class="dim" style="font-size:12px">Jamshid · Atlant Gym</div></div>
+        <div class="sp"></div>
+      </div>
+      <div class="lrow">
+        <div class="avatar" style="width:40px;height:40px;font-size:11px">PA</div>
+        <div><div style="font-weight:700;font-size:14px">Payshanba · 18:00</div><div class="dim" style="font-size:12px">Jamshid · Atlant Gym</div></div>
+        <div class="sp"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== C6 · TAVSIYALAR ==================== -->
+<section class="screen" id="c6">
+  <div class="disp" style="font-weight:700;font-size:24px">Tavsiyalar</div>
+  <div class="soft" style="font-size:13px;margin-top:4px">Trenering Jamshid'dan</div>
+
+  <div class="sec" style="margin-top:18px">
+    <div class="glass card" style="margin-bottom:10px">
+      <div class="row"><span class="badge debt" style="font-size:9.5px">SPORT PIT</span><div class="sp"></div>
+        <span class="dim" style="font-size:11.5px">kecha</span></div>
+      <div style="font-size:14.5px;line-height:1.5;margin-top:10px">Mashg'ulotdan keyin 30 daqiqa ichida 1 porsiya protein iching — mushak tiklanishi shu oynada eng yuqori.</div>
+      <div class="glass row" style="gap:11px;margin-top:12px;padding:11px;border-radius:14px;border-color:var(--accent);cursor:pointer" onclick="openOrder()">
+        <div style="width:42px;height:42px;border-radius:11px;background:var(--surface-hi);display:flex;align-items:center;justify-content:center;font-size:20px">🥤</div>
+        <div><div style="font-size:13.5px;font-weight:700">Whey Gold 2kg</div>
+          <div class="mono dim" style="font-size:12px">450 000 so'm · SportPit UZ</div></div>
+        <div class="sp"></div>
+        <span class="acc" style="font-size:12.5px;font-weight:800">Ko'rish ›</span>
+      </div>
+    </div>
+
+    <div class="glass card" style="margin-bottom:10px">
+      <div class="row"><span class="badge warn" style="font-size:9.5px">SUV</span><div class="sp"></div>
+        <span class="dim" style="font-size:11.5px">3 kun oldin</span></div>
+      <div style="font-size:14.5px;line-height:1.5;margin-top:10px">Kuniga kamida 2.5 litr suv iching. Mashg'ulot kunlari — 3 litr.</div>
+    </div>
+
+    <div class="glass card" style="margin-bottom:10px">
+      <div class="row"><span class="badge ok" style="font-size:9.5px">UYQU</span><div class="sp"></div>
+        <span class="dim" style="font-size:11.5px">1 hafta oldin</span></div>
+      <div style="font-size:14.5px;line-height:1.5;margin-top:10px">Uyqu 23:00 dan kechikmasin — tiklanishning 70% i uyquda bo'ladi.</div>
+    </div>
+
+    <div class="glass card">
+      <div class="row"><span class="badge soon" style="font-size:9.5px">OVQATLANISH</span><div class="sp"></div>
+        <span class="dim" style="font-size:11.5px">2 hafta oldin</span></div>
+      <div style="font-size:14.5px;line-height:1.5;margin-top:10px">Har ovqatda oqsil bo'lsin: tuxum, tovuq, mol go'shti yoki tvorog.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== C7 · DO'KON ==================== -->
+<section class="screen" id="c7">
+  <div class="row">
+    <div class="disp" style="font-weight:700;font-size:24px">Do'kon</div>
+    <div class="sp"></div>
+    <span class="dim" style="font-size:12.5px;font-weight:700">Sport pit</span>
+  </div>
+
+  <div class="row" style="gap:8px;margin-top:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px">
+    <span class="chip on">Trener tavsiyasi ⭐</span>
+    <span class="chip">Protein</span>
+    <span class="chip">Kreatin</span>
+    <span class="chip">Gainer</span>
+    <span class="chip">Vitamin</span>
+  </div>
+
+  <div class="pgrid" style="margin-top:16px">
+    <div class="pcard" onclick="openOrder()">
+      <span class="tag">TAVSIYA</span>
+      <div class="ph">🥤</div>
+      <div class="bd2">
+        <div class="dim" style="font-size:10.5px;font-weight:800">OPTIMUM · 2KG</div>
+        <div style="font-size:13.5px;font-weight:700;margin-top:3px">Whey Gold Standard</div>
+        <div class="mono" style="font-size:13.5px;margin-top:6px;font-weight:600">450 000 <span class="dim" style="font-size:11px">so'm</span></div>
+      </div>
+    </div>
+    <div class="pcard" onclick="openOrder()">
+      <div class="ph">💊</div>
+      <div class="bd2">
+        <div class="dim" style="font-size:10.5px;font-weight:800">MAXLER · 300G</div>
+        <div style="font-size:13.5px;font-weight:700;margin-top:3px">Kreatin monohidrat</div>
+        <div class="mono" style="font-size:13.5px;margin-top:6px;font-weight:600">180 000 <span class="dim" style="font-size:11px">so'm</span></div>
+      </div>
+    </div>
+    <div class="pcard" onclick="openOrder()">
+      <div class="ph">⚡</div>
+      <div class="bd2">
+        <div class="dim" style="font-size:10.5px;font-weight:800">BSN · 400G</div>
+        <div style="font-size:13.5px;font-weight:700;margin-top:3px">BCAA 2:1:1</div>
+        <div class="mono" style="font-size:13.5px;margin-top:6px;font-weight:600">220 000 <span class="dim" style="font-size:11px">so'm</span></div>
+      </div>
+    </div>
+    <div class="pcard" onclick="openOrder()">
+      <div class="ph">🍫</div>
+      <div class="bd2">
+        <div class="dim" style="font-size:10.5px;font-weight:800">MUTANT · 2.7KG</div>
+        <div style="font-size:13.5px;font-weight:700;margin-top:3px">Mass Gainer</div>
+        <div class="mono" style="font-size:13.5px;margin-top:6px;font-weight:600">520 000 <span class="dim" style="font-size:11px">so'm</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass row" style="margin-top:14px;padding:12px 16px;gap:10px;margin-bottom:8px">
+    <span style="font-size:15px">ℹ️</span>
+    <span class="dim" style="font-size:12px;line-height:1.4;font-weight:600">Yetkazib berish sotuvchi bilan to'g'ridan-to'g'ri kelishiladi</span>
+  </div>
+</section>
+
+<!-- ==================== C9 · YUTUQLAR ==================== -->
+<section class="screen" id="c9">
+  <div class="disp" style="font-weight:700;font-size:24px">Yutuqlar</div>
+
+  <div class="glass card" style="margin-top:16px">
+    <div class="row">
+      <div>
+        <span class="badge debt">SPORTCHI</span>
+        <div class="disp" style="font-weight:700;font-size:19px;margin-top:8px">3-daraja</div>
+      </div>
+      <div class="sp"></div>
+      <div style="text-align:right">
+        <div class="mono" style="font-size:15px;font-weight:600">640 <span class="dim">/ 1000 XP</span></div>
+        <div class="dim" style="font-size:11px;font-weight:700;margin-top:3px">Keyingi: Ustoz darajasi</div>
+      </div>
+    </div>
+    <div class="xp" style="margin-top:14px"><i data-w="64"></i></div>
+    <div class="row" style="margin-top:12px;gap:14px">
+      <span class="dim" style="font-size:11px;font-weight:700">Mashg'ulot +10 XP</span>
+      <span class="dim" style="font-size:11px;font-weight:700">O'z vaqtida to'lov +20 XP</span>
+      <span class="dim" style="font-size:11px;font-weight:700">Streak bonus x2</span>
+    </div>
+  </div>
+
+  <div class="glass row card" style="margin-top:12px;gap:12px;border-color:var(--warn)">
+    <span style="font-size:22px">🔥</span>
+    <div style="font-size:13px;font-weight:700;line-height:1.4">Streak saqlanishiga <span class="warnc">1 mashg'ulot</span> qoldi — bugun 18:00 ni qoldirmang!</div>
+  </div>
+
+  <div class="sec" style="margin-bottom:8px">
+    <div class="sec-h"><span class="t">Nishonlar</span><span class="all">4 / 9</span></div>
+    <div class="bgrid">
+      <div class="bd earn"><span class="ic">👟</span><span class="nm">Birinchi qadam</span><div class="ds">1-mashg'ulot</div></div>
+      <div class="bd earn"><span class="ic">💪</span><span class="nm">O'nlik</span><div class="ds">10 mashg'ulot</div></div>
+      <div class="bd earn"><span class="ic">🔥</span><span class="nm">3 hafta</span><div class="ds">streak</div></div>
+      <div class="bd earn"><span class="ic">💳</span><span class="nm">Intizom</span><div class="ds">3 oy o'z vaqtida</div></div>
+      <div class="bd lock"><span class="ic">🏋️</span><span class="nm">Temir iroda</span><div class="ds">30 mashg'ulot</div></div>
+      <div class="bd lock"><span class="ic">🌅</span><span class="nm">Barvaqt</span><div class="ds">5 ta tonggi</div></div>
+      <div class="bd lock"><span class="ic">🥇</span><span class="nm">Yarim yil</span><div class="ds">6 oy birga</div></div>
+      <div class="bd lock"><span class="ic">⚡</span><span class="nm">Chaqmoq</span><div class="ds">12 hafta streak</div></div>
+      <div class="bd lock"><span class="ic">🏆</span><span class="nm">Ustoz</span><div class="ds">100 mashg'ulot</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== C5 · TO'LOVLAR ==================== -->
+<section class="screen" id="c5">
+  <div class="disp" style="font-weight:700;font-size:24px">To'lovlar</div>
+
+  <div class="glass" style="margin-top:16px;padding:20px;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:radial-gradient(80% 90% at 80% 0%,var(--halo1),transparent 60%)"></div>
+    <div style="position:relative">
+      <div class="row">
+        <span class="dim" style="font-size:12px;font-weight:800;letter-spacing:.5px">KEYINGI TO'LOV</span>
+        <div class="sp"></div><span class="badge warn">3 KUN</span>
+      </div>
+      <div class="row" style="gap:10px;margin-top:12px;align-items:baseline">
+        <span class="mono" style="font-size:30px;font-weight:600">400 000</span>
+        <span class="soft" style="font-size:14px;font-weight:600">so'm · 22-iyul</span>
+      </div>
+      <div class="dim" style="font-size:12.5px;margin-top:6px">Oylik obuna · Jamshid bilan mashg'ulotlar</div>
+      <button class="btn" style="margin-top:16px" disabled>Onlayn to'lash — Tez kunda 🔒</button>
+      <div class="dim center" style="font-size:11.5px;margin-top:10px">Hozircha to'lov trenerga naqd/karta orqali</div>
+    </div>
+  </div>
+
+  <div class="glass row" style="margin-top:12px;padding:14px 16px;gap:12px">
+    <span style="font-size:16px">🔔</span>
+    <div style="font-size:13.5px;font-weight:700">Eslatma: <span class="soft">3 kun oldin</span></div>
+    <div class="sp"></div>
+    <span class="acc" style="font-size:12.5px;font-weight:800" onclick="toast('Eslatma: 2 kun oldinga o\'zgardi')">O'zgartirish</span>
+  </div>
+
+  <div class="sec" style="margin-bottom:8px">
+    <div class="sec-h"><span class="t">Tarix</span><span class="all mono">jami 2.4M</span></div>
+    <div class="glass card">
+      <div class="lrow">
+        <div><div style="font-weight:700;font-size:14px">16-iyun — 16-iyul</div><div class="dim" style="font-size:12px">Naqd · 16-iyun</div></div>
+        <div class="sp"></div><div style="text-align:right"><span class="mono" style="font-size:14px">400 000</span><div><span class="badge ok" style="font-size:9.5px">O'Z VAQTIDA</span></div></div>
+      </div>
+      <div class="lrow">
+        <div><div style="font-weight:700;font-size:14px">16-may — 16-iyun</div><div class="dim" style="font-size:12px">Payme · 15-may</div></div>
+        <div class="sp"></div><div style="text-align:right"><span class="mono" style="font-size:14px">400 000</span><div><span class="badge ok" style="font-size:9.5px">O'Z VAQTIDA</span></div></div>
+      </div>
+      <div class="lrow">
+        <div><div style="font-weight:700;font-size:14px">16-apr — 16-may</div><div class="dim" style="font-size:12px">Naqd · 18-apr</div></div>
+        <div class="sp"></div><div style="text-align:right"><span class="mono" style="font-size:14px">400 000</span><div><span class="badge warn" style="font-size:9.5px">2 KUN KECH</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== C8 · TRENERIM ==================== -->
+<section class="screen" id="c8">
+  <div class="disp" style="font-weight:700;font-size:24px">Trenerim</div>
+
+  <div class="glass" style="margin-top:16px;padding:20px;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background:radial-gradient(70% 80% at 20% 0%,var(--halo1),transparent 60%)"></div>
+    <div class="row" style="gap:16px;position:relative">
+      <div class="avatar" style="width:64px;height:64px;font-size:19px;border-radius:22px;color:var(--accent)">JI</div>
+      <div>
+        <div class="disp" style="font-weight:600;font-size:18px">Jamshid Ikromov</div>
+        <div class="soft" style="font-size:13px;margin-top:3px">Atlant Gym · Chilonzor</div>
+        <div class="row" style="gap:6px;margin-top:8px">
+          <span class="badge ok">4 YIL TAJRIBA</span>
+          <span class="badge soon">KUCH · MASSA</span>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="gap:10px;margin-top:16px;position:relative">
+      <div class="glass card" style="flex:1;text-align:center;padding:12px 6px">
+        <div class="mono" style="font-size:16px;font-weight:600">6 oy</div>
+        <div class="dim" style="font-size:10px;font-weight:800;margin-top:2px">BIRGA</div>
+      </div>
+      <div class="glass card" style="flex:1;text-align:center;padding:12px 6px">
+        <div class="mono" style="font-size:16px;font-weight:600">46</div>
+        <div class="dim" style="font-size:10px;font-weight:800;margin-top:2px">MASHG'ULOT</div>
+      </div>
+      <div class="glass card" style="flex:1;text-align:center;padding:12px 6px">
+        <div class="mono" style="font-size:16px;font-weight:600">400K</div>
+        <div class="dim" style="font-size:10px;font-weight:800;margin-top:2px">OYLIK</div>
+      </div>
+    </div>
+    <div class="row" style="gap:8px;margin-top:14px;position:relative">
+      <button class="btn sm" style="flex:1" onclick="toast('Telegram ochilmoqda…')">Telegram'da yozish</button>
+      <button class="btn sm ghost" style="width:46px;padding:0">📞</button>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-bottom:8px">
+    <div class="sec-h"><span class="t">Trener qidirish</span><span class="badge soon" style="margin-left:8px">TEZ KUNDA</span></div>
+    <div class="teaser glass">
+      <div class="inner card">
+        <div class="lrow"><div class="avatar">SB</div><div><div style="font-weight:700;font-size:14px">Sardor B.</div><div class="dim" style="font-size:12px">Fitness First · 6 yil</div></div><div class="sp"></div><span class="badge ok">4.9 ★</span></div>
+        <div class="lrow"><div class="avatar">MO</div><div><div style="font-weight:700;font-size:14px">Madina O.</div><div class="dim" style="font-size:12px">Ozone FC · 4 yil</div></div><div class="sp"></div><span class="badge ok">4.8 ★</span></div>
+        <div class="lrow"><div class="avatar">BT</div><div><div style="font-weight:700;font-size:14px">Bobur T.</div><div class="dim" style="font-size:12px">Chekhov SC · 8 yil</div></div><div class="sp"></div><span class="badge ok">5.0 ★</span></div>
+      </div>
+      <div class="over">
+        <span style="font-size:26px">🔍</span>
+        <div style="font-weight:800;font-size:15px">O'zingizga mos trenerni toping</div>
+        <div class="dim" style="font-size:12.5px;font-weight:600">Reyting, yo'nalish va narx bo'yicha — tez kunda</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== C10 · PROFIL ==================== -->
+<section class="screen" id="c10">
+  <div class="disp" style="font-weight:700;font-size:24px">Profil</div>
+
+  <div class="glass row card" style="margin-top:16px;gap:14px">
+    <div class="avatar" style="width:54px;height:54px;font-size:16px;border-radius:18px">AK</div>
+    <div>
+      <div style="font-weight:800;font-size:16px">Aziz Karimov</div>
+      <div class="dim" style="font-size:12.5px">+998 90 123 45 67</div>
+    </div>
+    <div class="sp"></div>
+    <span class="badge debt">SPORTCHI · LVL 3</span>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="t">Ko'rinish</span></div>
+    <div class="glass card">
+      <div class="seg3" id="themeSeg">
+        <button onclick="setTheme('dark',null,this)" class="on">🌙 Dark</button>
+        <button onclick="setTheme('light',null,this)">☀️ Light</button>
+        <button onclick="setTheme('dark',null,this)">⚙️ Tizim</button>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <div style="font-size:14px;font-weight:700">Til</div>
+        <div class="sp"></div>
+        <span class="chip on" style="padding:6px 12px;font-size:12px">O'zbekcha</span>
+        <span class="chip" style="padding:6px 12px;font-size:12px;margin-left:6px">Русский</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="t">Bildirishnomalar</span></div>
+    <div class="glass card">
+      <div class="lrow"><div style="font-size:14px;font-weight:700">Mashg'ulot eslatmasi<div class="dim" style="font-size:11.5px;font-weight:600;margin-top:2px">1 kun oldin + 2 soat oldin</div></div><div class="sp"></div><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="lrow"><div style="font-size:14px;font-weight:700">To'lov eslatmasi</div><div class="sp"></div><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="lrow"><div style="font-size:14px;font-weight:700">Trener tavsiyalari</div><div class="sp"></div><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="lrow"><div style="font-size:14px;font-weight:700">Yutuqlar va streak</div><div class="sp"></div><div class="switch" onclick="this.classList.toggle('on')"></div></div>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-bottom:8px">
+    <div class="glass card">
+      <div class="lrow" style="cursor:pointer"><div style="font-size:14px;font-weight:700">🛒 Buyurtmalarim</div><div class="sp"></div><span class="badge warn" style="font-size:9.5px">1 YANGI</span><span class="dim" style="margin-left:8px">›</span></div>
+      <div class="lrow" style="cursor:pointer"><div style="font-size:14px;font-weight:700">📨 Telegram bot</div><div class="sp"></div><span class="badge ok" style="font-size:9.5px">ULANGAN</span><span class="dim" style="margin-left:8px">›</span></div>
+      <div class="lrow" style="cursor:pointer"><div class="debtc" style="font-size:14px;font-weight:700">Chiqish</div><div class="sp"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TAB BAR ==================== -->
+<nav id="tabbar">
+  <button class="tab on" data-s="c3">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 9.5L11 3l8 6.5V18a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 013 18z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    Asosiy</button>
+  <button class="tab" data-s="c4">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="4.5" width="16" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h16M7.5 2.5v4M14.5 2.5v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    Mashg'ulot</button>
+  <button class="tab" data-s="c7">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M4 7h14l-1.2 10a2 2 0 01-2 1.8H7.2a2 2 0 01-2-1.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9.5V6a3 3 0 016 0v3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    Do'kon</button>
+  <button class="tab" data-s="c9">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M7 3h8v5a4 4 0 01-8 0z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 5H4v1.5A3 3 0 007 9.4M15 5h3v1.5A3 3 0 0115 9.4M11 12v3M8 19h6M9 15h4l1 4H8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    Yutuqlar</button>
+  <button class="tab" data-s="c10">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="7.5" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M4 18.5c1-3.6 3.8-5.3 7-5.3s6 1.7 7 5.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    Profil</button>
+</nav>
+
+<!-- ==================== BUYURTMA SHEET ==================== -->
+<div id="scrim" style="transform:none" onclick="closeOrder()"></div>
+<div class="sheet" id="orderSheet">
+  <div class="handle"></div>
+  <div class="row">
+    <div class="disp" style="font-weight:600;font-size:18px">Buyurtma</div>
+    <div class="sp"></div>
+    <button class="btn sm ghost" onclick="closeOrder()" style="width:36px;height:36px;padding:0;border-radius:12px">✕</button>
+  </div>
+
+  <div class="glass row" style="gap:12px;padding:13px 14px;margin-top:16px;border-radius:16px">
+    <div style="width:52px;height:52px;border-radius:14px;background:var(--surface-hi);display:flex;align-items:center;justify-content:center;font-size:26px">🥤</div>
+    <div>
+      <div style="font-weight:700;font-size:14.5px">Whey Gold Standard 2kg</div>
+      <div class="dim" style="font-size:12px">SportPit UZ · Chilonzor</div>
+      <div class="row" style="gap:6px;margin-top:4px"><span class="badge debt" style="font-size:9px">TRENER TAVSIYASI</span></div>
+    </div>
+    <div class="sp"></div>
+    <span class="mono" style="font-size:14px;font-weight:600">450 000</span>
+  </div>
+
+  <div class="glass row" style="gap:12px;padding:13px 14px;margin-top:10px;border-radius:16px">
+    <div class="avatar" style="width:38px;height:38px;font-size:12px">AK</div>
+    <div><div style="font-weight:700;font-size:13.5px">Aziz Karimov</div>
+      <div class="dim" style="font-size:12px">+998 90 123 45 67</div></div>
+    <div class="sp"></div>
+    <span class="okc" style="font-size:11px;font-weight:800">✓ TASDIQLANGAN</span>
+  </div>
+
+  <button class="btn" style="margin-top:16px" onclick="orderDone()">Buyurtma berish</button>
+  <div class="dim center" style="font-size:12px;margin-top:12px;line-height:1.5">
+    Sotuvchi tez orada siz bilan bog'lanadi 📞<br>Yetkazib berish sotuvchi bilan kelishiladi
+  </div>
+</div>
+
+<div id="toast">✓</div>
+
+</div><!-- /phone -->
+
+<script>
+const phone=document.getElementById('phone');
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+  document.querySelectorAll('#tabbar .tab').forEach(t=>t.classList.toggle('on',t.dataset.s===id));
+  document.querySelectorAll('#panel .nav').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
+  document.querySelector('.screen.on').scrollTop=0;
+  anim();
+}
+document.querySelectorAll('#tabbar .tab').forEach(t=>t.onclick=()=>go(t.dataset.s));
+document.querySelectorAll('#panel .nav').forEach(b=>b.onclick=()=>{
+  if(b.dataset.s==='order'){go('c7');openOrder();document.querySelectorAll('#panel .nav').forEach(x=>x.classList.toggle('on',x===b));}
+  else go(b.dataset.s);
+});
+
+/* Theme */
+function setTheme(t,panelBtn,segBtn){
+  phone.dataset.theme=t;
+  document.querySelectorAll('#panel .theme button').forEach((b,i)=>
+    b.classList.toggle('on',(t==='dark'&&i===0)||(t==='light'&&i===1)));
+  if(segBtn){document.querySelectorAll('#themeSeg button').forEach(b=>b.classList.toggle('on',b===segBtn));}
+  else{document.querySelectorAll('#themeSeg button').forEach((b,i)=>
+    b.classList.toggle('on',(t==='dark'&&i===0)||(t==='light'&&i===1)));}
+}
+
+/* Sheets */
+function openOrder(){phone.classList.add('sh-order')}
+function closeOrder(){phone.classList.remove('sh-order')}
+function orderDone(){
+  closeOrder();
+  toast("✓ Buyurtma yuborildi — sotuvchi bog'lanadi");
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* Animatsiyalar */
+function anim(){
+  document.querySelectorAll('.screen.on .val').forEach(c=>{
+    const len=parseFloat(c.getAttribute('stroke-dasharray'));
+    const p=parseFloat(c.dataset.p||0);
+    c.style.strokeDashoffset=len;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.strokeDashoffset=len*(1-p)}));
+  });
+  document.querySelectorAll('.screen.on .xp i').forEach(x=>{
+    x.style.width='0%';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{x.style.width=x.dataset.w+'%'}));
+  });
+}
+
+/* Iyul kalendari: 1-iyul = chorshanba (2026). 19-iyul bugun. */
+(function(){
+  const cal=document.getElementById('cal');
+  const attended=[2,4,7,9,11,14,16,18];      /* keldi */
+  const missed=[6,13];                        /* qoldirdi */
+  for(let i=0;i<2;i++){const e=document.createElement('i');e.style.background='transparent';cal.appendChild(e);}
+  for(let d=1;d<=31;d++){
+    const c=document.createElement('i');
+    if(attended.includes(d))c.classList.add('on');
+    else if(missed.includes(d))c.classList.add('miss');
+    if(d===19)c.classList.add('today');
+    if(d>19)c.style.opacity=.45;
+    c.innerHTML='<span class="d">'+d+'</span>';
+    cal.appendChild(c);
+  }
+})();
+
+/* Jonli countdown — bugun 18:00 gacha */
+(function(){
+  const el=document.getElementById('cd');
+  function tick(){
+    const n=new Date(),t=new Date();t.setHours(18,0,0,0);
+    if(t<n)t.setDate(t.getDate()+1);
+    let s=Math.floor((t-n)/1000);
+    const h=Math.floor(s/3600);s%=3600;
+    const m=String(Math.floor(s/60)).padStart(2,'0');
+    el.textContent=h+' soat '+m+' daq';
+  }
+  tick();setInterval(tick,30000);
+})();
+
+anim();
+</script>
+</body>
+</html>

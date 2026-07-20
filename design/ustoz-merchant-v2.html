@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>USTOZ Merchant — v2 Premium (1440×1024)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   USTOZ MERCHANT v2 — "KECHKI ZAL" (dark iron · chalk · anor glow)
+   Mobile app bilan bir xil token/tipografika tili
+   ============================================================ */
+:root{
+  --bg0:#0C0D10; --bg1:#131519; --bg2:#17191E;
+  --glass:rgba(255,255,255,.055);
+  --glass-hi:rgba(255,255,255,.09);
+  --ink:#F4F2EC; --soft:#9C9FA8; --dim:#5E626C;
+  --anor:#FF5340; --anor2:#E2264B; --anor-glow:rgba(255,83,64,.35);
+  --ok:#3DD68C;  --ok-soft:rgba(61,214,140,.14);
+  --warn:#FFC24D;--warn-soft:rgba(255,194,77,.14);
+  --info:#6AA6FF;--info-soft:rgba(106,166,255,.14);
+  --line:rgba(255,255,255,.08);
+  --line-hi:rgba(255,255,255,.14);
+  --r:20px; --r-sm:12px; --r-xs:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Manrope',system-ui,sans-serif;color:var(--ink);background:#08090B;
+  display:flex;gap:26px;padding:26px;min-height:100%;
+}
+.disp{font-family:'Unbounded'}
+.mono{font-family:'JetBrains Mono';font-feature-settings:"tnum"}
+.soft{color:var(--soft)}.dim{color:var(--dim)}
+.okc{color:var(--ok)}.warnc{color:var(--warn)}.anorc{color:var(--anor)}.infoc{color:var(--info)}
+.row{display:flex;align-items:center}
+.sp{flex:1}
+.center{text-align:center}
+
+/* ============================================================
+   VIEWER CHROME
+   ============================================================ */
+#panel{width:216px;flex:none;position:sticky;top:26px;align-self:flex-start}
+#panel .logo{font-family:'Unbounded';font-weight:700;font-size:19px;letter-spacing:-.3px}
+#panel .logo b{color:var(--anor)}
+#panel .sub{font-size:11.5px;color:var(--dim);margin:6px 0 20px;line-height:1.55}
+#panel .grp{font-size:10.5px;font-weight:800;letter-spacing:.12em;color:var(--dim);margin:16px 0 7px;padding-left:14px}
+#panel button{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  font-family:'Manrope';font-size:13px;font-weight:600;color:var(--soft);
+  background:none;border:0;border-radius:11px;padding:10px 14px;cursor:pointer;transition:.16s;
+}
+#panel button:hover{background:var(--glass)}
+#panel button.on{background:var(--glass-hi);color:var(--ink)}
+#panel button .k{font-family:'JetBrains Mono';font-size:10.5px;color:var(--dim);width:26px;flex:none}
+#panel button.on .k{color:var(--anor)}
+#panel .zoom{display:flex;gap:5px;margin-top:20px;padding:5px;background:var(--glass);border:1px solid var(--line);border-radius:11px}
+#panel .zoom button{justify-content:center;font-size:11.5px;padding:7px 0;border-radius:7px}
+#panel .zoom button.on{background:linear-gradient(135deg,var(--anor),var(--anor2));color:#fff}
+#panel .note{font-size:11px;color:var(--dim);line-height:1.6;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+
+#stage{flex:1;min-width:0}
+#stageInner{transform-origin:top left}
+.deskwrap{margin-bottom:34px}
+.deskwrap .cap{
+  font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--dim);
+  margin-bottom:10px;text-transform:uppercase;
+}
+.deskwrap .cap b{color:var(--anor);font-weight:800}
+body.solo .deskwrap{display:none}
+body.solo .deskwrap.on{display:block}
+
+/* ============================================================
+   DESKTOP FRAME 1440×1024
+   ============================================================ */
+.desk{
+  width:1440px;height:1024px;background:var(--bg0);border-radius:16px;overflow:hidden;
+  position:relative;display:flex;box-shadow:0 40px 100px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.06);
+}
+.desk::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(90% 45% at 78% -10%, rgba(255,83,64,.09), transparent 60%);
+}
+
+/* ---------- SIDENAV 240px ---------- */
+.snav{
+  width:240px;flex:none;background:var(--bg1);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;padding:22px 16px 16px;position:relative;z-index:3;
+}
+.snav .brand{display:flex;align-items:center;gap:10px;padding:0 8px 22px}
+.snav .brand .mark{
+  width:34px;height:34px;border-radius:11px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--anor),var(--anor2));
+  box-shadow:0 8px 20px -6px var(--anor-glow), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.snav .brand .nm{font-family:'Unbounded';font-weight:700;font-size:15px;letter-spacing:-.2px;line-height:1.15}
+.snav .brand .nm span{display:block;font-family:'Manrope';font-weight:700;font-size:10px;letter-spacing:.16em;color:var(--dim);margin-top:2px}
+.snav .lbl{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--dim);padding:0 10px;margin:6px 0 8px}
+.nitem{
+  display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;
+  font-size:13.5px;font-weight:600;color:var(--soft);cursor:pointer;transition:.16s;position:relative;margin-bottom:3px;
+}
+.nitem svg{flex:none;opacity:.85}
+.nitem:hover{background:var(--glass);color:var(--ink)}
+.nitem.on{background:var(--glass-hi);color:var(--ink)}
+.nitem.on::before{
+  content:"";position:absolute;left:-16px;top:50%;transform:translateY(-50%);
+  width:3px;height:20px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--anor),var(--anor2));
+}
+.nitem .cnt{
+  margin-left:auto;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;
+  background:rgba(255,83,64,.14);color:var(--anor);
+}
+.snav .shop{
+  margin-top:auto;background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.snav .shop .ava{
+  width:38px;height:38px;border-radius:12px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(145deg,#23262D,#17191E);border:1px solid var(--line);
+  font-family:'Unbounded';font-weight:600;font-size:13px;color:var(--soft);
+}
+.snav .shop .nm{font-size:13px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.snav .shop .st{font-size:11px;font-weight:700;color:var(--ok);margin-top:2px;display:flex;align-items:center;gap:4px}
+.snav .shop .st i{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+
+/* ---------- MAIN ---------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative;z-index:3}
+.topbar{
+  height:70px;flex:none;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:16px;padding:0 30px;background:rgba(12,13,16,.6);
+  backdrop-filter:blur(20px);
+}
+.topbar h1{font-family:'Unbounded';font-weight:600;font-size:19px;letter-spacing:-.2px}
+.topbar .crumb{font-size:12px;color:var(--dim);font-weight:600;margin-top:3px}
+.search{
+  display:flex;align-items:center;gap:9px;width:290px;height:40px;padding:0 14px;
+  background:var(--glass);border:1px solid var(--line);border-radius:12px;color:var(--dim);font-size:13.5px;
+}
+.iconbtn{
+  width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;
+  background:var(--glass);border:1px solid var(--line);cursor:pointer;position:relative;transition:.16s;
+}
+.iconbtn:hover{background:var(--glass-hi)}
+.iconbtn .dot{position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--anor);box-shadow:0 0 0 2px var(--bg0)}
+.content{flex:1;min-height:0;overflow-y:auto;padding:26px 30px 34px;scrollbar-width:thin}
+.content::-webkit-scrollbar{width:8px}
+.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,.09);border-radius:8px}
+
+/* ============================================================
+   PRIMITIVES
+   ============================================================ */
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(20px)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:'Manrope';font-weight:700;font-size:14px;color:#fff;
+  border:0;border-radius:13px;height:44px;padding:0 20px;cursor:pointer;white-space:nowrap;
+  background:linear-gradient(135deg,var(--anor),var(--anor2));
+  box-shadow:0 12px 28px -10px var(--anor-glow), inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .14s, filter .14s;
+}
+.btn:hover{filter:brightness(1.07)}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:var(--glass);border:1px solid var(--line);color:var(--ink);box-shadow:none}
+.btn.ghost:hover{background:var(--glass-hi);border-color:var(--line-hi)}
+.btn.lg{height:52px;font-size:15px;border-radius:16px;width:100%}
+.btn.sm{height:36px;font-size:12.5px;border-radius:10px;padding:0 14px}
+.btn.danger{background:none;border:1px solid rgba(255,83,64,.32);color:#FF7A6B;box-shadow:none}
+.btn.danger:hover{background:rgba(255,83,64,.1)}
+
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:12.5px;font-weight:700;color:var(--soft);white-space:nowrap;
+  background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:7px 14px;cursor:pointer;transition:.15s;
+}
+.chip:hover{border-color:var(--line-hi);color:var(--ink)}
+.chip.on{color:#fff;background:linear-gradient(135deg,var(--anor),var(--anor2));border-color:transparent}
+.chip b{opacity:.62;font-weight:800}
+
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;letter-spacing:.4px;border-radius:8px;padding:5px 9px;white-space:nowrap}
+.badge.ok{color:var(--ok);background:var(--ok-soft)}
+.badge.warn{color:var(--warn);background:var(--warn-soft)}
+.badge.debt{color:#FF7A6B;background:rgba(255,83,64,.14)}
+.badge.info{color:var(--info);background:var(--info-soft)}
+.badge.mute{color:var(--dim);background:rgba(255,255,255,.05)}
+.badge i{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* form field */
+.fld{display:flex;flex-direction:column;gap:8px}
+.fld > label{font-size:12.5px;font-weight:700;color:var(--soft);display:flex;align-items:center;gap:5px}
+.fld > label em{font-style:normal;color:var(--anor)}
+.fld .ctl{
+  height:46px;display:flex;align-items:center;gap:9px;padding:0 14px;font-size:14.5px;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:var(--r-sm);transition:.16s;
+}
+.fld .ctl:hover{border-color:var(--line-hi)}
+.fld.focus .ctl{border-color:var(--anor);box-shadow:0 0 0 3px rgba(255,83,64,.14);background:rgba(255,83,64,.05)}
+.fld .ctl .ph{color:var(--dim)}
+.fld .ctl .caret{margin-left:auto;color:var(--dim);font-size:11px}
+.fld .ctl .pre{color:var(--dim);font-size:13.5px;font-weight:600;padding-right:9px;border-right:1px solid var(--line)}
+.fld .ta{
+  min-height:104px;padding:13px 14px;font-size:14px;line-height:1.6;color:var(--soft);
+  background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:var(--r-sm);
+}
+.fld .hint{font-size:11.5px;color:var(--dim);line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* upload dropzone */
+.drop{
+  border:1.5px dashed rgba(255,255,255,.16);border-radius:var(--r-sm);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  color:var(--dim);font-size:12px;font-weight:600;cursor:pointer;transition:.16s;
+  background:rgba(255,255,255,.02);text-align:center;padding:12px;
+}
+.drop:hover{border-color:var(--anor);color:var(--soft);background:rgba(255,83,64,.05)}
+.drop .pl{font-size:22px;line-height:1}
+.thumb{
+  border-radius:var(--r-sm);border:1px solid var(--line);position:relative;overflow:hidden;
+  background:linear-gradient(145deg,#22252B,#15171B);display:grid;place-items:center;font-size:26px;
+}
+.thumb .x{
+  position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:7px;
+  background:rgba(0,0,0,.6);display:grid;place-items:center;font-size:11px;color:var(--ink);cursor:pointer;
+}
+.thumb .main{
+  position:absolute;left:6px;bottom:6px;font-size:9.5px;font-weight:800;letter-spacing:.08em;
+  background:linear-gradient(135deg,var(--anor),var(--anor2));color:#fff;border-radius:5px;padding:2px 6px;
+}
+
+/* section head */
+.sec-h{display:flex;align-items:baseline;gap:9px;margin-bottom:14px}
+.sec-h .t{font-family:'Unbounded';font-weight:600;font-size:15.5px;letter-spacing:.1px}
+.sec-h .n{font-size:11.5px;font-weight:800;color:var(--anor);background:rgba(255,83,64,.12);border-radius:20px;padding:2px 9px}
+.sec-h .all{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--dim)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--glass);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;inset:0;background:radial-gradient(70% 90% at 100% 0%,rgba(255,255,255,.05),transparent 60%);pointer-events:none}
+.kpi .lb{font-size:10.5px;font-weight:800;letter-spacing:.11em;color:var(--dim)}
+.kpi .vl{font-family:'Unbounded';font-weight:700;font-size:26px;line-height:1.1;margin:9px 0 6px}
+.kpi .sb{font-size:11.5px;font-weight:600}
+.kpi .spark{position:absolute;right:16px;top:14px;opacity:.8}
+
+/* TABLE */
+.tbl{background:var(--glass);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.tbl table{width:100%;border-collapse:collapse}
+.tbl thead th{
+  font-size:10.5px;font-weight:800;letter-spacing:.11em;color:var(--dim);text-align:left;
+  padding:14px 18px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.tbl tbody td{padding:13px 18px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl tbody tr{transition:background .14s;cursor:pointer}
+.tbl tbody tr:hover{background:rgba(255,255,255,.035)}
+.tbl .pname{font-weight:700;font-size:14px}
+.tbl .psub{font-size:11.5px;color:var(--dim);margin-top:2px}
+.pic{
+  width:48px;height:48px;border-radius:11px;flex:none;display:grid;place-items:center;font-size:22px;
+  background:linear-gradient(145deg,#23262D,#15171B);border:1px solid var(--line);
+}
+.acts{display:flex;gap:6px;justify-content:flex-end}
+.act{
+  width:32px;height:32px;border-radius:9px;display:grid;place-items:center;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--soft);font-size:12px;transition:.15s;
+}
+.act:hover{background:var(--glass-hi);color:var(--ink);border-color:var(--line-hi)}
+.act.dz:hover{background:rgba(255,83,64,.12);color:#FF7A6B;border-color:rgba(255,83,64,.3)}
+.selpill{
+  display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;letter-spacing:.3px;
+  border-radius:9px;padding:6px 10px;cursor:pointer;transition:.15s;border:1px solid transparent;
+}
+.selpill:hover{filter:brightness(1.18)}
+.selpill .cv{font-size:9px;opacity:.7}
+.selpill.n{color:var(--anor);background:rgba(255,83,64,.14);border-color:rgba(255,83,64,.22)}
+.selpill.b{color:var(--warn);background:var(--warn-soft);border-color:rgba(255,194,77,.2)}
+.selpill.s{color:var(--ok);background:var(--ok-soft);border-color:rgba(61,214,140,.2)}
+.selpill.x{color:var(--dim);background:rgba(255,255,255,.05);border-color:var(--line)}
+.tbl .foot{display:flex;align-items:center;gap:12px;padding:13px 18px;border-top:1px solid var(--line);font-size:12px;color:var(--dim)}
+.pg{display:flex;gap:5px;margin-left:auto}
+.pg span{
+  min-width:29px;height:29px;padding:0 8px;border-radius:8px;display:grid;place-items:center;
+  font-size:12px;font-weight:700;background:rgba(255,255,255,.04);border:1px solid var(--line);cursor:pointer;
+}
+.pg span.on{background:linear-gradient(135deg,var(--anor),var(--anor2));border-color:transparent;color:#fff}
+
+/* auth / centered */
+.authwrap{flex:1;display:grid;place-items:center;position:relative;z-index:3}
+.authcard{
+  width:432px;background:rgba(23,25,30,.86);border:1px solid var(--line);border-radius:26px;
+  padding:38px 36px 32px;backdrop-filter:blur(24px);
+  box-shadow:0 40px 90px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06);
+  position:relative;overflow:hidden;
+}
+.authcard::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 60% at 50% -10%,rgba(255,83,64,.16),transparent 62%);pointer-events:none}
+.authcard > *{position:relative}
+.bigmark{
+  width:60px;height:60px;border-radius:19px;display:grid;place-items:center;margin:0 auto 18px;
+  background:linear-gradient(135deg,var(--anor),var(--anor2));
+  box-shadow:0 18px 40px -10px var(--anor-glow), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.stepbar{display:flex;gap:6px;margin-bottom:26px}
+.stepbar i{height:3px;flex:1;border-radius:3px;background:rgba(255,255,255,.09)}
+.stepbar i.on{background:linear-gradient(90deg,var(--anor),var(--anor2))}
+
+/* pending state */
+.pending{max-width:520px;margin:0 auto;text-align:center;padding:70px 0}
+.pending .orb{
+  width:110px;height:110px;border-radius:50%;margin:0 auto 26px;display:grid;place-items:center;font-size:44px;
+  background:radial-gradient(circle at 35% 30%,rgba(255,194,77,.28),rgba(255,194,77,.06));
+  border:1px solid rgba(255,194,77,.28);box-shadow:0 0 60px -10px rgba(255,194,77,.35);
+}
+.steps{display:flex;flex-direction:column;gap:0;text-align:left;margin-top:30px}
+.stp{display:flex;gap:14px;padding:14px 0;position:relative}
+.stp::before{content:"";position:absolute;left:11px;top:34px;bottom:-8px;width:2px;background:var(--line)}
+.stp:last-child::before{display:none}
+.stp .b{
+  width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-size:11px;font-weight:800;background:rgba(255,255,255,.05);border:1.5px solid var(--line);color:var(--dim);z-index:1;
+}
+.stp.done .b{background:var(--ok);border-color:var(--ok);color:#0C0D10}
+.stp.now .b{border-color:var(--warn);color:var(--warn);box-shadow:0 0 0 5px rgba(255,194,77,.14)}
+.stp .tt{font-size:13.5px;font-weight:700}
+.stp .ds{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.5}
+.stp.pend .tt{color:var(--dim)}
+
+/* preview card (M4) */
+.prev{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.prev .im{height:130px;border-radius:12px;background:linear-gradient(145deg,#23262D,#15171B);border:1px solid var(--line);display:grid;place-items:center;font-size:42px}
+.toggle{width:42px;height:24px;border-radius:20px;background:var(--ok);position:relative;flex:none;cursor:pointer}
+.toggle::after{content:"";position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#fff}
+.toggle.off{background:rgba(255,255,255,.12)}
+.toggle.off::after{right:auto;left:3px}
+.divider{height:1px;background:var(--line);margin:22px 0}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.lrow{display:flex;align-items:center;gap:13px;padding:14px 0;border-bottom:1px solid var(--line)}
+.lrow:last-child{border-bottom:0}
+</style>
+</head>
+<body>
+
+<aside id="panel">
+  <div class="logo">UST<b>O</b>Z <span style="font-size:10px;color:var(--dim);font-family:Manrope;font-weight:700;letter-spacing:.1em">MERCHANT</span></div>
+  <div class="sub">Sport nutrition sotuvchilar web paneli.<br>1440×1024 · "Kechki zal" v2 tili.</div>
+
+  <div class="grp">KIRISH</div>
+  <button data-s="m1" class="on"><span class="k">M1</span>Auth</button>
+  <button data-s="m2"><span class="k">M2</span>Ariza formasi</button>
+  <button data-s="m2b"><span class="k">M2b</span>Ko'rib chiqilmoqda</button>
+
+  <div class="grp">PANEL</div>
+  <button data-s="m3"><span class="k">M3</span>Mahsulotlar</button>
+  <button data-s="m4"><span class="k">M4</span>Mahsulot forma</button>
+  <button data-s="m5"><span class="k">M5</span>Leadlar</button>
+  <button data-s="m6"><span class="k">M6</span>Sozlamalar</button>
+
+  <div class="zoom">
+    <button id="zFit" class="on" style="flex:1">Fit</button>
+    <button id="zFull" style="flex:1">100%</button>
+    <button id="zAll" style="flex:1">Hammasi</button>
+  </div>
+
+  <div class="note">
+    <b style="color:var(--soft)">Lead modeli:</b> biz to'lov va yetkazishga aralashmaymiz — merchant leadni oladi, o'zi bog'lanadi. Har lead loglanadi (§4.2).
+  </div>
+</aside>
+
+<div id="stage"><div id="stageInner">
+
+<!-- ================================================================
+     M1 · AUTH
+     ================================================================ -->
+<div class="deskwrap on" data-id="m1">
+  <div class="cap"><b>M1</b> · Auth — telefon + OTP</div>
+  <div class="desk">
+    <div class="authwrap">
+      <div class="authcard">
+        <div class="bigmark">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="10" stroke="#fff" stroke-width="2.4" opacity=".9"/>
+            <circle cx="14" cy="14" r="3" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="disp center" style="font-weight:700;font-size:23px;letter-spacing:-.3px">Merchant panel</div>
+        <div class="center soft" style="font-size:13.5px;margin-top:9px;line-height:1.6">
+          Do'koningizni USTOZ marketplace'ga ulang.<br>Telefon raqamingiz orqali kiring.
+        </div>
+
+        <div style="margin-top:30px" class="fld focus">
+          <label>Telefon raqam <em>*</em></label>
+          <div class="ctl">
+            <span class="pre mono">+998</span>
+            <span class="mono" style="letter-spacing:.5px">90 123 45 67</span>
+          </div>
+        </div>
+
+        <button class="btn lg" style="margin-top:20px">
+          Kod olish
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h9M9 4.5L12.5 8 9 11.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        <div class="row" style="gap:10px;margin-top:22px">
+          <div style="height:1px;flex:1;background:var(--line)"></div>
+          <span class="dim" style="font-size:11px;font-weight:700">YOKI</span>
+          <div style="height:1px;flex:1;background:var(--line)"></div>
+        </div>
+
+        <button class="btn ghost" style="width:100%;height:46px;margin-top:16px;font-size:13.5px">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="#6AA6FF"><path d="M9.8 16.6l-.4 5.2c.5 0 .8-.2 1.1-.5l2.6-2.5 5.4 3.9c1 .5 1.7.3 2-.9l3.5-16.5c.3-1.4-.5-2-1.5-1.6L1.1 9.9c-1.4.5-1.3 1.3-.2 1.7l5.5 1.7L19.2 5.4c.6-.4 1.2-.2.7.2z"/></svg>
+          Telegram orqali kirish
+        </button>
+
+        <div class="center dim" style="font-size:11.5px;margin-top:24px;line-height:1.6">
+          Davom etish orqali <span style="color:var(--soft)">Merchant shartnomasi</span>ga<br>rozilik bildirasiz.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     M2 · ARIZA FORMASI
+     ================================================================ -->
+<div class="deskwrap" data-id="m2">
+  <div class="cap"><b>M2</b> · Ariza — do'kon ma'lumotlari</div>
+  <div class="desk">
+    <div class="main" style="align-items:center">
+      <div class="topbar" style="width:100%">
+        <div class="row" style="gap:10px">
+          <div class="snav" style="width:auto;background:none;border:0;padding:0;flex-direction:row">
+            <div class="brand" style="padding:0">
+              <div class="mark" style="width:30px;height:30px;border-radius:10px">
+                <svg width="16" height="16" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" stroke-width="3" opacity=".9"/><circle cx="14" cy="14" r="3" fill="#fff"/></svg>
+              </div>
+              <div class="nm">USTOZ<span>MERCHANT</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="sp"></div>
+        <span class="dim" style="font-size:12.5px;font-weight:600">+998 90 123 45 67</span>
+        <div class="iconbtn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 2H3.5A1.5 1.5 0 002 3.5v9A1.5 1.5 0 003.5 14H6M10.5 11L14 8l-3.5-3M14 8H6" stroke="#9C9FA8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+
+      <div class="content" style="width:100%;display:flex;justify-content:center">
+        <div style="width:780px">
+          <div class="stepbar" style="margin-bottom:22px"><i class="on"></i><i class="on"></i><i></i></div>
+          <div class="disp" style="font-weight:700;font-size:26px;letter-spacing:-.4px">Do'koningiz haqida</div>
+          <div class="soft" style="font-size:13.5px;margin-top:9px;line-height:1.6">
+            Ariza admin tomonidan ko'rib chiqiladi — odatda 1 ish kuni. Tasdiqlangach mahsulot qo'sha boshlaysiz.
+          </div>
+
+          <div class="card" style="margin-top:26px">
+            <div class="row" style="gap:20px;align-items:flex-start">
+              <div class="fld" style="width:150px;flex:none">
+                <label>Logo</label>
+                <div class="drop" style="height:150px;border-radius:16px">
+                  <span class="pl">🖼</span>
+                  <span>Yuklash yoki<br>sudrab tashlang</span>
+                  <span style="font-size:10.5px;color:var(--dim);opacity:.7">PNG · 512×512</span>
+                </div>
+              </div>
+
+              <div style="flex:1;display:flex;flex-direction:column;gap:16px">
+                <div class="fld focus">
+                  <label>Do'kon nomi <em>*</em></label>
+                  <div class="ctl">Zarb Nutrition</div>
+                </div>
+                <div class="grid2">
+                  <div class="fld">
+                    <label>Telefon <em>*</em></label>
+                    <div class="ctl"><span class="pre mono">+998</span><span class="mono">90 123 45 67</span></div>
+                  </div>
+                  <div class="fld">
+                    <label>Telegram username <em>*</em></label>
+                    <div class="ctl"><span class="pre">@</span><span>zarb_nutrition</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="fld">
+              <label>Manzil <em>*</em></label>
+              <div class="ta">Toshkent sh., Chilonzor tumani, Bunyodkor shoh ko'chasi 12-uy, "Zarb" savdo markazi, 2-qavat, 214-do'kon</div>
+              <div class="hint">Xaridorlar sizni topishi uchun aniq yozing. Yetkazib berish MVP da yo'q — o'zaro kelishasiz.</div>
+            </div>
+
+            <div class="fld" style="margin-top:16px">
+              <label>Asosiy kategoriyalar</label>
+              <div class="row" style="gap:8px;flex-wrap:wrap">
+                <span class="chip on">Protein</span><span class="chip on">Kreatin</span>
+                <span class="chip on">Gainer</span><span class="chip">Vitamin</span>
+                <span class="chip">Aminokislota</span><span class="chip">Boshqa</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row" style="gap:12px;margin-top:22px">
+            <div class="dim" style="font-size:12px;line-height:1.5;max-width:380px">
+              Yuborgach ma'lumotlarni o'zgartira olmaysiz — admin tasdiqlaguncha kuting.
+            </div>
+            <div class="sp"></div>
+            <button class="btn ghost">Qoralama</button>
+            <button class="btn" style="padding:0 26px">Yuborish</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     M2b · KO'RIB CHIQILMOQDA
+     ================================================================ -->
+<div class="deskwrap" data-id="m2b">
+  <div class="cap"><b>M2b</b> · Ariza holati — bo'sh holat</div>
+  <div class="desk">
+    <div class="snav">
+      <div class="brand">
+        <div class="mark"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" stroke-width="3" opacity=".9"/><circle cx="14" cy="14" r="3" fill="#fff"/></svg></div>
+        <div class="nm">USTOZ<span>MERCHANT</span></div>
+      </div>
+      <div class="lbl">MENYU</div>
+      <div class="nitem" style="opacity:.4">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="2" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/></svg>
+        Mahsulotlar <span class="cnt" style="background:rgba(255,255,255,.06);color:var(--dim)">🔒</span>
+      </div>
+      <div class="nitem" style="opacity:.4">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M2.5 5.5h13M2.5 9h13M2.5 12.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Leadlar <span class="cnt" style="background:rgba(255,255,255,.06);color:var(--dim)">🔒</span>
+      </div>
+      <div class="nitem on">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.7"/><path d="M9 5.5V9l2.5 1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Ariza holati
+      </div>
+      <div class="shop">
+        <div class="ava">ZN</div>
+        <div style="min-width:0">
+          <div class="nm">Zarb Nutrition</div>
+          <div class="st" style="color:var(--warn)"><i style="background:var(--warn);box-shadow:0 0 8px var(--warn)"></i>Kutilmoqda</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div><h1>Ariza holati</h1><div class="crumb">Merchant · moderatsiya</div></div>
+        <div class="sp"></div>
+        <div class="iconbtn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 00-4 4v3l-1.5 2h11L12 9V6a4 4 0 00-4-4z" stroke="#9C9FA8" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.5 13a1.5 1.5 0 003 0" stroke="#9C9FA8" stroke-width="1.6"/></svg></div>
+      </div>
+      <div class="content">
+        <div class="pending">
+          <div class="orb">⏳</div>
+          <div class="disp" style="font-weight:700;font-size:25px;letter-spacing:-.3px">Arizangiz ko'rib chiqilmoqda</div>
+          <div class="soft" style="font-size:14px;margin-top:12px;line-height:1.65">
+            Admin do'koningizni tekshirmoqda. Tasdiqlangach Telegram orqali xabar keladi<br>
+            va mahsulot qo'shish bo'limi ochiladi.
+          </div>
+          <div class="row" style="gap:8px;justify-content:center;margin-top:18px">
+            <span class="badge warn"><i></i>MODERATSIYADA</span>
+            <span class="badge mute">Yuborilgan: 19-iyul, 14:02</span>
+          </div>
+
+          <div class="card" style="margin-top:34px">
+            <div class="steps">
+              <div class="stp done">
+                <div class="b">✓</div>
+                <div><div class="tt">Ariza yuborildi</div><div class="ds">Zarb Nutrition · Chilonzor, Toshkent</div></div>
+                <div class="sp"></div><div class="dim mono" style="font-size:11.5px">14:02</div>
+              </div>
+              <div class="stp now">
+                <div class="b">2</div>
+                <div><div class="tt">Admin moderatsiyasi</div><div class="ds">Odatda 1 ish kuni ichida. Hujjat so'ralishi mumkin.</div></div>
+                <div class="sp"></div><div class="warnc mono" style="font-size:11.5px;font-weight:700">hozir</div>
+              </div>
+              <div class="stp pend">
+                <div class="b">3</div>
+                <div><div class="tt">Do'kon aktivlashadi</div><div class="ds">Mahsulot qo'shasiz, leadlar kela boshlaydi.</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row" style="gap:10px;justify-content:center;margin-top:26px">
+            <button class="btn ghost">Arizani ko'rish</button>
+            <button class="btn ghost">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="#6AA6FF"><path d="M9.8 16.6l-.4 5.2c.5 0 .8-.2 1.1-.5l2.6-2.5 5.4 3.9c1 .5 1.7.3 2-.9l3.5-16.5c.3-1.4-.5-2-1.5-1.6L1.1 9.9c-1.4.5-1.3 1.3-.2 1.7l5.5 1.7L19.2 5.4c.6-.4 1.2-.2.7.2z"/></svg>
+              Admin bilan bog'lanish
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     M3 · MAHSULOTLAR
+     ================================================================ -->
+<div class="deskwrap" data-id="m3">
+  <div class="cap"><b>M3</b> · Mahsulotlar jadvali</div>
+  <div class="desk">
+    <div class="snav">
+      <div class="brand">
+        <div class="mark"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" stroke-width="3" opacity=".9"/><circle cx="14" cy="14" r="3" fill="#fff"/></svg></div>
+        <div class="nm">USTOZ<span>MERCHANT</span></div>
+      </div>
+      <div class="lbl">MENYU</div>
+      <div class="nitem on">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="2" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/></svg>
+        Mahsulotlar <span class="cnt" style="background:rgba(255,255,255,.06);color:var(--soft)">18</span>
+      </div>
+      <div class="nitem">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M2.5 5.5h13M2.5 9h13M2.5 12.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Leadlar <span class="cnt">4</span>
+      </div>
+      <div class="nitem">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.6" stroke="currentColor" stroke-width="1.7"/><path d="M9 1.8v2M9 14.2v2M16.2 9h-2M3.8 9h-2M14.1 3.9l-1.4 1.4M5.3 12.7l-1.4 1.4M14.1 14.1l-1.4-1.4M5.3 5.3L3.9 3.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Sozlamalar
+      </div>
+      <div class="shop">
+        <div class="ava">ZN</div>
+        <div style="min-width:0">
+          <div class="nm">Zarb Nutrition</div>
+          <div class="st"><i></i>Aktiv do'kon</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div><h1>Mahsulotlar</h1><div class="crumb">18 ta · 14 aktiv · 4 yashirin</div></div>
+        <div class="sp"></div>
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 17 17" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="#5E626C" stroke-width="2"/><path d="M12 12l3.5 3.5" stroke="#5E626C" stroke-width="2" stroke-linecap="round"/></svg>
+          Mahsulot nomi yoki brend…
+        </div>
+        <div class="iconbtn"><span class="dot"></span><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 00-4 4v3l-1.5 2h11L12 9V6a4 4 0 00-4-4z" stroke="#9C9FA8" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.5 13a1.5 1.5 0 003 0" stroke="#9C9FA8" stroke-width="1.6"/></svg></div>
+        <button class="btn">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+          Mahsulot qo'shish
+        </button>
+      </div>
+
+      <div class="content">
+        <div class="row" style="gap:8px;margin-bottom:18px">
+          <span class="chip on">Hammasi <b>18</b></span>
+          <span class="chip">Aktiv <b>14</b></span>
+          <span class="chip">Yashirin <b>4</b></span>
+          <div style="width:1px;height:22px;background:var(--line);margin:0 6px"></div>
+          <span class="chip">Protein <b>6</b></span>
+          <span class="chip">Kreatin <b>3</b></span>
+          <span class="chip">Gainer <b>2</b></span>
+          <span class="chip">Vitamin <b>4</b></span>
+          <div class="sp"></div>
+          <span class="chip">Saralash: Yangi ▾</span>
+        </div>
+
+        <div class="tbl">
+          <table>
+            <thead><tr>
+              <th style="width:76px">FOTO</th>
+              <th>NOMI</th>
+              <th style="width:150px">KATEGORIYA</th>
+              <th style="width:150px">NARX</th>
+              <th style="width:130px">HOLAT</th>
+              <th style="width:120px;text-align:right">AMALLAR</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="pic">🥛</div></td>
+                <td><div class="pname">Whey Protein Gold 2kg</div><div class="psub">Optimum Nutrition · 2000 g · 4 foto</div></td>
+                <td><span class="badge mute">Protein</span></td>
+                <td><span class="mono" style="font-size:14px;font-weight:500">450 000</span> <span class="dim" style="font-size:11.5px">so'm</span></td>
+                <td><span class="badge ok"><i></i>AKTIV</span></td>
+                <td><div class="acts">
+                  <div class="act">✎</div><div class="act">👁</div><div class="act dz">🗑</div>
+                </div></td>
+              </tr>
+              <tr>
+                <td><div class="pic">⚗️</div></td>
+                <td><div class="pname">Kreatin monohidrat 300g</div><div class="psub">MyProtein · 300 g · 2 foto</div></td>
+                <td><span class="badge mute">Kreatin</span></td>
+                <td><span class="mono" style="font-size:14px;font-weight:500">180 000</span> <span class="dim" style="font-size:11.5px">so'm</span></td>
+                <td><span class="badge ok"><i></i>AKTIV</span></td>
+                <td><div class="acts"><div class="act">✎</div><div class="act">👁</div><div class="act dz">🗑</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="pic">🍫</div></td>
+                <td><div class="pname">Mass Gainer Serious 3kg</div><div class="psub">Dymatize · 3000 g · 3 foto</div></td>
+                <td><span class="badge mute">Gainer</span></td>
+                <td><span class="mono" style="font-size:14px;font-weight:500">520 000</span> <span class="dim" style="font-size:11.5px">so'm</span></td>
+                <td><span class="badge ok"><i></i>AKTIV</span></td>
+                <td><div class="acts"><div class="act">✎</div><div class="act">👁</div><div class="act dz">🗑</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="pic">💊</div></td>
+                <td><div class="pname">BCAA 2:1:1 400g</div><div class="psub">Scitec · 400 g · 1 foto</div></td>
+                <td><span class="badge mute">Aminokislota</span></td>
+                <td><span class="mono" style="font-size:14px;font-weight:500">240 000</span> <span class="dim" style="font-size:11.5px">so'm</span></td>
+                <td><span class="badge mute"><i style="background:var(--dim)"></i>YASHIRIN</span></td>
+                <td><div class="acts"><div class="act">✎</div><div class="act">👁</div><div class="act dz">🗑</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="pic">🐟</div></td>
+                <td><div class="pname">Omega-3 90 kapsula</div><div class="psub">Now Foods · 90 kaps · 2 foto</div></td>
+                <td><span class="badge mute">Vitamin</span></td>
+                <td><span class="mono" style="font-size:14px;font-weight:500">145 000</span> <span class="dim" style="font-size:11.5px">so'm</span></td>
+                <td><span class="badge ok"><i></i>AKTIV</span></td>
+                <td><div class="acts"><div class="act">✎</div><div class="act">👁</div><div class="act dz">🗑</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="pic">⚡️</div></td>
+                <td><div class="pname">Pre-Workout C4 300g</div><div class="psub">Cellucor · 300 g · foto yo'q</div></td>
+                <td><span class="badge mute">Boshqa</span></td>
+                <td><span class="mono" style="font-size:14px;font-weight:500">310 000</span> <span class="dim" style="font-size:11.5px">so'm</span></td>
+                <td><span class="badge warn"><i></i>FOTO KERAK</span></td>
+                <td><div class="acts"><div class="act">✎</div><div class="act">👁</div><div class="act dz">🗑</div></div></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="foot">
+            18 tadan 1–6 ko'rsatilmoqda
+            <div class="pg"><span>‹</span><span class="on">1</span><span>2</span><span>3</span><span>›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     M4 · MAHSULOT FORMA
+     ================================================================ -->
+<div class="deskwrap" data-id="m4">
+  <div class="cap"><b>M4</b> · Mahsulot qo'shish / tahrirlash</div>
+  <div class="desk">
+    <div class="snav">
+      <div class="brand">
+        <div class="mark"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" stroke-width="3" opacity=".9"/><circle cx="14" cy="14" r="3" fill="#fff"/></svg></div>
+        <div class="nm">USTOZ<span>MERCHANT</span></div>
+      </div>
+      <div class="lbl">MENYU</div>
+      <div class="nitem on">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="2" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/></svg>
+        Mahsulotlar <span class="cnt" style="background:rgba(255,255,255,.06);color:var(--soft)">18</span>
+      </div>
+      <div class="nitem">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M2.5 5.5h13M2.5 9h13M2.5 12.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Leadlar <span class="cnt">4</span>
+      </div>
+      <div class="nitem">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.6" stroke="currentColor" stroke-width="1.7"/><path d="M9 1.8v2M9 14.2v2M16.2 9h-2M3.8 9h-2M14.1 3.9l-1.4 1.4M5.3 12.7l-1.4 1.4M14.1 14.1l-1.4-1.4M5.3 5.3L3.9 3.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Sozlamalar
+      </div>
+      <div class="shop">
+        <div class="ava">ZN</div>
+        <div style="min-width:0"><div class="nm">Zarb Nutrition</div><div class="st"><i></i>Aktiv do'kon</div></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="row" style="gap:12px">
+          <div class="iconbtn" style="width:34px;height:34px;border-radius:10px">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#9C9FA8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div><h1>Yangi mahsulot</h1><div class="crumb">Mahsulotlar · qo'shish</div></div>
+        </div>
+        <div class="sp"></div>
+        <div class="row" style="gap:9px;margin-right:6px">
+          <span class="soft" style="font-size:12.5px;font-weight:700">Aktiv</span>
+          <div class="toggle"></div>
+        </div>
+        <button class="btn ghost">Bekor</button>
+        <button class="btn" style="padding:0 24px">Saqlash</button>
+      </div>
+
+      <div class="content">
+        <div style="display:grid;grid-template-columns:1fr 386px;gap:22px;align-items:start">
+
+          <!-- CHAP: ma'lumot -->
+          <div class="card">
+            <div class="sec-h"><span class="t">Asosiy ma'lumot</span></div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div class="grid2">
+                <div class="fld focus">
+                  <label>Nomi (uz) <em>*</em></label>
+                  <div class="ctl">Whey Protein Gold 2kg</div>
+                </div>
+                <div class="fld">
+                  <label>Nomi (ru) <em>*</em></label>
+                  <div class="ctl">Whey Protein Gold 2кг</div>
+                </div>
+              </div>
+
+              <div class="grid2">
+                <div class="fld">
+                  <label>Kategoriya <em>*</em></label>
+                  <div class="ctl">Protein <span class="caret">▾</span></div>
+                </div>
+                <div class="fld">
+                  <label>Brend</label>
+                  <div class="ctl">Optimum Nutrition <span class="caret">▾</span></div>
+                </div>
+              </div>
+
+              <div class="grid2">
+                <div class="fld">
+                  <label>Narx <em>*</em></label>
+                  <div class="ctl"><span class="mono" style="font-size:15px">450 000</span><span class="caret" style="margin-left:auto;font-size:12.5px;font-weight:700">so'm</span></div>
+                  <div class="hint">Xaridor app'da shu narxni ko'radi. Chegirma MVP da yo'q.</div>
+                </div>
+                <div class="fld">
+                  <label>Og'irlik / hajm</label>
+                  <div class="ctl"><span class="mono" style="font-size:15px">2000</span><span class="caret" style="margin-left:auto;font-size:12.5px;font-weight:700">g ▾</span></div>
+                </div>
+              </div>
+
+              <div class="fld">
+                <label>Tavsif</label>
+                <div class="ta">100% whey izolyat va konsentrat aralashmasi. Har porsiyada 24 g oqsil, 5.5 g BCAA. Mashg'ulotdan keyin tiklanish uchun. Ta'mi: shokolad, vanil, klubnika.</div>
+                <div class="hint">Tarkib, ta'm va porsiya haqida yozing — leadlar 2 barobar ko'p keladi.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- O'NG: fotolar + preview -->
+          <div style="display:flex;flex-direction:column;gap:22px">
+            <div class="card">
+              <div class="sec-h"><span class="t">Fotolar</span><span class="all">1 / 4</span></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="thumb" style="height:150px">🥛<div class="x">✕</div><div class="main">ASOSIY</div></div>
+                <div class="drop" style="height:150px"><span class="pl">＋</span><span>Foto qo'shish</span></div>
+                <div class="drop" style="height:150px"><span class="pl">＋</span><span>Foto qo'shish</span></div>
+                <div class="drop" style="height:150px"><span class="pl">＋</span><span>Foto qo'shish</span></div>
+              </div>
+              <div class="hint" style="margin-top:12px">JPG/PNG · maks 3 MB · birinchi foto ro'yxatda ko'rinadi.</div>
+            </div>
+
+            <div class="card">
+              <div class="sec-h"><span class="t">App'da qanday ko'rinadi</span></div>
+              <div class="prev">
+                <div class="im">🥛</div>
+                <div style="font-weight:700;font-size:14.5px;margin-top:12px">Whey Protein Gold 2kg</div>
+                <div class="dim" style="font-size:12px;margin-top:3px">Optimum Nutrition · 2000 g</div>
+                <div class="row" style="margin-top:11px;gap:8px">
+                  <span class="mono" style="font-size:17px;font-weight:600">450 000</span>
+                  <span class="soft" style="font-size:12px;font-weight:600">so'm</span>
+                  <div class="sp"></div>
+                  <span class="badge mute">Zarb Nutrition</span>
+                </div>
+                <button class="btn sm" style="width:100%;margin-top:13px;height:38px">Buyurtma berish</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     M5 · LEADLAR
+     ================================================================ -->
+<div class="deskwrap" data-id="m5">
+  <div class="cap"><b>M5</b> · Leadlar</div>
+  <div class="desk">
+    <div class="snav">
+      <div class="brand">
+        <div class="mark"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" stroke-width="3" opacity=".9"/><circle cx="14" cy="14" r="3" fill="#fff"/></svg></div>
+        <div class="nm">USTOZ<span>MERCHANT</span></div>
+      </div>
+      <div class="lbl">MENYU</div>
+      <div class="nitem">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="2" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/></svg>
+        Mahsulotlar <span class="cnt" style="background:rgba(255,255,255,.06);color:var(--soft)">18</span>
+      </div>
+      <div class="nitem on">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M2.5 5.5h13M2.5 9h13M2.5 12.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Leadlar <span class="cnt">4</span>
+      </div>
+      <div class="nitem">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.6" stroke="currentColor" stroke-width="1.7"/><path d="M9 1.8v2M9 14.2v2M16.2 9h-2M3.8 9h-2M14.1 3.9l-1.4 1.4M5.3 12.7l-1.4 1.4M14.1 14.1l-1.4-1.4M5.3 5.3L3.9 3.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Sozlamalar
+      </div>
+      <div class="shop">
+        <div class="ava">ZN</div>
+        <div style="min-width:0"><div class="nm">Zarb Nutrition</div><div class="st"><i></i>Aktiv do'kon</div></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div><h1>Leadlar</h1><div class="crumb">Xaridorlar bilan o'zingiz bog'lanasiz</div></div>
+        <div class="sp"></div>
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 17 17" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="#5E626C" stroke-width="2"/><path d="M12 12l3.5 3.5" stroke="#5E626C" stroke-width="2" stroke-linecap="round"/></svg>
+          Xaridor yoki telefon…
+        </div>
+        <div class="iconbtn"><span class="dot"></span><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 00-4 4v3l-1.5 2h11L12 9V6a4 4 0 00-4-4z" stroke="#9C9FA8" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.5 13a1.5 1.5 0 003 0" stroke="#9C9FA8" stroke-width="1.6"/></svg></div>
+        <button class="btn ghost">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M4.5 7L8 10.5 11.5 7M2.5 13h11" stroke="#F4F2EC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Eksport
+        </button>
+      </div>
+
+      <div class="content">
+        <div class="kpis" style="margin-bottom:22px">
+          <div class="kpi">
+            <div class="lb">BU OY LEAD</div>
+            <div class="vl">24</div>
+            <div class="sb okc">▲ 8 ta o'tgan oyga</div>
+            <svg class="spark" width="54" height="24" viewBox="0 0 54 24" fill="none"><path d="M1 20L9 15l8 4 8-9 8 5 8-11 11 2" stroke="#3DD68C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/></svg>
+          </div>
+          <div class="kpi">
+            <div class="lb">SOTILDI</div>
+            <div class="vl okc">9</div>
+            <div class="sb soft">konversiya <span class="mono">37.5%</span></div>
+          </div>
+          <div class="kpi">
+            <div class="lb">JAVOB KUTMOQDA</div>
+            <div class="vl anorc">4</div>
+            <div class="sb warnc">1 tasi 24 soatdan oshdi</div>
+          </div>
+          <div class="kpi">
+            <div class="lb">SOTUV HAJMI</div>
+            <div class="vl mono" style="font-family:'JetBrains Mono';font-weight:600;font-size:23px">3 240 000</div>
+            <div class="sb dim">so'm · o'z hisobingizdan</div>
+          </div>
+        </div>
+
+        <div class="row" style="gap:8px;margin-bottom:16px">
+          <span class="chip on">Hammasi <b>24</b></span>
+          <span class="chip" style="color:#FF7A6B">Yangi <b>4</b></span>
+          <span class="chip">Bog'lanildi <b>7</b></span>
+          <span class="chip">Sotildi <b>9</b></span>
+          <span class="chip">Bekor <b>4</b></span>
+          <div class="sp"></div>
+          <span class="chip">Iyul 2026 ▾</span>
+        </div>
+
+        <div class="tbl">
+          <table>
+            <thead><tr>
+              <th style="width:135px">SANA</th>
+              <th>MAHSULOT</th>
+              <th style="width:180px">XARIDOR</th>
+              <th style="width:170px">TELEFON</th>
+              <th style="width:160px">HOLAT</th>
+              <th style="width:96px;text-align:right">AMAL</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="mono" style="font-size:13px">19-iyul</div><div class="psub mono">14:22</div></td>
+                <td><div class="row" style="gap:11px"><div class="pic" style="width:36px;height:36px;font-size:16px;border-radius:9px">🥛</div>
+                  <div><div class="pname" style="font-size:13.5px">Whey Protein Gold 2kg</div><div class="psub mono">450 000 so'm</div></div></div></td>
+                <td>Aziz Karimov</td>
+                <td><span class="mono" style="font-size:13px">+998 90 123 45 67</span></td>
+                <td><span class="selpill n">YANGI <span class="cv">▾</span></span></td>
+                <td><div class="acts"><div class="act" title="Telegram">✈</div><div class="act" title="Qo'ng'iroq">☎</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="mono" style="font-size:13px">19-iyul</div><div class="psub mono">11:05</div></td>
+                <td><div class="row" style="gap:11px"><div class="pic" style="width:36px;height:36px;font-size:16px;border-radius:9px">⚗️</div>
+                  <div><div class="pname" style="font-size:13.5px">Kreatin monohidrat 300g</div><div class="psub mono">180 000 so'm</div></div></div></td>
+                <td>Dilnoza Mirzayeva</td>
+                <td><span class="mono" style="font-size:13px">+998 93 445 12 08</span></td>
+                <td><span class="selpill b">BOG'LANILDI <span class="cv">▾</span></span></td>
+                <td><div class="acts"><div class="act">✈</div><div class="act">☎</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="mono" style="font-size:13px">18-iyul</div><div class="psub mono">19:40</div></td>
+                <td><div class="row" style="gap:11px"><div class="pic" style="width:36px;height:36px;font-size:16px;border-radius:9px">🍫</div>
+                  <div><div class="pname" style="font-size:13.5px">Mass Gainer Serious 3kg</div><div class="psub mono">520 000 so'm</div></div></div></td>
+                <td>Sardor Bekmurodov</td>
+                <td><span class="mono" style="font-size:13px">+998 97 220 74 31</span></td>
+                <td><span class="selpill s">SOTILDI <span class="cv">▾</span></span></td>
+                <td><div class="acts"><div class="act">✈</div><div class="act">☎</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="mono" style="font-size:13px">18-iyul</div><div class="psub mono">16:12</div></td>
+                <td><div class="row" style="gap:11px"><div class="pic" style="width:36px;height:36px;font-size:16px;border-radius:9px">🐟</div>
+                  <div><div class="pname" style="font-size:13.5px">Omega-3 90 kapsula</div><div class="psub mono">145 000 so'm</div></div></div></td>
+                <td>Malika Sodiqova</td>
+                <td><span class="mono" style="font-size:13px">+998 90 887 65 02</span></td>
+                <td><span class="selpill x">BEKOR <span class="cv">▾</span></span></td>
+                <td><div class="acts"><div class="act">✈</div><div class="act">☎</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="mono" style="font-size:13px">17-iyul</div><div class="psub mono">09:30</div></td>
+                <td><div class="row" style="gap:11px"><div class="pic" style="width:36px;height:36px;font-size:16px;border-radius:9px">⚡️</div>
+                  <div><div class="pname" style="font-size:13.5px">Pre-Workout C4 300g</div><div class="psub mono">310 000 so'm</div></div></div></td>
+                <td>Jasur Toshpo'latov</td>
+                <td><span class="mono" style="font-size:13px">+998 94 331 09 55</span></td>
+                <td><span class="selpill s">SOTILDI <span class="cv">▾</span></span></td>
+                <td><div class="acts"><div class="act">✈</div><div class="act">☎</div></div></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="foot">
+            24 tadan 1–5 ko'rsatilmoqda · holatni o'zingiz belgilaysiz
+            <div class="pg"><span>‹</span><span class="on">1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     M6 · SOZLAMALAR
+     ================================================================ -->
+<div class="deskwrap" data-id="m6">
+  <div class="cap"><b>M6</b> · Sozlamalar</div>
+  <div class="desk">
+    <div class="snav">
+      <div class="brand">
+        <div class="mark"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" stroke-width="3" opacity=".9"/><circle cx="14" cy="14" r="3" fill="#fff"/></svg></div>
+        <div class="nm">USTOZ<span>MERCHANT</span></div>
+      </div>
+      <div class="lbl">MENYU</div>
+      <div class="nitem">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="2" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="2" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="10" width="6" height="6" rx="1.8" stroke="currentColor" stroke-width="1.7"/></svg>
+        Mahsulotlar <span class="cnt" style="background:rgba(255,255,255,.06);color:var(--soft)">18</span>
+      </div>
+      <div class="nitem">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M2.5 5.5h13M2.5 9h13M2.5 12.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Leadlar <span class="cnt">4</span>
+      </div>
+      <div class="nitem on">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.6" stroke="currentColor" stroke-width="1.7"/><path d="M9 1.8v2M9 14.2v2M16.2 9h-2M3.8 9h-2M14.1 3.9l-1.4 1.4M5.3 12.7l-1.4 1.4M14.1 14.1l-1.4-1.4M5.3 5.3L3.9 3.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Sozlamalar
+      </div>
+      <div class="shop">
+        <div class="ava">ZN</div>
+        <div style="min-width:0"><div class="nm">Zarb Nutrition</div><div class="st"><i></i>Aktiv do'kon</div></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div><h1>Sozlamalar</h1><div class="crumb">Do'kon ma'lumotlari va til</div></div>
+        <div class="sp"></div>
+        <span class="dim" style="font-size:12px;font-weight:600;margin-right:6px">Oxirgi o'zgarish: 14-iyul</span>
+        <button class="btn" style="padding:0 24px">Saqlash</button>
+      </div>
+
+      <div class="content">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start">
+
+          <div style="display:flex;flex-direction:column;gap:22px">
+            <div class="card">
+              <div class="sec-h"><span class="t">Do'kon ma'lumotlari</span></div>
+              <div class="row" style="gap:20px;align-items:flex-start">
+                <div class="fld" style="width:124px;flex:none">
+                  <label>Logo</label>
+                  <div class="thumb" style="height:124px;font-size:38px">🏪<div class="x">✕</div></div>
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:16px">
+                  <div class="fld">
+                    <label>Do'kon nomi <em>*</em></label>
+                    <div class="ctl">Zarb Nutrition</div>
+                  </div>
+                  <div class="grid2">
+                    <div class="fld">
+                      <label>Telefon <em>*</em></label>
+                      <div class="ctl"><span class="pre mono">+998</span><span class="mono">90 123 45 67</span></div>
+                    </div>
+                    <div class="fld">
+                      <label>Telegram username</label>
+                      <div class="ctl"><span class="pre">@</span><span>zarb_nutrition</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fld" style="margin-top:16px">
+                <label>Manzil</label>
+                <div class="ta" style="min-height:78px">Toshkent sh., Chilonzor tumani, Bunyodkor shoh ko'chasi 12-uy, "Zarb" savdo markazi, 2-qavat, 214-do'kon</div>
+              </div>
+
+              <div class="fld" style="margin-top:16px">
+                <label>Kategoriyalar</label>
+                <div class="row" style="gap:8px;flex-wrap:wrap">
+                  <span class="chip on">Protein</span><span class="chip on">Kreatin</span>
+                  <span class="chip on">Gainer</span><span class="chip on">Vitamin</span>
+                  <span class="chip">Aminokislota</span><span class="chip">Boshqa</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="sec-h"><span class="t">Til va bildirishnomalar</span></div>
+              <div class="lrow">
+                <div style="flex:1">
+                  <div style="font-weight:700;font-size:14px">Panel tili</div>
+                  <div class="dim" style="font-size:12px;margin-top:3px">Interfeys va bildirishnoma matnlari</div>
+                </div>
+                <div class="row" style="gap:8px">
+                  <span class="chip on">O'zbekcha</span><span class="chip">Русский</span>
+                </div>
+              </div>
+              <div class="lrow">
+                <div style="flex:1">
+                  <div style="font-weight:700;font-size:14px">Yangi lead — Telegram xabar</div>
+                  <div class="dim" style="font-size:12px;margin-top:3px">Har lead kelganda darhol xabar keladi</div>
+                </div>
+                <div class="toggle"></div>
+              </div>
+              <div class="lrow">
+                <div style="flex:1">
+                  <div style="font-weight:700;font-size:14px">Kunlik hisobot</div>
+                  <div class="dim" style="font-size:12px;margin-top:3px">Har kuni 20:00 da leadlar xulosasi</div>
+                </div>
+                <div class="toggle off"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:22px">
+            <div class="card">
+              <div class="sec-h"><span class="t">Do'kon holati</span></div>
+              <div class="row" style="gap:12px">
+                <div class="ava" style="width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#23262D,#17191E);border:1px solid var(--line);display:grid;place-items:center;font-family:Unbounded;font-weight:600;font-size:14px;color:var(--soft)">ZN</div>
+                <div><div style="font-weight:700;font-size:14.5px">Zarb Nutrition</div>
+                  <div class="okc" style="font-size:12px;font-weight:700;margin-top:3px">✓ Tasdiqlangan · 14-iyul</div></div>
+              </div>
+              <div class="divider" style="margin:18px 0"></div>
+              <div class="row"><span class="soft" style="font-size:13px">Mahsulotlar</span><div class="sp"></div><span class="mono" style="font-size:13.5px">18</span></div>
+              <div class="row" style="margin-top:11px"><span class="soft" style="font-size:13px">Jami leadlar</span><div class="sp"></div><span class="mono" style="font-size:13.5px">142</span></div>
+              <div class="row" style="margin-top:11px"><span class="soft" style="font-size:13px">Konversiya</span><div class="sp"></div><span class="mono okc" style="font-size:13.5px">37.5%</span></div>
+              <div class="row" style="margin-top:11px"><span class="soft" style="font-size:13px">Do'kon reytingi</span><div class="sp"></div><span class="mono warnc" style="font-size:13.5px">4.6 ★</span></div>
+            </div>
+
+            <div class="card">
+              <div class="sec-h"><span class="t">Telegram</span></div>
+              <div class="row" style="gap:11px">
+                <div style="width:38px;height:38px;border-radius:12px;background:rgba(106,166,255,.12);display:grid;place-items:center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#6AA6FF"><path d="M9.8 16.6l-.4 5.2c.5 0 .8-.2 1.1-.5l2.6-2.5 5.4 3.9c1 .5 1.7.3 2-.9l3.5-16.5c.3-1.4-.5-2-1.5-1.6L1.1 9.9c-1.4.5-1.3 1.3-.2 1.7l5.5 1.7L19.2 5.4c.6-.4 1.2-.2.7.2z"/></svg>
+                </div>
+                <div style="flex:1">
+                  <div style="font-weight:700;font-size:13.5px">@zarb_nutrition</div>
+                  <div class="okc" style="font-size:11.5px;font-weight:700;margin-top:2px">Ulangan</div>
+                </div>
+                <span class="dim" style="font-size:12px">uzish</span>
+              </div>
+              <div class="hint" style="margin-top:14px">Leadlar shu akkauntga yuboriladi. Uzsangiz faqat panel orqali ko'rasiz.</div>
+            </div>
+
+            <div class="card" style="border-color:rgba(255,83,64,.2)">
+              <div class="sec-h"><span class="t" style="color:#FF7A6B">Xavfli zona</span></div>
+              <div class="dim" style="font-size:12.5px;line-height:1.6;margin-bottom:14px">
+                Do'konni vaqtincha yopsangiz mahsulotlaringiz app'dan yashiriladi, leadlar to'xtaydi. Ma'lumot o'chmaydi.
+              </div>
+              <button class="btn danger" style="width:100%">Do'konni vaqtincha yopish</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+(function(){
+  var wraps  = Array.prototype.slice.call(document.querySelectorAll('.deskwrap'));
+  var btns   = Array.prototype.slice.call(document.querySelectorAll('#panel button[data-s]'));
+  var inner  = document.getElementById('stageInner');
+  var stage  = document.getElementById('stage');
+  var mode   = 'fit';      // fit | full
+  var all    = false;      // hammasi ko'rinsinmi
+  var cur    = 'm1';
+
+  function layout(){
+    var avail = stage.clientWidth;
+    var s = mode === 'full' ? 1 : Math.min(1, avail / 1440);
+    inner.style.transform = 'scale(' + s + ')';
+    inner.style.width  = (100 / s) + '%';
+    // stage balandligini scale'ga moslash
+    var h = inner.scrollHeight * s;
+    stage.style.height = h + 'px';
+  }
+
+  function show(id){
+    cur = id;
+    wraps.forEach(function(w){ w.classList.toggle('on', w.dataset.id === id); });
+    btns.forEach(function(b){ b.classList.toggle('on', b.dataset.s === id); });
+    if (!all) window.scrollTo({ top: 0, behavior: 'smooth' });
+    requestAnimationFrame(layout);
+  }
+
+  btns.forEach(function(b){ b.onclick = function(){ if(all) setAll(false); show(b.dataset.s); }; });
+
+  function setMode(m){
+    mode = m;
+    document.getElementById('zFit').classList.toggle('on', m === 'fit' && !all);
+    document.getElementById('zFull').classList.toggle('on', m === 'full' && !all);
+    requestAnimationFrame(layout);
+  }
+  function setAll(v){
+    all = v;
+    document.body.classList.toggle('solo', !v);
+    document.getElementById('zAll').classList.toggle('on', v);
+    document.getElementById('zFit').classList.toggle('on', !v && mode === 'fit');
+    document.getElementById('zFull').classList.toggle('on', !v && mode === 'full');
+    requestAnimationFrame(layout);
+  }
+
+  document.getElementById('zFit').onclick  = function(){ setAll(false); setMode('fit'); };
+  document.getElementById('zFull').onclick = function(){ setAll(false); setMode('full'); };
+  document.getElementById('zAll').onclick  = function(){ setAll(!all); };
+
+  document.addEventListener('keydown', function(e){
+    if (all) return;
+    var i = btns.findIndex(function(b){ return b.dataset.s === cur; });
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') show(btns[(i+1) % btns.length].dataset.s);
+    if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  show(btns[(i-1+btns.length) % btns.length].dataset.s);
+  });
+
+  window.addEventListener('resize', layout);
+  document.body.classList.add('solo');
+  show('m1');
+  layout();
+  setTimeout(layout, 400); // shriftlar yuklangach qayta o'lchash
+})();
+</script>
+</body>
+</html>

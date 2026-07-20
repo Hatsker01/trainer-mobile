@@ -1,0 +1,2283 @@
+openapi: 3.0.3
+
+info:
+  title: USTOZ API
+  version: 1.0.0
+  description: |
+    Trenerlar uchun shogird va to'lov boshqaruvi + sport nutrition marketplace.
+
+    **Konvensiyalar**
+    - Pul: `BIGINT`, **so'mda butun son** (tiyin yo'q, float yo'q).
+    - Sana (`paid_at`, `next_due_date`, `date`): `YYYY-MM-DD`, timezone'siz.
+    - Vaqt (`created_at`, `sent_at`): RFC3339 UTC. Biznes-logika `Asia/Tashkent`.
+    - Telefon: `+998XXXXXXXXX` (13 belgi, probelsiz).
+    - Hech narsa DELETE qilinmaydi — `status=archived`.
+    - RBAC: trener faqat o'z shogirdlarini ko'radi (`trainer_id = ctx.user`).
+    - `x-phase: 2` bilan belgilangan endpointlar MVP da 501 qaytaradi (spec §8).
+
+    To'liq kontekst: `docs/ustoz-mvp-spec.md`
+  contact:
+    name: USTOZ
+  license:
+    name: Proprietary
+    url: https://example.invalid/license
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Lokal backend
+  - url: http://localhost:4010/api/v1
+    description: Prism mock server (mobile oqimi uchun)
+  - url: https://api.ustoz.uz/api/v1
+    description: Production
+
+tags:
+  - name: auth
+    description: OTP autentifikatsiya, JWT
+  - name: me
+    description: Joriy foydalanuvchi profili
+  - name: students
+    description: Shogirdlar CRUD, filtr, arxiv, eslatma
+  - name: payments
+    description: To'lovlar
+  - name: attendance
+    description: Davomad
+  - name: dashboard
+    description: Bugungi holat va statistika
+  - name: tariffs
+    description: Tarif shablonlari
+  - name: telegram
+    description: Bot webhook
+  - name: merchant
+    description: "Merchant panel (Fase 2)"
+  - name: market
+    description: "Marketplace (Fase 2)"
+  - name: admin
+    description: "Admin panel (Fase 2)"
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  # ─────────────────────────── AUTH ───────────────────────────
+
+  /auth/otp/request:
+    post:
+      tags: [auth]
+      summary: OTP kod so'rash
+      description: |
+        Telefonga 6 raqamli kod yuboradi. Kanal: `tg_chat_id` bog'langan bo'lsa
+        Telegram bot (bepul), aks holda Eskiz.uz SMS.
+        Rate limit: 5 so'rov / soat / telefon (spec §7).
+      operationId: requestOtp
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequest'
+      responses:
+        '200':
+          description: Kod yuborildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpRequestResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '502':
+          description: Kod generatsiya qilindi, lekin kanalga yetkazib bo'lmadi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                send_failed:
+                  value:
+                    error:
+                      code: otp_send_failed
+                      message: Kodni yuborib bo'lmadi. Birozdan keyin urinib ko'ring
+
+  /auth/otp/verify:
+    post:
+      tags: [auth]
+      summary: OTP kodni tasdiqlash
+      description: |
+        Kod to'g'ri bo'lsa JWT juftligi qaytariladi. Telefon birinchi marta
+        ko'rinsa — `users` yozuvi yaratiladi va `is_new_user: true` bo'ladi
+        (mobil app profil sozlash ekraniga o'tkazadi).
+      operationId: verifyOtp
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyRequest'
+      responses:
+        '200':
+          description: Muvaffaqiyatli kirish
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Kod noto'g'ri yoki muddati o'tgan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_code:
+                  value:
+                    error:
+                      code: otp_invalid
+                      message: Kod noto'g'ri yoki muddati o'tgan
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Access tokenni yangilash
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Yangi juftlik
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ─────────────────────────── ME ───────────────────────────
+
+  /me:
+    get:
+      tags: [me]
+      summary: Joriy profil + tarif rejasi
+      operationId: getMe
+      responses:
+        '200':
+          description: Profil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [me]
+      summary: Profilni yangilash
+      description: Ism, zal nomi, til, eslatma vaqti. Faqat yuborilgan maydonlar o'zgaradi.
+      operationId: updateMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeUpdate'
+      responses:
+        '200':
+          description: Yangilangan profil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /me/tg-link:
+    get:
+      tags: [me]
+      summary: Trenerni Telegram'ga ulash havolasi
+      description: |
+        Mobil ilovadagi "Telegram ulash" tugmasi uchun (spec §3.2).
+        Havola ochilganda bot `/start trainer_<token>` oladi va trenerning
+        `tg_chat_id` sini bog'laydi — shundan keyin kunlik digest va qarz
+        eslatmalari botga keladi.
+
+        Token birinchi so'rovda generatsiya qilinadi va keyin **o'zgarmaydi**:
+        trener havolani saqlab qo'yib keyinroq ochishi mumkin.
+      operationId: getTrainerTgLink
+      responses:
+        '200':
+          description: Havola
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TgLink'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ─────────────────────────── STUDENTS ───────────────────────────
+
+  /students:
+    get:
+      tags: [students]
+      summary: Shogirdlar ro'yxati
+      description: |
+        Default saralash: **qarzdorlar doim tepada**, keyin `next_due_date` o'sish
+        tartibida. `filter=archived` berilmasa arxivlangalar chiqmaydi.
+      operationId: listStudents
+      parameters:
+        - name: filter
+          in: query
+          description: Holat filtri
+          schema:
+            type: string
+            enum: [all, debtors, upcoming, active, archived]
+            default: all
+        - name: q
+          in: query
+          description: Qidiruv — ism yoki telefon bo'yicha
+          schema:
+            type: string
+            maxLength: 100
+          example: Aziz
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Sahifalangan ro'yxat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedStudents'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [students]
+      summary: Shogird qo'shish
+      description: |
+        Yaratilgach `invite_token` generatsiya qilinadi — mobil app deep link
+        yasaydi: `t.me/UstozBot?start=<invite_token>`.
+      operationId: createStudent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentCreate'
+      responses:
+        '201':
+          description: Yaratildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /students/{id}:
+    parameters:
+      - $ref: '#/components/parameters/StudentId'
+    get:
+      tags: [students]
+      summary: Bitta shogird
+      operationId: getStudent
+      responses:
+        '200':
+          description: Shogird
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [students]
+      summary: Shogirdni yangilash
+      description: Ism, telefon, tarif o'zgartirish. Faqat yuborilgan maydonlar.
+      operationId: updateStudent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentUpdate'
+      responses:
+        '200':
+          description: Yangilandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /students/{id}/archive:
+    parameters:
+      - $ref: '#/components/parameters/StudentId'
+    post:
+      tags: [students]
+      summary: Shogirdni arxivlash
+      description: |
+        `status='archived'`. **DELETE yo'q** — data hech qachon yo'qolmaydi
+        (spec §6.2). Idempotent: arxivlangan shogirdni qayta arxivlash 200 qaytaradi.
+      operationId: archiveStudent
+      responses:
+        '200':
+          description: Arxivlandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /students/{id}/invite-link:
+    parameters:
+      - $ref: '#/components/parameters/StudentId'
+    get:
+      tags: [students]
+      summary: Shogirdni botga taklif qilish havolasi
+      description: |
+        `t.me/<bot>?start=<invite_token>`. Trener buni shogirdga yuboradi;
+        shogird ochganda `students.tg_chat_id` bog'lanadi va u eslatmalarni
+        Telegram'da oladi (spec §3.1).
+
+        Token shogird yaratilganda generatsiya qilingan (`POST /students`) —
+        bu endpoint uni faqat havola ko'rinishida qaytaradi, YANGISINI
+        yaratmaydi: aks holda oldin yuborilgan havolalar ishlamay qolardi.
+      operationId: getStudentInviteLink
+      responses:
+        '200':
+          description: Havola
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TgLink'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /students/{id}/remind:
+    parameters:
+      - $ref: '#/components/parameters/StudentId'
+    post:
+      tags: [students]
+      summary: Qo'lda eslatma yuborish
+      description: |
+        Shogirdga bot orqali eslatma. `tg_chat_id` NULL bo'lsa 422.
+        Kuniga 3 tadan ortiq bo'lsa javobda `warning` qaytadi (UI ogohlantiradi,
+        lekin bloklanmaydi — spec §2.4).
+      operationId: remindStudent
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemindRequest'
+      responses:
+        '202':
+          description: Eslatma navbatga qo'yildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemindResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422':
+          description: Shogird Telegramga ulanmagan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                not_connected:
+                  value:
+                    error:
+                      code: student_not_connected
+                      message: Shogird Telegram botga ulanmagan
+
+  /students/{id}/payments:
+    parameters:
+      - $ref: '#/components/parameters/StudentId'
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/LimitParam'
+    get:
+      tags: [students, payments]
+      summary: Shogirdning to'lovlar tarixi
+      operationId: listStudentPayments
+      responses:
+        '200':
+          description: To'lovlar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedPayments'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /students/{id}/attendance:
+    parameters:
+      - $ref: '#/components/parameters/StudentId'
+    get:
+      tags: [students, attendance]
+      summary: Shogirdning davomadi
+      description: Kalendar heatmap uchun. Default — oxirgi 90 kun.
+      operationId: listStudentAttendance
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+          example: '2026-05-01'
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+          example: '2026-07-20'
+      responses:
+        '200':
+          description: Davomad sanalari
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceList'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ─────────────────────────── PAYMENTS ───────────────────────────
+
+  /payments:
+    post:
+      tags: [payments]
+      summary: To'lov qo'shish
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey' 
+      description: |
+        Saqlangach `next_due_date` avtomatik qayta hisoblanadi:
+        - `monthly` → oxirgi to'lov `period_to` + 1 kun
+        - `package` → sana yo'q, `sessions_total` yangilanadi
+        - `single`  → sana yo'q
+
+        Shogirdga bot orqali chek-xabar navbatga qo'yiladi.
+      operationId: createPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreate'
+      responses:
+        '201':
+          description: To'lov saqlandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCreated'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  # ─────────────────────────── ATTENDANCE ───────────────────────────
+
+  /attendance/bulk:
+    post:
+      tags: [attendance]
+      summary: Davomadni ommaviy belgilash
+      description: |
+        Berilgan sanaga belgilangan shogirdlarni yozadi.
+        **Idempotent** — `UNIQUE(student_id, date)`, qayta yuborish dublikat yaratmaydi.
+        Paketli shogirdlarda `sessions_used` +1; 2 ta qolganda eslatma navbatga tushadi.
+      operationId: bulkAttendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceBulkRequest'
+      responses:
+        '200':
+          description: Belgilandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceBulkResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  # ─────────────────────────── DASHBOARD / STATS ───────────────────────────
+
+  /dashboard:
+    get:
+      tags: [dashboard]
+      summary: Bugungi holat
+      description: |
+        Asosiy ekran (S4) uchun. Sanalar `Asia/Tashkent` bo'yicha hisoblanadi.
+        Bloklar: `due_today`, `due_soon` (3 kun ichida), `overdue`.
+      operationId: getDashboard
+      responses:
+        '200':
+          description: Dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /stats:
+    get:
+      tags: [dashboard]
+      summary: Statistika
+      description: 4 ta karta + 6 oylik daromad seriyasi (spec §2.3 S10).
+      operationId: getStats
+      responses:
+        '200':
+          description: Statistika
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ─────────────────────────── TARIFFS ───────────────────────────
+
+  /tariffs:
+    get:
+      tags: [tariffs]
+      summary: Tarif shablonlari
+      operationId: listTariffs
+      parameters:
+        - name: include_inactive
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Shablonlar
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TariffTemplate'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [tariffs]
+      summary: Tarif shabloni qo'shish
+      operationId: createTariff
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TariffCreate'
+      responses:
+        '201':
+          description: Yaratildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TariffTemplate'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+
+  /tariffs/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+        example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+    patch:
+      tags: [tariffs]
+      summary: Tarif shablonini yangilash
+      description: |
+        `is_active=false` — shablonni yashirish. Mavjud shogirdlarning tarifi
+        o'zgarmaydi (tarif shogirdga nusxalanadi, havola emas).
+      operationId: updateTariff
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TariffUpdate'
+      responses:
+        '200':
+          description: Yangilandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TariffTemplate'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ─────────────────────────── TELEGRAM ───────────────────────────
+
+  /tg/webhook:
+    post:
+      tags: [telegram]
+      summary: Telegram bot updates
+      description: |
+        Webhook rejimi (polling emas). `X-Telegram-Bot-Api-Secret-Token` header
+        tekshiriladi. Telegram qayta yubormasligi uchun **har doim 200** qaytaradi —
+        xatolar ichkarida loglanadi va navbatga qo'yiladi.
+      operationId: telegramWebhook
+      security:
+        - telegramSecret: []
+      requestBody:
+        required: true
+        description: Telegram Update obyekti (o'zgarmagan holda)
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              example:
+                update_id: 883745901
+                message:
+                  message_id: 12
+                  from: { id: 501234567, first_name: Aziz, language_code: uz }
+                  chat: { id: 501234567, type: private }
+                  date: 1784620800
+                  text: /start inv_8f3a9c2b1d
+      responses:
+        '200':
+          description: Qabul qilindi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ═══════════════════════ FASE 2 — MERCHANT ═══════════════════════
+
+  /merchant/apply:
+    post:
+      tags: [merchant]
+      summary: Merchant arizasi
+      description: Status `pending` → admin tasdiqlaydi.
+      operationId: merchantApply
+      x-phase: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantApply'
+      responses:
+        '201':
+          description: Ariza qabul qilindi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Merchant'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /merchant/products:
+    get:
+      tags: [merchant]
+      summary: Merchant mahsulotlari
+      operationId: listMerchantProducts
+      x-phase: 2
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Mahsulotlar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedProducts'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+    post:
+      tags: [merchant]
+      summary: Mahsulot qo'shish
+      operationId: createMerchantProduct
+      x-phase: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+      responses:
+        '201':
+          description: Yaratildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /merchant/products/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    patch:
+      tags: [merchant]
+      summary: Mahsulotni yangilash
+      operationId: updateMerchantProduct
+      x-phase: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+      responses:
+        '200':
+          description: Yangilandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /merchant/leads:
+    get:
+      tags: [merchant]
+      summary: Leadlar ro'yxati
+      operationId: listMerchantLeads
+      x-phase: 2
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, contacted, sold, cancelled]
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Leadlar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedLeads'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /merchant/leads/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+        example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+    patch:
+      tags: [merchant]
+      summary: Lead holatini o'zgartirish
+      operationId: updateMerchantLead
+      x-phase: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: '#/components/schemas/LeadStatus'
+      responses:
+        '200':
+          description: Yangilandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  # ═══════════════════════ FASE 2 — MARKETPLACE ═══════════════════════
+
+  /market/products:
+    get:
+      tags: [market]
+      summary: Marketplace mahsulotlari
+      operationId: listMarketProducts
+      x-phase: 2
+      parameters:
+        - name: category
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProductCategory'
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 100 }
+          example: protein
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Mahsulotlar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedProducts'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /market/products/{id}/lead:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    post:
+      tags: [market]
+      summary: Buyurtma (lead) yaratish
+      description: |
+        Biz to'lov va yetkazishga aralashmaymiz — lead yaratiladi va merchantga
+        Telegram xabar ketadi, qolgani ular o'rtasida (spec §4.2).
+      operationId: createMarketLead
+      x-phase: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeadCreate'
+      responses:
+        '201':
+          description: Lead yaratildi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  # ═══════════════════════ FASE 2 — ADMIN ═══════════════════════
+
+  /admin/metrics:
+    get:
+      tags: [admin]
+      summary: Admin dashboard metrikalari
+      operationId: getAdminMetrics
+      x-phase: 2
+      responses:
+        '200':
+          description: Metrikalar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminMetrics'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /admin/trainers:
+    get:
+      tags: [admin]
+      summary: Trenerlar ro'yxati
+      operationId: listAdminTrainers
+      x-phase: 2
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 100 }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Trenerlar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedAdminTrainers'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /admin/merchants/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+        example: 16fd2706-8baf-433b-82eb-8c7fada847da
+    patch:
+      tags: [admin]
+      summary: Merchant moderatsiyasi
+      description: "`approved` yoki `blocked` ga o'tkazish."
+      operationId: moderateMerchant
+      x-phase: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: '#/components/schemas/MerchantStatus'
+      responses:
+        '200':
+          description: Yangilandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Merchant'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /admin/products/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    patch:
+      tags: [admin]
+      summary: Mahsulot moderatsiyasi
+      operationId: moderateProduct
+      x-phase: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: '#/components/schemas/ProductStatus'
+                reason:
+                  type: string
+                  example: Nomaqbul foto
+      responses:
+        '200':
+          description: Yangilandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /admin/broadcast:
+    post:
+      tags: [admin]
+      summary: Broadcast xabar
+      description: "Barcha trenerlarga bot orqali. Segment: hamma / aktiv / passiv."
+      operationId: createBroadcast
+      x-phase: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BroadcastRequest'
+      responses:
+        '202':
+          description: Navbatga qo'yildi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  queued: { type: integer, example: 143 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /admin/feature-flags:
+    get:
+      tags: [admin]
+      summary: Feature flaglar
+      description: "`paywall_enabled`, `marketplace_enabled` — deploysiz yoqish/o'chirish."
+      operationId: listFeatureFlags
+      x-phase: 2
+      responses:
+        '200':
+          description: Flaglar
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FeatureFlag'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /admin/feature-flags/{key}:
+    parameters:
+      - name: key
+        in: path
+        required: true
+        schema: { type: string }
+        example: marketplace_enabled
+    patch:
+      tags: [admin]
+      summary: Flagni yoqish/o'chirish
+      operationId: updateFeatureFlag
+      x-phase: 2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean, example: true }
+      responses:
+        '200':
+          description: Yangilandi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeatureFlag'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+  /admin/logs/notifications:
+    get:
+      tags: [admin]
+      summary: Notification delivery log
+      operationId: listNotificationLogs
+      x-phase: 2
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/NotificationStatus'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Loglar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedNotifications'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '501': { $ref: '#/components/responses/NotImplemented' }
+
+# ═══════════════════════════ COMPONENTS ═══════════════════════════
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Access token, 15 daqiqa. `Authorization: Bearer <access>`"
+    telegramSecret:
+      type: apiKey
+      in: header
+      name: X-Telegram-Bot-Api-Secret-Token
+      description: Telegram webhook secret (spec §3.3)
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: |
+        Takroriy to'lovdan himoya. Mijoz har **yangi** to'lov uchun unikal
+        qiymat (masalan UUIDv4) beradi va **qayta urinishda AYNAN shu
+        qiymatni** takrorlaydi.
+
+        Server shu kalitli to'lov allaqachon yozilgan bo'lsa, yangisini
+        yaratmaydi — **birinchi to'lovning aynan o'zini** qaytaradi
+        (status ham `201`, ya'ni mijoz farqni sezmaydi).
+
+        Kalitsiz so'rov ham qabul qilinadi, lekin u holda tarmoq
+        qayta urinishi ikkinchi to'lovni yaratishi mumkin.
+
+        Amal qilish doirasi: bitta trener. Kalit 1–255 belgi.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 255
+      example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+
+    StudentId:
+      name: id
+      in: path
+      required: true
+      description: Shogird UUID
+      schema: { type: string, format: uuid }
+      example: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+    PageParam:
+      name: page
+      in: query
+      description: Sahifa raqami (1 dan)
+      schema: { type: integer, minimum: 1, default: 1 }
+      example: 1
+    LimitParam:
+      name: limit
+      in: query
+      description: Sahifadagi elementlar soni
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      example: 20
+
+  responses:
+    BadRequest:
+      description: So'rov formati noto'g'ri
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            bad_request:
+              value:
+                error:
+                  code: bad_request
+                  message: So'rov formati noto'g'ri
+    Unauthorized:
+      description: Token yo'q, yaroqsiz yoki muddati o'tgan
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            unauthorized:
+              value:
+                error:
+                  code: unauthorized
+                  message: Avtorizatsiya talab qilinadi
+    Forbidden:
+      description: Bu resursga huquq yo'q (masalan boshqa trenerning shogirdi)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            forbidden:
+              value:
+                error:
+                  code: forbidden
+                  message: Bu amalga ruxsat yo'q
+    NotFound:
+      description: Topilmadi
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            not_found:
+              value:
+                error:
+                  code: not_found
+                  message: Shogird topilmadi
+    UnprocessableEntity:
+      description: Validatsiya xatosi
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            validation:
+              value:
+                error:
+                  code: validation_failed
+                  message: Maydonlar to'g'ri to'ldirilmagan
+                  details:
+                    phone: Telefon +998XXXXXXXXX formatda bo'lishi kerak
+                    tariff_price: Summa 0 dan katta bo'lishi kerak
+    TooManyRequests:
+      description: |
+        Juda ko'p so'rov. Ikki chegara bor:
+        1 kod / 60 soniya (cooldown) va 5 kod / soat / telefon (spec §7).
+      headers:
+        Retry-After:
+          description: Necha soniyadan keyin qayta urinish mumkin
+          schema: { type: integer, example: 60 }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            rate_limited:
+              value:
+                error:
+                  code: rate_limited
+                  message: Juda ko'p urinish. 1 soatdan keyin qayta urinib ko'ring
+    NotImplemented:
+      description: "Fase 2 — hali implement qilinmagan"
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          examples:
+            not_implemented:
+              value:
+                error:
+                  code: not_implemented
+                  message: Bu endpoint hali tayyor emas
+
+  schemas:
+
+    # ─────────── Umumiy ───────────
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Mashina o'qiydigan xato kodi (snake_case)
+          example: validation_failed
+        message:
+          type: string
+          description: Foydalanuvchiga ko'rsatiladigan matn (so'rov `Accept-Language` tilida)
+          example: Maydonlar to'g'ri to'ldirilmagan
+        details:
+          type: object
+          description: Maydon → xato matni (faqat 422 da)
+          additionalProperties: { type: string }
+          example:
+            phone: Telefon +998XXXXXXXXX formatda bo'lishi kerak
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error: { $ref: '#/components/schemas/Error' }
+
+    Pagination:
+      type: object
+      required: [total, page, limit]
+      properties:
+        total: { type: integer, description: Jami elementlar soni, example: 47 }
+        page:  { type: integer, example: 1 }
+        limit: { type: integer, example: 20 }
+
+    Phone:
+      type: string
+      description: "+998XXXXXXXXX formatda, probelsiz"
+      pattern: '^\+998[0-9]{9}$'
+      minLength: 13
+      maxLength: 13
+      example: '+998901234567'
+
+    Lang:
+      type: string
+      enum: [uz, ru]
+      default: uz
+      example: uz
+
+    Money:
+      type: integer
+      format: int64
+      description: "So'mda butun son. Tiyin YO'Q, float YO'Q."
+      minimum: 0
+      example: 400000
+
+    # ─────────── Auth ───────────
+
+    OtpRequest:
+      type: object
+      required: [phone]
+      properties:
+        phone: { $ref: '#/components/schemas/Phone' }
+      example:
+        phone: '+998901234567'
+
+    OtpRequestResponse:
+      type: object
+      required: [channel, expires_in]
+      properties:
+        channel:
+          type: string
+          enum: [tg, sms]
+          description: Kod qaysi kanal orqali yuborildi
+          example: sms
+        expires_in:
+          type: integer
+          description: Kod amal qilish muddati (soniya)
+          example: 300
+        retry_after:
+          type: integer
+          description: Qayta so'rashgacha kutish (soniya)
+          example: 60
+
+    OtpVerifyRequest:
+      type: object
+      required: [phone, code]
+      properties:
+        phone: { $ref: '#/components/schemas/Phone' }
+        code:
+          type: string
+          pattern: '^[0-9]{6}$'
+          example: '482913'
+      example:
+        phone: '+998901234567'
+        code: '482913'
+
+    RefreshRequest:
+      type: object
+      required: [refresh]
+      properties:
+        refresh:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyYjFmOWM0ZSJ9.rTk8
+
+    TokenPair:
+      type: object
+      required: [access, refresh, expires_in]
+      properties:
+        access:
+          type: string
+          description: Access token, 15 daqiqa
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyYjFmOWM0ZSJ9.aB3d
+        refresh:
+          type: string
+          description: Refresh token, 30 kun
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyYjFmOWM0ZSJ9.rTk8
+        expires_in:
+          type: integer
+          description: Access token muddati (soniya)
+          example: 900
+        is_new_user:
+          type: boolean
+          description: "true bo'lsa — profil sozlash ekraniga (S3)"
+          example: false
+
+    # ─────────── Me ───────────
+
+    UserRole:
+      type: string
+      enum: [trainer, merchant, admin]
+      example: trainer
+
+    Plan:
+      type: string
+      enum: [free, pro]
+      default: free
+      example: free
+
+    Me:
+      type: object
+      required: [id, phone, role, name, lang, plan, tg_connected, created_at]
+      properties:
+        id:    { type: string, format: uuid, example: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4 }
+        phone: { $ref: '#/components/schemas/Phone' }
+        role:  { $ref: '#/components/schemas/UserRole' }
+        name:  { type: string, example: Sardor Rahimov }
+        lang:  { $ref: '#/components/schemas/Lang' }
+        gym_name:
+          type: string
+          nullable: true
+          example: Olimp Fitness
+        remind_time:
+          type: string
+          description: Kunlik eslatma vaqti, Asia/Tashkent (HH:MM)
+          pattern: '^[0-2][0-9]:[0-5][0-9]$'
+          example: '09:00'
+        plan: { $ref: '#/components/schemas/Plan' }
+        plan_until:
+          type: string
+          format: date
+          nullable: true
+          example: null
+        tg_connected:
+          type: boolean
+          description: Trener botga ulanganmi
+          example: true
+        created_at: { type: string, format: date-time, example: '2026-03-14T06:12:00Z' }
+      example:
+        id: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+        phone: '+998901234567'
+        role: trainer
+        name: Sardor Rahimov
+        lang: uz
+        gym_name: Olimp Fitness
+        remind_time: '09:00'
+        plan: free
+        plan_until: null
+        tg_connected: true
+        created_at: '2026-03-14T06:12:00Z'
+
+    MeUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:        { type: string, minLength: 1, maxLength: 100, example: Sardor Rahimov }
+        gym_name:    { type: string, nullable: true, maxLength: 100, example: Olimp Fitness }
+        lang:        { $ref: '#/components/schemas/Lang' }
+        remind_time: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$', example: '09:00' }
+
+    # ─────────── Tariff ───────────
+
+    TariffType:
+      type: string
+      enum: [monthly, package, single]
+      description: "monthly — oylik obuna · package — mashg'ulotlar paketi · single — bir martalik"
+      example: monthly
+
+    TariffTemplate:
+      type: object
+      required: [id, name, type, price, is_active]
+      properties:
+        id:   { type: string, format: uuid, example: 7c9e6679-7425-40de-944b-e07fc1f90ae7 }
+        name: { type: string, example: Oylik standart }
+        type: { $ref: '#/components/schemas/TariffType' }
+        price: { $ref: '#/components/schemas/Money' }
+        sessions_count:
+          type: integer
+          nullable: true
+          description: "Faqat `package` uchun"
+          example: null
+        is_active: { type: boolean, example: true }
+      example:
+        id: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        name: Oylik standart
+        type: monthly
+        price: 400000
+        sessions_count: null
+        is_active: true
+
+    TariffCreate:
+      type: object
+      required: [name, type, price]
+      properties:
+        name:  { type: string, minLength: 1, maxLength: 100, example: 12 ta mashg'ulot }
+        type:  { $ref: '#/components/schemas/TariffType' }
+        price: { $ref: '#/components/schemas/Money' }
+        sessions_count:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: "`type=package` bo'lsa majburiy"
+          example: 12
+      example:
+        name: 12 ta mashg'ulot
+        type: package
+        price: 600000
+        sessions_count: 12
+
+    TariffUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:      { type: string, minLength: 1, maxLength: 100 }
+        price:     { $ref: '#/components/schemas/Money' }
+        is_active: { type: boolean, example: false }
+
+    # ─────────── Student ───────────
+
+    StudentStatus:
+      type: string
+      enum: [active, archived]
+      example: active
+
+    PaymentState:
+      type: string
+      description: |
+        Hisoblangan holat (DB'da saqlanmaydi) — StatusBadge uchun:
+        `paid` (TO'LANGAN) · `due_soon` (3 KUN QOLDI) · `due_today` · `overdue` (QARZDOR)
+        · `none` (paket/bir martalik — sana yo'q)
+      enum: [paid, due_soon, due_today, overdue, none]
+      example: paid
+
+    TgLink:
+      type: object
+      required: [link, token]
+      properties:
+        link:
+          type: string
+          description: To'liq deep link — mobil ilova buni share/copy qiladi.
+          example: https://t.me/UstozBot?start=inv_8f3a9c2b1d
+        token:
+          type: string
+          description: |
+            Havoladagi `start` parametri. Mobil ilova havolani o'zi
+            yasashi shart emas, lekin QR kod uchun token kerak bo'lishi mumkin.
+          example: inv_8f3a9c2b1d
+
+    Student:
+      type: object
+      required:
+        [id, name, phone, tariff_type, tariff_price, sessions_used,
+         status, payment_state, tg_connected, created_at]
+      properties:
+        id:    { type: string, format: uuid, example: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4 }
+        name:  { type: string, example: Aziz Karimov }
+        phone: { $ref: '#/components/schemas/Phone' }
+        tariff_type:  { $ref: '#/components/schemas/TariffType' }
+        tariff_price: { $ref: '#/components/schemas/Money' }
+        sessions_total:
+          type: integer
+          nullable: true
+          description: "Faqat `package`"
+          example: null
+        sessions_used:
+          type: integer
+          description: "Ishlatilgan mashg'ulotlar (`package` uchun)"
+          example: 0
+        next_due_date:
+          type: string
+          format: date
+          nullable: true
+          description: "Keyingi to'lov sanasi. `package`/`single` da null."
+          example: '2026-08-15'
+        days_overdue:
+          type: integer
+          nullable: true
+          description: "Kechikish kunlari (musbat bo'lsa qarzdor). Hisoblangan maydon."
+          example: null
+        status:        { $ref: '#/components/schemas/StudentStatus' }
+        payment_state: { $ref: '#/components/schemas/PaymentState' }
+        tg_connected:
+          type: boolean
+          description: Shogird botga ulanganmi
+          example: true
+        invite_token:
+          type: string
+          nullable: true
+          description: "Deep link uchun: `t.me/UstozBot?start=<invite_token>`"
+          example: inv_8f3a9c2b1d
+        created_at: { type: string, format: date-time, example: '2026-06-01T05:30:00Z' }
+      example:
+        id: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+        name: Aziz Karimov
+        phone: '+998901234567'
+        tariff_type: monthly
+        tariff_price: 400000
+        sessions_total: null
+        sessions_used: 0
+        next_due_date: '2026-08-15'
+        days_overdue: null
+        status: active
+        payment_state: paid
+        tg_connected: true
+        invite_token: inv_8f3a9c2b1d
+        created_at: '2026-06-01T05:30:00Z'
+
+    StudentCreate:
+      type: object
+      required: [name, phone, tariff_type, tariff_price]
+      properties:
+        name:  { type: string, minLength: 1, maxLength: 100, example: Aziz Karimov }
+        phone: { $ref: '#/components/schemas/Phone' }
+        tariff_type:  { $ref: '#/components/schemas/TariffType' }
+        tariff_price: { $ref: '#/components/schemas/Money' }
+        sessions_total:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: "`tariff_type=package` bo'lsa majburiy"
+          example: null
+        start_date:
+          type: string
+          format: date
+          description: "Boshlanish sanasi (default: bugun). `monthly` da birinchi `next_due_date` shundan hisoblanadi."
+          example: '2026-07-15'
+      example:
+        name: Aziz Karimov
+        phone: '+998901234567'
+        tariff_type: monthly
+        tariff_price: 400000
+        sessions_total: null
+        start_date: '2026-07-15'
+
+    StudentUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:  { type: string, minLength: 1, maxLength: 100 }
+        phone: { $ref: '#/components/schemas/Phone' }
+        tariff_type:  { $ref: '#/components/schemas/TariffType' }
+        tariff_price: { $ref: '#/components/schemas/Money' }
+        sessions_total: { type: integer, nullable: true, minimum: 1 }
+        next_due_date:  { type: string, format: date, nullable: true }
+
+    PagedStudents:
+      type: object
+      required: [items, total, page, limit]
+      allOf:
+        - $ref: '#/components/schemas/Pagination'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Student' }
+      example:
+        items:
+          - id: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+            name: Aziz Karimov
+            phone: '+998901234567'
+            tariff_type: monthly
+            tariff_price: 400000
+            sessions_total: null
+            sessions_used: 0
+            next_due_date: '2026-07-15'
+            days_overdue: 5
+            status: active
+            payment_state: overdue
+            tg_connected: true
+            invite_token: inv_8f3a9c2b1d
+            created_at: '2026-06-01T05:30:00Z'
+          - id: 5d2a7b91-4c8e-4a2f-b6d3-1e9f0c4a8b72
+            name: Nilufar Yo'ldosheva
+            phone: '+998935557788'
+            tariff_type: package
+            tariff_price: 600000
+            sessions_total: 12
+            sessions_used: 8
+            next_due_date: null
+            days_overdue: null
+            status: active
+            payment_state: none
+            tg_connected: false
+            invite_token: inv_2c7d4e9a3f
+            created_at: '2026-06-20T09:15:00Z'
+        total: 47
+        page: 1
+        limit: 20
+
+    RemindRequest:
+      type: object
+      properties:
+        template_key:
+          type: string
+          description: "i18n kalit. Berilmasa — `payment_due_manual`."
+          enum: [payment_due_manual, payment_overdue_manual, sessions_low_manual]
+          example: payment_due_manual
+        lang: { $ref: '#/components/schemas/Lang' }
+
+    RemindResponse:
+      type: object
+      required: [notification_id, status]
+      properties:
+        notification_id: { type: string, format: uuid, example: 8c3f1a6b-9d2e-4f70-a1b5-3e7c9d0f2a48 }
+        status: { $ref: '#/components/schemas/NotificationStatus' }
+        warning:
+          type: string
+          nullable: true
+          description: "Bugun 3 tadan ortiq qo'lda eslatma yuborilgan bo'lsa"
+          example: Bugun bu shogirdga 3 marta eslatma yuborilgan
+      example:
+        notification_id: 8c3f1a6b-9d2e-4f70-a1b5-3e7c9d0f2a48
+        status: queued
+        warning: null
+
+    # ─────────── Payment ───────────
+
+    PaymentMethod:
+      type: string
+      enum: [cash, card, payme, click]
+      description: Faqat yozuv uchun — to'lov integratsiyasi YO'Q (spec §2.3 S8)
+      example: cash
+
+    Payment:
+      type: object
+      required: [id, student_id, amount, method, paid_at, created_at]
+      properties:
+        id:         { type: string, format: uuid, example: a4f8c210-5b7d-4e39-8c62-1d0a9f3b7e51 }
+        student_id: { type: string, format: uuid, example: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4 }
+        amount:     { $ref: '#/components/schemas/Money' }
+        method:     { $ref: '#/components/schemas/PaymentMethod' }
+        paid_at:    { type: string, format: date, example: '2026-07-15' }
+        period_from:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-07-15'
+        period_to:
+          type: string
+          format: date
+          nullable: true
+          description: "`monthly` da keyingi `next_due_date` shundan +1 kun"
+          example: '2026-08-14'
+        created_at: { type: string, format: date-time, example: '2026-07-15T11:42:00Z' }
+      example:
+        id: a4f8c210-5b7d-4e39-8c62-1d0a9f3b7e51
+        student_id: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+        amount: 400000
+        method: cash
+        paid_at: '2026-07-15'
+        period_from: '2026-07-15'
+        period_to: '2026-08-14'
+        created_at: '2026-07-15T11:42:00Z'
+
+    PaymentCreate:
+      type: object
+      required: [student_id, amount, method]
+      properties:
+        student_id: { type: string, format: uuid, example: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4 }
+        amount:     { $ref: '#/components/schemas/Money' }
+        method:     { $ref: '#/components/schemas/PaymentMethod' }
+        paid_at:
+          type: string
+          format: date
+          description: "Default: bugun (Asia/Tashkent)"
+          example: '2026-07-15'
+        sessions_added:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: "`package` tarifida qo'shiladigan mashg'ulotlar soni"
+          example: null
+      example:
+        student_id: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+        amount: 400000
+        method: cash
+        paid_at: '2026-07-15'
+        sessions_added: null
+
+    PaymentCreated:
+      type: object
+      required: [payment, student]
+      description: To'lov + qayta hisoblangan shogird holati (mobil UI darhol yangilanadi)
+      properties:
+        payment: { $ref: '#/components/schemas/Payment' }
+        student: { $ref: '#/components/schemas/Student' }
+
+    PagedPayments:
+      type: object
+      required: [items, total, page, limit]
+      allOf:
+        - $ref: '#/components/schemas/Pagination'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Payment' }
+      example:
+        items:
+          - id: a4f8c210-5b7d-4e39-8c62-1d0a9f3b7e51
+            student_id: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+            amount: 400000
+            method: cash
+            paid_at: '2026-07-15'
+            period_from: '2026-07-15'
+            period_to: '2026-08-14'
+            created_at: '2026-07-15T11:42:00Z'
+        total: 3
+        page: 1
+        limit: 20
+
+    # ─────────── Attendance ───────────
+
+    AttendanceBulkRequest:
+      type: object
+      required: [date, student_ids]
+      properties:
+        date:
+          type: string
+          format: date
+          description: "Asia/Tashkent bo'yicha sana"
+          example: '2026-07-20'
+        student_ids:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items: { type: string, format: uuid }
+          example:
+            - 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+            - 5d2a7b91-4c8e-4a2f-b6d3-1e9f0c4a8b72
+      example:
+        date: '2026-07-20'
+        student_ids:
+          - 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+          - 5d2a7b91-4c8e-4a2f-b6d3-1e9f0c4a8b72
+
+    AttendanceBulkResponse:
+      type: object
+      required: [marked, skipped]
+      properties:
+        marked:
+          type: integer
+          description: Yangi belgilanganlar soni
+          example: 2
+        skipped:
+          type: integer
+          description: Allaqachon belgilangan (idempotent)
+          example: 0
+        low_sessions:
+          type: array
+          description: "Paketda 2 yoki kam mashg'ulot qolgan shogirdlar — eslatma navbatga tushdi"
+          items:
+            type: object
+            required: [student_id, sessions_left]
+            properties:
+              student_id:    { type: string, format: uuid }
+              sessions_left: { type: integer }
+          example:
+            - student_id: 5d2a7b91-4c8e-4a2f-b6d3-1e9f0c4a8b72
+              sessions_left: 2
+      example:
+        marked: 2
+        skipped: 0
+        low_sessions:
+          - student_id: 5d2a7b91-4c8e-4a2f-b6d3-1e9f0c4a8b72
+            sessions_left: 2
+
+    AttendanceList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Kelgan kunlar (kalendar heatmap uchun)
+          items:
+            type: object
+            required: [date]
+            properties:
+              date: { type: string, format: date }
+      example:
+        items:
+          - date: '2026-07-18'
+          - date: '2026-07-16'
+          - date: '2026-07-14'
+
+    # ─────────── Dashboard / Stats ───────────
+
+    DashboardStudent:
+      type: object
+      description: StudentCard mini — dashboard bloklari uchun
+      required: [id, name, tariff_price, payment_state]
+      properties:
+        id:    { type: string, format: uuid }
+        name:  { type: string }
+        phone: { $ref: '#/components/schemas/Phone' }
+        tariff_price:  { $ref: '#/components/schemas/Money' }
+        next_due_date: { type: string, format: date, nullable: true }
+        days_overdue:  { type: integer, nullable: true }
+        payment_state: { $ref: '#/components/schemas/PaymentState' }
+        tg_connected:  { type: boolean }
+
+    DashboardResponse:
+      type: object
+      required: [date, greeting_name, due_today, due_soon, overdue, attendance_today]
+      properties:
+        date:
+          type: string
+          format: date
+          description: "Bugungi sana, Asia/Tashkent"
+          example: '2026-07-20'
+        greeting_name: { type: string, example: Sardor }
+        due_today:
+          type: array
+          items: { $ref: '#/components/schemas/DashboardStudent' }
+        due_soon:
+          type: array
+          description: 3 kun ichida to'lov kutilayotganlar
+          items: { $ref: '#/components/schemas/DashboardStudent' }
+        overdue:
+          type: array
+          description: Muddati o'tganlar
+          items: { $ref: '#/components/schemas/DashboardStudent' }
+        totals:
+          type: object
+          properties:
+            due_today_amount: { $ref: '#/components/schemas/Money' }
+            overdue_amount:   { $ref: '#/components/schemas/Money' }
+        attendance_today:
+          type: object
+          required: [marked_count]
+          properties:
+            marked_count: { type: integer, example: 5 }
+      example:
+        date: '2026-07-20'
+        greeting_name: Sardor
+        due_today:
+          - id: 5d2a7b91-4c8e-4a2f-b6d3-1e9f0c4a8b72
+            name: Nilufar Yo'ldosheva
+            phone: '+998935557788'
+            tariff_price: 500000
+            next_due_date: '2026-07-20'
+            days_overdue: 0
+            payment_state: due_today
+            tg_connected: true
+        due_soon:
+          - id: 9a1c3e5f-7b2d-4c8a-9e0f-6d4b2a8c1e73
+            name: Bekzod Toshmatov
+            phone: '+998971112233'
+            tariff_price: 400000
+            next_due_date: '2026-07-22'
+            days_overdue: null
+            payment_state: due_soon
+            tg_connected: false
+        overdue:
+          - id: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+            name: Aziz Karimov
+            phone: '+998901234567'
+            tariff_price: 400000
+            next_due_date: '2026-07-15'
+            days_overdue: 5
+            payment_state: overdue
+            tg_connected: true
+        totals:
+          due_today_amount: 500000
+          overdue_amount: 400000
+        attendance_today:
+          marked_count: 5
+
+    StatsResponse:
+      type: object
+      required: [month_revenue, prev_month_revenue, active_students, debt_total, series]
+      properties:
+        month_revenue:
+          allOf: [{ $ref: '#/components/schemas/Money' }]
+          description: Shu oy daromadi
+        prev_month_revenue: { $ref: '#/components/schemas/Money' }
+        change_percent:
+          type: number
+          format: float
+          nullable: true
+          description: "O'tgan oyga nisbatan o'zgarish (%). O'tgan oy 0 bo'lsa null."
+          example: 12.5
+        active_students: { type: integer, example: 24 }
+        debtors_count:   { type: integer, example: 3 }
+        debt_total:
+          allOf: [{ $ref: '#/components/schemas/Money' }]
+          description: Jami qarzdorlik
+        series:
+          type: array
+          description: Oxirgi 6 oy daromadi (eskidan yangiga)
+          items:
+            type: object
+            required: [month, revenue]
+            properties:
+              month:   { type: string, description: "YYYY-MM", example: '2026-07' }
+              revenue: { $ref: '#/components/schemas/Money' }
+        by_tariff:
+          type: array
+          description: Shu oy daromadining tarif turlari kesimi
+          items:
+            type: object
+            required: [tariff_type, students, revenue]
+            properties:
+              tariff_type: { $ref: '#/components/schemas/TariffType' }
+              students:    { type: integer, description: Shu tarifdagi aktiv shogirdlar, example: 18 }
+              revenue:     { $ref: '#/components/schemas/Money' }
+      example:
+        month_revenue: 9600000
+        prev_month_revenue: 8533000
+        change_percent: 12.5
+        active_students: 24
+        debtors_count: 3
+        debt_total: 1200000
+        by_tariff:
+          - { tariff_type: monthly, students: 18, revenue: 7200000 }
+          - { tariff_type: package, students: 5, revenue: 2400000 }
+          - { tariff_type: single,  students: 1, revenue: 0 }
+        series:
+          - { month: '2026-02', revenue: 6400000 }
+          - { month: '2026-03', revenue: 7200000 }
+          - { month: '2026-04', revenue: 7800000 }
+          - { month: '2026-05', revenue: 8100000 }
+          - { month: '2026-06', revenue: 8533000 }
+          - { month: '2026-07', revenue: 9600000 }
+
+    # ─────────── Notification ───────────
+
+    NotificationStatus:
+      type: string
+      enum: [queued, sent, failed]
+      example: queued
+
+    NotificationChannel:
+      type: string
+      enum: [tg, push, sms]
+      example: tg
+
+    RecipientType:
+      type: string
+      enum: [student, trainer, merchant]
+      example: student
+
+    Notification:
+      type: object
+      required: [id, recipient_type, recipient_id, channel, template_key, status, scheduled_at]
+      properties:
+        id:             { type: string, format: uuid }
+        recipient_type: { $ref: '#/components/schemas/RecipientType' }
+        recipient_id:   { type: string, format: uuid }
+        channel:        { $ref: '#/components/schemas/NotificationChannel' }
+        template_key:   { type: string, example: payment_due_3days }
+        status:         { $ref: '#/components/schemas/NotificationStatus' }
+        scheduled_at:   { type: string, format: date-time }
+        sent_at:        { type: string, format: date-time, nullable: true }
+        error:          { type: string, nullable: true }
+      example:
+        id: 8c3f1a6b-9d2e-4f70-a1b5-3e7c9d0f2a48
+        recipient_type: student
+        recipient_id: 2b1f9c4e-6a3d-4f8b-9e11-77c0a5d2e3f4
+        channel: tg
+        template_key: payment_due_3days
+        status: sent
+        scheduled_at: '2026-07-17T04:00:00Z'
+        sent_at: '2026-07-17T04:00:12Z'
+        error: null
+
+    PagedNotifications:
+      type: object
+      required: [items, total, page, limit]
+      allOf:
+        - $ref: '#/components/schemas/Pagination'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Notification' }
+
+    # ─────────── Fase 2: Merchant / Market ───────────
+
+    MerchantStatus:
+      type: string
+      enum: [pending, approved, blocked]
+      example: pending
+
+    Merchant:
+      type: object
+      required: [user_id, shop_name, status]
+      properties:
+        user_id:      { type: string, format: uuid }
+        shop_name:    { type: string, example: Sport Pit Tashkent }
+        logo_url:     { type: string, nullable: true }
+        address_text: { type: string, nullable: true, example: "Toshkent, Chilonzor 9-kvartal" }
+        tg_username:  { type: string, nullable: true, example: '@sportpit_tash' }
+        status:       { $ref: '#/components/schemas/MerchantStatus' }
+
+    MerchantApply:
+      type: object
+      required: [shop_name, tg_username]
+      properties:
+        shop_name:    { type: string, minLength: 1, maxLength: 100, example: Sport Pit Tashkent }
+        logo_url:     { type: string, nullable: true }
+        address_text: { type: string, nullable: true, example: "Toshkent, Chilonzor 9-kvartal" }
+        tg_username:  { type: string, example: '@sportpit_tash' }
+
+    ProductCategory:
+      type: string
+      enum: [protein, creatine, gainer, vitamin, amino, other]
+      example: protein
+
+    ProductStatus:
+      type: string
+      enum: [active, hidden, rejected]
+      example: active
+
+    Product:
+      type: object
+      required: [id, merchant_id, name_uz, category, price, status, created_at]
+      properties:
+        id:          { type: string, format: uuid }
+        merchant_id: { type: string, format: uuid }
+        name_uz:     { type: string, example: Whey Protein 2 kg }
+        name_ru:     { type: string, nullable: true, example: "Сывороточный протеин 2 кг" }
+        category:    { $ref: '#/components/schemas/ProductCategory' }
+        brand:       { type: string, nullable: true, example: Optimum Nutrition }
+        price:       { $ref: '#/components/schemas/Money' }
+        weight_text: { type: string, nullable: true, example: 2 kg }
+        description: { type: string, nullable: true }
+        photos:
+          type: array
+          maxItems: 4
+          items: { type: string, format: uri }
+        status:     { $ref: '#/components/schemas/ProductStatus' }
+        created_at: { type: string, format: date-time }
+      example:
+        id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        merchant_id: 16fd2706-8baf-433b-82eb-8c7fada847da
+        name_uz: Whey Protein 2 kg
+        name_ru: "Сывороточный протеин 2 кг"
+        category: protein
+        brand: Optimum Nutrition
+        price: 890000
+        weight_text: 2 kg
+        description: "Mashg'ulotdan keyin tiklanish uchun"
+        photos: ['https://cdn.ustoz.uz/p/3fa85f64-1.jpg']
+        status: active
+        created_at: '2026-07-01T08:00:00Z'
+
+    ProductCreate:
+      type: object
+      required: [name_uz, category, price]
+      properties:
+        name_uz:     { type: string, minLength: 1, maxLength: 200 }
+        name_ru:     { type: string, nullable: true, maxLength: 200 }
+        category:    { $ref: '#/components/schemas/ProductCategory' }
+        brand:       { type: string, nullable: true }
+        price:       { $ref: '#/components/schemas/Money' }
+        weight_text: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        photos:
+          type: array
+          maxItems: 4
+          items: { type: string, format: uri }
+
+    ProductUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name_uz:     { type: string, minLength: 1, maxLength: 200 }
+        name_ru:     { type: string, nullable: true, maxLength: 200 }
+        category:    { $ref: '#/components/schemas/ProductCategory' }
+        brand:       { type: string, nullable: true }
+        price:       { $ref: '#/components/schemas/Money' }
+        weight_text: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        photos:
+          type: array
+          maxItems: 4
+          items: { type: string, format: uri }
+        status: { $ref: '#/components/schemas/ProductStatus' }
+
+    PagedProducts:
+      type: object
+      required: [items, total, page, limit]
+      allOf:
+        - $ref: '#/components/schemas/Pagination'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Product' }
+
+    LeadStatus:
+      type: string
+      enum: [new, contacted, sold, cancelled]
+      example: new
+
+    Lead:
+      type: object
+      required: [id, product_id, merchant_id, buyer_name, buyer_phone, status, created_at]
+      properties:
+        id:          { type: string, format: uuid }
+        product_id:  { type: string, format: uuid }
+        merchant_id: { type: string, format: uuid }
+        buyer_name:  { type: string, example: Aziz }
+        buyer_phone: { $ref: '#/components/schemas/Phone' }
+        status:      { $ref: '#/components/schemas/LeadStatus' }
+        created_at:  { type: string, format: date-time }
+      example:
+        id: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+        product_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        merchant_id: 16fd2706-8baf-433b-82eb-8c7fada847da
+        buyer_name: Aziz
+        buyer_phone: '+998901234567'
+        status: new
+        created_at: '2026-07-19T14:20:00Z'
+
+    LeadCreate:
+      type: object
+      required: [buyer_name, buyer_phone]
+      properties:
+        buyer_name:  { type: string, minLength: 1, maxLength: 100, example: Aziz }
+        buyer_phone: { $ref: '#/components/schemas/Phone' }
+
+    PagedLeads:
+      type: object
+      required: [items, total, page, limit]
+      allOf:
+        - $ref: '#/components/schemas/Pagination'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Lead' }
+
+    # ─────────── Fase 2: Admin ───────────
+
+    AdminMetrics:
+      type: object
+      required: [trainers_total, students_total, dau, wau, signups_today, notifications_sent_today]
+      properties:
+        trainers_total:  { type: integer, example: 143 }
+        students_total:  { type: integer, example: 2871 }
+        dau:             { type: integer, example: 62 }
+        wau:             { type: integer, example: 108 }
+        signups_today:   { type: integer, example: 4 }
+        notifications_sent_today: { type: integer, example: 512 }
+        notifications_failed_today: { type: integer, example: 3 }
+
+    AdminTrainer:
+      type: object
+      required: [id, name, phone, students_count, plan, is_blocked]
+      properties:
+        id:             { type: string, format: uuid }
+        name:           { type: string, example: Sardor Rahimov }
+        phone:          { $ref: '#/components/schemas/Phone' }
+        students_count: { type: integer, example: 24 }
+        plan:           { $ref: '#/components/schemas/Plan' }
+        last_active_at: { type: string, format: date-time, nullable: true }
+        is_blocked:     { type: boolean, example: false }
+
+    PagedAdminTrainers:
+      type: object
+      required: [items, total, page, limit]
+      allOf:
+        - $ref: '#/components/schemas/Pagination'
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/AdminTrainer' }
+
+    BroadcastRequest:
+      type: object
+      required: [segment, text_uz]
+      properties:
+        segment:
+          type: string
+          enum: [all, active, passive]
+          example: all
+        text_uz: { type: string, example: "Yangilik: statistika bo'limi qo'shildi 💪" }
+        text_ru: { type: string, nullable: true, example: "Новое: добавлен раздел статистики 💪" }
+
+    FeatureFlag:
+      type: object
+      required: [key, enabled]
+      properties:
+        key:
+          type: string
+          enum: [paywall_enabled, marketplace_enabled]
+          example: marketplace_enabled
+        enabled:    { type: boolean, example: false }
+        updated_at: { type: string, format: date-time, nullable: true }
