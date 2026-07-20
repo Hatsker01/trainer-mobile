@@ -120,4 +120,40 @@ badge qisilmaydi — chegara qo'yilmasa overflow muqarrar.
 bilan bo'sh joyni 50/50 bo'lishadi, qisqa badge'da ism va badge orasida
 katta bo'shliq paydo bo'ladi. (b) Qattiq `maxWidth` (masalan 160px) —
 rad etildi: 360 va 430 kenglikdagi ekranlarda bir xil ishlamaydi.
+
+---
+
+## D108 · 2026-07-20 · `path_provider` paketi qo'shildi (ro'yxatdan tashqari)
+
+**Qaror.** Paket ro'yxati qattiq, lekin `path_provider` qo'shildi.
+
+**Sabab.** T8 "o'qish keshi + davomad outbox'i lokal faylga yoziladi" ni
+talab qiladi. iOS/Android'da ilovaga tegishli yoziladigan papka yo'lini
+olishning BOSHQA yo'li yo'q — u platforma kanali orqali beriladi.
+`path_provider` — Flutter jamoasining rasmiy (first-party) paketi.
+
+**Alternativa.** (a) `flutter_secure_storage` ga JSON yozish — rad etildi:
+u Keychain/EncryptedSharedPreferences, ya'ni har o'qish-yozishda
+shifrlash. Dashboard keshi kabi katta bloblar uchun sekin va noto'g'ri
+vosita (Keychain kichik sirlar uchun). (b) Keshni umuman qilmaslik —
+rad etildi: T8 mahsulot printsipi (spec §0.3), zaldagi asosiy stsenariy.
+
+**Cheklov.** Bu YAGONA istisno. Rasm/animatsiya/UI-kit kutubxonalari
+avvalgidek MUTLAQO taqiqlanadi.
+
+---
+
+## D109 · 2026-07-20 · i18n — qo'lda `AppStrings`, `gen-l10n` YO'Q
+
+**Qaror.** Har matn `AppStrings` klassida bitta getter: `_p(uz, ru)`.
+`AppStringsScope` (`InheritedWidget`) orqali `context.s.students`.
+
+**Sabab.** MVP da atigi 2 til. `gen-l10n` + ARB fayllar = kodgeneratsiya
+qadami, 2 ta ARB fayl, build murakkabligi — foydasidan qimmat.
+Bitta faylda turgani "hardcode ovi" ni osonlashtiradi: ekranda tirnoq
+ichida matn qolgan bo'lsa, u darhol ko'rinadi.
+
+**Alternativa.** `Map<String, String>` + `tr('key')` — rad etildi:
+kalit xato yozilsa kompilyator ushlamaydi, yo'q kalit runtime'da
+bo'sh matn beradi. Getter'da bunday xato bo'lishi mumkin emas.
 </content>

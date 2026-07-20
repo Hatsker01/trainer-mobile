@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:ustoz_trainer/core/i18n/lang_provider.dart';
+import 'package:ustoz_trainer/core/i18n/strings.dart';
 import 'package:ustoz_trainer/core/router/app_router.dart';
 import 'package:ustoz_trainer/core/theme/app_theme.dart';
 
@@ -17,40 +18,39 @@ Future<void> main() async {
   runApp(const ProviderScope(child: UstozApp()));
 }
 
-class UstozApp extends StatefulWidget {
+class UstozApp extends ConsumerWidget {
   const UstozApp({super.key});
 
   @override
-  State<UstozApp> createState() => _UstozAppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Til o'zgarsa — `AppStringsScope` yangilanadi va BUTUN daraxt
+    // qayta quriladi (T7 DoD: barcha ekran matnlari almashadi).
+    final AppStrings strings = ref.watch(stringsProvider);
 
-class _UstozAppState extends State<UstozApp> {
-  // Router bir marta quriladi — build'da qayta yaratilsa navigatsiya tarixi yo'qoladi.
-  late final GoRouter _router = createRouter();
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'USTOZ',
-      debugShowCheckedModeBanner: false,
-      routerConfig: _router,
-      theme: AppTheme.dark,
-      // MVP dark-only (spec §9) — tizim sozlamasi qanday bo'lsa ham.
-      themeMode: ThemeMode.dark,
-      builder: (BuildContext context, Widget? child) {
-        // textScale 1.3 gacha qo'llab-quvvatlanadi (T9 adaptivlik matritsasi);
-        // undan yuqorisi qattiq balandlikdagi elementlarni buzadi.
-        final MediaQueryData mq = MediaQuery.of(context);
-        return MediaQuery(
-          data: mq.copyWith(
-            textScaler: mq.textScaler.clamp(
-              minScaleFactor: 1,
-              maxScaleFactor: 1.3,
+    return AppStringsScope(
+      strings: strings,
+      child: MaterialApp.router(
+        title: 'USTOZ',
+        debugShowCheckedModeBanner: false,
+        routerConfig: ref.watch(routerProvider),
+        theme: AppTheme.dark,
+        // MVP dark-only (spec §9) — tizim sozlamasi qanday bo'lsa ham.
+        themeMode: ThemeMode.dark,
+        builder: (BuildContext context, Widget? child) {
+          // textScale 1.3 gacha qo'llab-quvvatlanadi (T9 adaptivlik
+          // matritsasi); undan yuqorisi qattiq balandliklarni buzadi.
+          final MediaQueryData mq = MediaQuery.of(context);
+          return MediaQuery(
+            data: mq.copyWith(
+              textScaler: mq.textScaler.clamp(
+                minScaleFactor: 1,
+                maxScaleFactor: 1.3,
+              ),
             ),
-          ),
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
+      ),
     );
   }
 }

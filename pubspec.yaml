@@ -23,6 +23,7 @@ dependencies:
   json_annotation: ^4.12.0        # DTO serializatsiya
   share_plus: ^12.0.1             # invite havolani ulashish
   connectivity_plus: ^7.0.0       # offline aniqlash (T8)
+  path_provider: ^2.1.5           # kesh/outbox papkasi (T8) — D108
 
 dev_dependencies:
   flutter_test:

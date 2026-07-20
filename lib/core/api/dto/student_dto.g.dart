@@ -27,6 +27,25 @@ Student _$StudentFromJson(Map<String, dynamic> json) => Student(
   inviteToken: json['invite_token'] as String?,
 );
 
+Map<String, dynamic> _$StudentToJson(Student instance) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'phone': instance.phone,
+  'tariff_type': _$TariffTypeEnumMap[instance.tariffType]!,
+  'tariff_price': instance.tariffPrice,
+  'sessions_total': instance.sessionsTotal,
+  'sessions_used': instance.sessionsUsed,
+  'next_due_date': const DateOnlyNullableConverter().toJson(
+    instance.nextDueDate,
+  ),
+  'days_overdue': instance.daysOverdue,
+  'status': _$StudentStatusEnumMap[instance.status]!,
+  'payment_state': _$PaymentStateEnumMap[instance.paymentState]!,
+  'tg_connected': instance.tgConnected,
+  'invite_token': instance.inviteToken,
+  'created_at': const UtcDateTimeConverter().toJson(instance.createdAt),
+};
+
 const _$TariffTypeEnumMap = {
   TariffType.monthly: 'monthly',
   TariffType.package: 'package',
@@ -79,6 +98,14 @@ PagedStudents _$PagedStudentsFromJson(Map<String, dynamic> json) =>
       limit: (json['limit'] as num).toInt(),
     );
 
+Map<String, dynamic> _$PagedStudentsToJson(PagedStudents instance) =>
+    <String, dynamic>{
+      'items': instance.items,
+      'total': instance.total,
+      'page': instance.page,
+      'limit': instance.limit,
+    };
+
 Map<String, dynamic> _$RemindRequestToJson(RemindRequest instance) =>
     <String, dynamic>{
       'template_key': ?_$RemindTemplateEnumMap[instance.templateKey],
@@ -99,6 +126,13 @@ RemindResponse _$RemindResponseFromJson(Map<String, dynamic> json) =>
       status: $enumDecode(_$NotificationStatusEnumMap, json['status']),
       warning: json['warning'] as String?,
     );
+
+Map<String, dynamic> _$RemindResponseToJson(RemindResponse instance) =>
+    <String, dynamic>{
+      'notification_id': instance.notificationId,
+      'status': _$NotificationStatusEnumMap[instance.status]!,
+      'warning': instance.warning,
+    };
 
 const _$NotificationStatusEnumMap = {
   NotificationStatus.queued: 'queued',

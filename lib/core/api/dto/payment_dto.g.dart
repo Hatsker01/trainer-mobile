@@ -23,6 +23,17 @@ Payment _$PaymentFromJson(Map<String, dynamic> json) => Payment(
   ),
 );
 
+Map<String, dynamic> _$PaymentToJson(Payment instance) => <String, dynamic>{
+  'id': instance.id,
+  'student_id': instance.studentId,
+  'amount': instance.amount,
+  'method': _$PaymentMethodEnumMap[instance.method]!,
+  'paid_at': const DateOnlyConverter().toJson(instance.paidAt),
+  'period_from': const DateOnlyNullableConverter().toJson(instance.periodFrom),
+  'period_to': const DateOnlyNullableConverter().toJson(instance.periodTo),
+  'created_at': const UtcDateTimeConverter().toJson(instance.createdAt),
+};
+
 const _$PaymentMethodEnumMap = {
   PaymentMethod.cash: 'cash',
   PaymentMethod.card: 'card',
@@ -45,6 +56,9 @@ PaymentCreated _$PaymentCreatedFromJson(Map<String, dynamic> json) =>
       student: Student.fromJson(json['student'] as Map<String, dynamic>),
     );
 
+Map<String, dynamic> _$PaymentCreatedToJson(PaymentCreated instance) =>
+    <String, dynamic>{'payment': instance.payment, 'student': instance.student};
+
 PagedPayments _$PagedPaymentsFromJson(Map<String, dynamic> json) =>
     PagedPayments(
       items: (json['items'] as List<dynamic>)
@@ -55,6 +69,14 @@ PagedPayments _$PagedPaymentsFromJson(Map<String, dynamic> json) =>
       limit: (json['limit'] as num).toInt(),
     );
 
+Map<String, dynamic> _$PagedPaymentsToJson(PagedPayments instance) =>
+    <String, dynamic>{
+      'items': instance.items,
+      'total': instance.total,
+      'page': instance.page,
+      'limit': instance.limit,
+    };
+
 TariffTemplate _$TariffTemplateFromJson(Map<String, dynamic> json) =>
     TariffTemplate(
       id: json['id'] as String,
@@ -64,6 +86,16 @@ TariffTemplate _$TariffTemplateFromJson(Map<String, dynamic> json) =>
       isActive: json['is_active'] as bool,
       sessionsCount: (json['sessions_count'] as num?)?.toInt(),
     );
+
+Map<String, dynamic> _$TariffTemplateToJson(TariffTemplate instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'type': _$TariffTypeEnumMap[instance.type]!,
+      'price': instance.price,
+      'sessions_count': instance.sessionsCount,
+      'is_active': instance.isActive,
+    };
 
 const _$TariffTypeEnumMap = {
   TariffType.monthly: 'monthly',
@@ -91,3 +123,6 @@ TariffList _$TariffListFromJson(Map<String, dynamic> json) => TariffList(
       .map((e) => TariffTemplate.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
+
+Map<String, dynamic> _$TariffListToJson(TariffList instance) =>
+    <String, dynamic>{'items': instance.items};

@@ -16,6 +16,13 @@ OtpRequestResponse _$OtpRequestResponseFromJson(Map<String, dynamic> json) =>
       retryAfter: (json['retry_after'] as num?)?.toInt(),
     );
 
+Map<String, dynamic> _$OtpRequestResponseToJson(OtpRequestResponse instance) =>
+    <String, dynamic>{
+      'channel': _$OtpChannelEnumMap[instance.channel]!,
+      'expires_in': instance.expiresIn,
+      'retry_after': instance.retryAfter,
+    };
+
 const _$OtpChannelEnumMap = {OtpChannel.tg: 'tg', OtpChannel.sms: 'sms'};
 
 Map<String, dynamic> _$OtpVerifyRequestToJson(OtpVerifyRequest instance) =>
@@ -31,8 +38,20 @@ TokenPair _$TokenPairFromJson(Map<String, dynamic> json) => TokenPair(
   isNewUser: json['is_new_user'] as bool?,
 );
 
+Map<String, dynamic> _$TokenPairToJson(TokenPair instance) => <String, dynamic>{
+  'access': instance.access,
+  'refresh': instance.refresh,
+  'expires_in': instance.expiresIn,
+  'is_new_user': instance.isNewUser,
+};
+
 TgLink _$TgLinkFromJson(Map<String, dynamic> json) =>
     TgLink(link: json['link'] as String, token: json['token'] as String);
+
+Map<String, dynamic> _$TgLinkToJson(TgLink instance) => <String, dynamic>{
+  'link': instance.link,
+  'token': instance.token,
+};
 
 Me _$MeFromJson(Map<String, dynamic> json) => Me(
   id: json['id'] as String,
@@ -51,6 +70,20 @@ Me _$MeFromJson(Map<String, dynamic> json) => Me(
     json['plan_until'] as String?,
   ),
 );
+
+Map<String, dynamic> _$MeToJson(Me instance) => <String, dynamic>{
+  'id': instance.id,
+  'phone': instance.phone,
+  'role': _$UserRoleEnumMap[instance.role]!,
+  'name': instance.name,
+  'lang': _$LangEnumMap[instance.lang]!,
+  'plan': _$PlanEnumMap[instance.plan]!,
+  'gym_name': instance.gymName,
+  'remind_time': instance.remindTime,
+  'plan_until': const DateOnlyNullableConverter().toJson(instance.planUntil),
+  'tg_connected': instance.tgConnected,
+  'created_at': const UtcDateTimeConverter().toJson(instance.createdAt),
+};
 
 const _$UserRoleEnumMap = {
   UserRole.trainer: 'trainer',

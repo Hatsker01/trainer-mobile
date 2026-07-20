@@ -6,7 +6,7 @@ import 'package:ustoz_trainer/core/api/dto/student_dto.dart';
 part 'payment_dto.g.dart';
 
 /// To'lov yozuvi.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class Payment {
   const Payment({
     required this.id,
@@ -21,6 +21,8 @@ class Payment {
 
   factory Payment.fromJson(Map<String, dynamic> json) =>
       _$PaymentFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PaymentToJson(this);
 
   final String id;
 
@@ -85,19 +87,21 @@ class PaymentCreate {
 ///
 /// `student` qayta hisoblangan holda qaytadi — UI darhol yangilanadi
 /// (qo'shimcha `GET /students/{id}` kerak emas).
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class PaymentCreated {
   const PaymentCreated({required this.payment, required this.student});
 
   factory PaymentCreated.fromJson(Map<String, dynamic> json) =>
       _$PaymentCreatedFromJson(json);
 
+  Map<String, dynamic> toJson() => _$PaymentCreatedToJson(this);
+
   final Payment payment;
   final Student student;
 }
 
 /// Sahifalangan to'lovlar.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class PagedPayments {
   const PagedPayments({
     required this.items,
@@ -109,6 +113,8 @@ class PagedPayments {
   factory PagedPayments.fromJson(Map<String, dynamic> json) =>
       _$PagedPaymentsFromJson(json);
 
+  Map<String, dynamic> toJson() => _$PagedPaymentsToJson(this);
+
   final List<Payment> items;
   final int total;
   final int page;
@@ -118,7 +124,7 @@ class PagedPayments {
 }
 
 /// Tarif shabloni.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class TariffTemplate {
   const TariffTemplate({
     required this.id,
@@ -131,6 +137,8 @@ class TariffTemplate {
 
   factory TariffTemplate.fromJson(Map<String, dynamic> json) =>
       _$TariffTemplateFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TariffTemplateToJson(this);
 
   final String id;
   final String name;
@@ -180,12 +188,14 @@ class TariffUpdate {
 }
 
 /// `GET /tariffs` javobi — sahifalanmagan.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class TariffList {
   const TariffList({required this.items});
 
   factory TariffList.fromJson(Map<String, dynamic> json) =>
       _$TariffListFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TariffListToJson(this);
 
   final List<TariffTemplate> items;
 }

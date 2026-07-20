@@ -8,7 +8,7 @@ part 'dashboard_dto.g.dart';
 ///
 /// **`Student` DAN FARQLI** — `status`, `sessions_*`, `tariff_type`,
 /// `invite_token`, `created_at` yo'q. Kontraktda alohida sxema.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class DashboardStudent {
   const DashboardStudent({
     required this.id,
@@ -23,6 +23,8 @@ class DashboardStudent {
 
   factory DashboardStudent.fromJson(Map<String, dynamic> json) =>
       _$DashboardStudentFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DashboardStudentToJson(this);
 
   final String id;
   final String name;
@@ -48,12 +50,14 @@ class DashboardStudent {
 }
 
 /// Dashboard summalari (ixtiyoriy blok).
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class DashboardTotals {
   const DashboardTotals({this.dueTodayAmount, this.overdueAmount});
 
   factory DashboardTotals.fromJson(Map<String, dynamic> json) =>
       _$DashboardTotalsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DashboardTotalsToJson(this);
 
   @JsonKey(name: 'due_today_amount')
   final int? dueTodayAmount;
@@ -63,19 +67,21 @@ class DashboardTotals {
 }
 
 /// Bugungi davomad hisobi.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class AttendanceToday {
   const AttendanceToday({required this.markedCount});
 
   factory AttendanceToday.fromJson(Map<String, dynamic> json) =>
       _$AttendanceTodayFromJson(json);
 
+  Map<String, dynamic> toJson() => _$AttendanceTodayToJson(this);
+
   @JsonKey(name: 'marked_count')
   final int markedCount;
 }
 
 /// `GET /dashboard` javobi.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class DashboardResponse {
   const DashboardResponse({
     required this.date,
@@ -89,6 +95,8 @@ class DashboardResponse {
 
   factory DashboardResponse.fromJson(Map<String, dynamic> json) =>
       _$DashboardResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DashboardResponseToJson(this);
 
   /// Bugun (Asia/Tashkent).
   @DateOnlyConverter()
@@ -117,12 +125,14 @@ class DashboardResponse {
 }
 
 /// Statistika grafigidagi bitta oy.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class StatsSeriesPoint {
   const StatsSeriesPoint({required this.month, required this.revenue});
 
   factory StatsSeriesPoint.fromJson(Map<String, dynamic> json) =>
       _$StatsSeriesPointFromJson(json);
+
+  Map<String, dynamic> toJson() => _$StatsSeriesPointToJson(this);
 
   /// `"YYYY-MM"` — oddiy string, `format` YO'Q.
   final String month;
@@ -130,7 +140,7 @@ class StatsSeriesPoint {
 }
 
 /// Tarif kesimidagi qator.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class StatsByTariff {
   const StatsByTariff({
     required this.tariffType,
@@ -141,6 +151,8 @@ class StatsByTariff {
   factory StatsByTariff.fromJson(Map<String, dynamic> json) =>
       _$StatsByTariffFromJson(json);
 
+  Map<String, dynamic> toJson() => _$StatsByTariffToJson(this);
+
   @JsonKey(name: 'tariff_type')
   final TariffType tariffType;
 
@@ -149,7 +161,7 @@ class StatsByTariff {
 }
 
 /// `GET /stats` javobi. Parametrlari YO'Q.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class StatsResponse {
   const StatsResponse({
     required this.monthRevenue,
@@ -164,6 +176,8 @@ class StatsResponse {
 
   factory StatsResponse.fromJson(Map<String, dynamic> json) =>
       _$StatsResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$StatsResponseToJson(this);
 
   @JsonKey(name: 'month_revenue')
   final int monthRevenue;
@@ -208,12 +222,14 @@ class AttendanceBulkRequest {
 }
 
 /// Paketi tugayotgan shogird.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class LowSession {
   const LowSession({required this.studentId, required this.sessionsLeft});
 
   factory LowSession.fromJson(Map<String, dynamic> json) =>
       _$LowSessionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LowSessionToJson(this);
 
   @JsonKey(name: 'student_id')
   final String studentId;
@@ -223,7 +239,7 @@ class LowSession {
 }
 
 /// `POST /attendance/bulk` javobi.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class AttendanceBulkResponse {
   const AttendanceBulkResponse({
     required this.marked,
@@ -233,6 +249,8 @@ class AttendanceBulkResponse {
 
   factory AttendanceBulkResponse.fromJson(Map<String, dynamic> json) =>
       _$AttendanceBulkResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AttendanceBulkResponseToJson(this);
 
   /// Yangi belgilangan.
   final int marked;
@@ -246,24 +264,28 @@ class AttendanceBulkResponse {
 }
 
 /// Davomad kuni.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class AttendanceDay {
   const AttendanceDay({required this.date});
 
   factory AttendanceDay.fromJson(Map<String, dynamic> json) =>
       _$AttendanceDayFromJson(json);
 
+  Map<String, dynamic> toJson() => _$AttendanceDayToJson(this);
+
   @DateOnlyConverter()
   final DateTime date;
 }
 
 /// `GET /students/{id}/attendance` javobi — FAQAT kelgan kunlar.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class AttendanceList {
   const AttendanceList({required this.items});
 
   factory AttendanceList.fromJson(Map<String, dynamic> json) =>
       _$AttendanceListFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AttendanceListToJson(this);
 
   final List<AttendanceDay> items;
 

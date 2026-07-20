@@ -24,7 +24,7 @@ enum OtpChannel {
 }
 
 /// `POST /auth/otp/request` javobi (200).
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class OtpRequestResponse {
   const OtpRequestResponse({
     required this.channel,
@@ -34,6 +34,8 @@ class OtpRequestResponse {
 
   factory OtpRequestResponse.fromJson(Map<String, dynamic> json) =>
       _$OtpRequestResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$OtpRequestResponseToJson(this);
 
   final OtpChannel channel;
 
@@ -75,7 +77,7 @@ class RefreshRequest {
 }
 
 /// Token juftligi. Access 15 daqiqa, refresh 30 kun.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class TokenPair {
   const TokenPair({
     required this.access,
@@ -86,6 +88,8 @@ class TokenPair {
 
   factory TokenPair.fromJson(Map<String, dynamic> json) =>
       _$TokenPairFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TokenPairToJson(this);
 
   final String access;
   final String refresh;
@@ -100,11 +104,13 @@ class TokenPair {
 }
 
 /// Trener yoki shogird uchun Telegram havolasi.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class TgLink {
   const TgLink({required this.link, required this.token});
 
   factory TgLink.fromJson(Map<String, dynamic> json) => _$TgLinkFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TgLinkToJson(this);
 
   /// `https://t.me/UstozBot?start=inv_8f3a9c2b1d`
   final String link;
@@ -112,7 +118,7 @@ class TgLink {
 }
 
 /// `GET /me` javobi.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class Me {
   const Me({
     required this.id,
@@ -132,6 +138,8 @@ class Me {
   String get firstName => name.trim().split(RegExp(r'\s+')).first;
 
   factory Me.fromJson(Map<String, dynamic> json) => _$MeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MeToJson(this);
 
   final String id;
   final String phone;

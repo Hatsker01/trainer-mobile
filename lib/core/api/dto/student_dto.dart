@@ -5,7 +5,7 @@ import 'package:ustoz_trainer/core/api/dto/enums.dart';
 part 'student_dto.g.dart';
 
 /// Shogird — `GET /students/{id}`, `POST /students` javobi.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class Student {
   const Student({
     required this.id,
@@ -26,6 +26,8 @@ class Student {
 
   factory Student.fromJson(Map<String, dynamic> json) =>
       _$StudentFromJson(json);
+
+  Map<String, dynamic> toJson() => _$StudentToJson(this);
 
   final String id;
   final String name;
@@ -143,7 +145,7 @@ class StudentUpdate {
 }
 
 /// Sahifalangan shogirdlar ro'yxati.
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class PagedStudents {
   const PagedStudents({
     required this.items,
@@ -154,6 +156,8 @@ class PagedStudents {
 
   factory PagedStudents.fromJson(Map<String, dynamic> json) =>
       _$PagedStudentsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PagedStudentsToJson(this);
 
   final List<Student> items;
   final int total;
@@ -178,7 +182,7 @@ class RemindRequest {
 }
 
 /// `POST /students/{id}/remind` javobi (**202**, 200 emas).
-@JsonSerializable(createToJson: false)
+@JsonSerializable()
 class RemindResponse {
   const RemindResponse({
     required this.notificationId,
@@ -188,6 +192,8 @@ class RemindResponse {
 
   factory RemindResponse.fromJson(Map<String, dynamic> json) =>
       _$RemindResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RemindResponseToJson(this);
 
   @JsonKey(name: 'notification_id')
   final String notificationId;

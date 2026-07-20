@@ -20,6 +20,20 @@ DashboardStudent _$DashboardStudentFromJson(Map<String, dynamic> json) =>
       tgConnected: json['tg_connected'] as bool?,
     );
 
+Map<String, dynamic> _$DashboardStudentToJson(DashboardStudent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'phone': instance.phone,
+      'tariff_price': instance.tariffPrice,
+      'next_due_date': const DateOnlyNullableConverter().toJson(
+        instance.nextDueDate,
+      ),
+      'days_overdue': instance.daysOverdue,
+      'payment_state': _$PaymentStateEnumMap[instance.paymentState]!,
+      'tg_connected': instance.tgConnected,
+    };
+
 const _$PaymentStateEnumMap = {
   PaymentState.paid: 'paid',
   PaymentState.dueSoon: 'due_soon',
@@ -34,8 +48,17 @@ DashboardTotals _$DashboardTotalsFromJson(Map<String, dynamic> json) =>
       overdueAmount: (json['overdue_amount'] as num?)?.toInt(),
     );
 
+Map<String, dynamic> _$DashboardTotalsToJson(DashboardTotals instance) =>
+    <String, dynamic>{
+      'due_today_amount': instance.dueTodayAmount,
+      'overdue_amount': instance.overdueAmount,
+    };
+
 AttendanceToday _$AttendanceTodayFromJson(Map<String, dynamic> json) =>
     AttendanceToday(markedCount: (json['marked_count'] as num).toInt());
+
+Map<String, dynamic> _$AttendanceTodayToJson(AttendanceToday instance) =>
+    <String, dynamic>{'marked_count': instance.markedCount};
 
 DashboardResponse _$DashboardResponseFromJson(Map<String, dynamic> json) =>
     DashboardResponse(
@@ -58,11 +81,25 @@ DashboardResponse _$DashboardResponseFromJson(Map<String, dynamic> json) =>
           : DashboardTotals.fromJson(json['totals'] as Map<String, dynamic>),
     );
 
+Map<String, dynamic> _$DashboardResponseToJson(DashboardResponse instance) =>
+    <String, dynamic>{
+      'date': const DateOnlyConverter().toJson(instance.date),
+      'greeting_name': instance.greetingName,
+      'due_today': instance.dueToday,
+      'due_soon': instance.dueSoon,
+      'overdue': instance.overdue,
+      'totals': instance.totals,
+      'attendance_today': instance.attendanceToday,
+    };
+
 StatsSeriesPoint _$StatsSeriesPointFromJson(Map<String, dynamic> json) =>
     StatsSeriesPoint(
       month: json['month'] as String,
       revenue: (json['revenue'] as num).toInt(),
     );
+
+Map<String, dynamic> _$StatsSeriesPointToJson(StatsSeriesPoint instance) =>
+    <String, dynamic>{'month': instance.month, 'revenue': instance.revenue};
 
 StatsByTariff _$StatsByTariffFromJson(Map<String, dynamic> json) =>
     StatsByTariff(
@@ -70,6 +107,13 @@ StatsByTariff _$StatsByTariffFromJson(Map<String, dynamic> json) =>
       students: (json['students'] as num).toInt(),
       revenue: (json['revenue'] as num).toInt(),
     );
+
+Map<String, dynamic> _$StatsByTariffToJson(StatsByTariff instance) =>
+    <String, dynamic>{
+      'tariff_type': _$TariffTypeEnumMap[instance.tariffType]!,
+      'students': instance.students,
+      'revenue': instance.revenue,
+    };
 
 const _$TariffTypeEnumMap = {
   TariffType.monthly: 'monthly',
@@ -93,6 +137,18 @@ StatsResponse _$StatsResponseFromJson(Map<String, dynamic> json) =>
           .toList(),
     );
 
+Map<String, dynamic> _$StatsResponseToJson(StatsResponse instance) =>
+    <String, dynamic>{
+      'month_revenue': instance.monthRevenue,
+      'prev_month_revenue': instance.prevMonthRevenue,
+      'change_percent': instance.changePercent,
+      'active_students': instance.activeStudents,
+      'debtors_count': instance.debtorsCount,
+      'debt_total': instance.debtTotal,
+      'series': instance.series,
+      'by_tariff': instance.byTariff,
+    };
+
 Map<String, dynamic> _$AttendanceBulkRequestToJson(
   AttendanceBulkRequest instance,
 ) => <String, dynamic>{
@@ -105,6 +161,12 @@ LowSession _$LowSessionFromJson(Map<String, dynamic> json) => LowSession(
   sessionsLeft: (json['sessions_left'] as num).toInt(),
 );
 
+Map<String, dynamic> _$LowSessionToJson(LowSession instance) =>
+    <String, dynamic>{
+      'student_id': instance.studentId,
+      'sessions_left': instance.sessionsLeft,
+    };
+
 AttendanceBulkResponse _$AttendanceBulkResponseFromJson(
   Map<String, dynamic> json,
 ) => AttendanceBulkResponse(
@@ -115,10 +177,21 @@ AttendanceBulkResponse _$AttendanceBulkResponseFromJson(
       .toList(),
 );
 
+Map<String, dynamic> _$AttendanceBulkResponseToJson(
+  AttendanceBulkResponse instance,
+) => <String, dynamic>{
+  'marked': instance.marked,
+  'skipped': instance.skipped,
+  'low_sessions': instance.lowSessions,
+};
+
 AttendanceDay _$AttendanceDayFromJson(Map<String, dynamic> json) =>
     AttendanceDay(
       date: const DateOnlyConverter().fromJson(json['date'] as String),
     );
+
+Map<String, dynamic> _$AttendanceDayToJson(AttendanceDay instance) =>
+    <String, dynamic>{'date': const DateOnlyConverter().toJson(instance.date)};
 
 AttendanceList _$AttendanceListFromJson(Map<String, dynamic> json) =>
     AttendanceList(
@@ -126,3 +199,6 @@ AttendanceList _$AttendanceListFromJson(Map<String, dynamic> json) =>
           .map((e) => AttendanceDay.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
+
+Map<String, dynamic> _$AttendanceListToJson(AttendanceList instance) =>
+    <String, dynamic>{'items': instance.items};
