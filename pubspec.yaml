@@ -20,7 +20,7 @@ dependencies:
   dio: ^5.9.0                     # HTTP
   flutter_secure_storage: ^9.2.4  # JWT saqlash
   intl: ^0.20.2                   # sana / raqam formatlash
-  json_annotation: ^4.9.0         # DTO serializatsiya
+  json_annotation: ^4.12.0        # DTO serializatsiya
   share_plus: ^12.0.1             # invite havolani ulashish
   connectivity_plus: ^7.0.0       # offline aniqlash (T8)
 

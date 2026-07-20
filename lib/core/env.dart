@@ -27,6 +27,13 @@ class Env {
   static const Duration connectTimeout = Duration(seconds: 8);
   static const Duration receiveTimeout = Duration(seconds: 15);
 
+  /// HTTP loglash. Default — debug'da yoqiq, release'da o'chiq.
+  /// Loglarda telefon raqamlar mask qilinadi (`HttpLogInterceptor`).
+  static const bool logHttp = bool.fromEnvironment(
+    'LOG_HTTP',
+    defaultValue: true,
+  );
+
   /// Biznes-logika vaqt zonasi (CLAUDE.md: DB'da UTC, hisob Tashkentda).
   static const String businessTimeZone = 'Asia/Tashkent';
 }

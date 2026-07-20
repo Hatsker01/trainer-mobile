@@ -1,0 +1,200 @@
+import 'package:json_annotation/json_annotation.dart';
+import 'package:ustoz_trainer/core/api/dto/converters.dart';
+import 'package:ustoz_trainer/core/api/dto/enums.dart';
+
+part 'student_dto.g.dart';
+
+/// Shogird — `GET /students/{id}`, `POST /students` javobi.
+@JsonSerializable(createToJson: false)
+class Student {
+  const Student({
+    required this.id,
+    required this.name,
+    required this.phone,
+    required this.tariffType,
+    required this.tariffPrice,
+    required this.sessionsUsed,
+    required this.status,
+    required this.paymentState,
+    required this.tgConnected,
+    required this.createdAt,
+    this.sessionsTotal,
+    this.nextDueDate,
+    this.daysOverdue,
+    this.inviteToken,
+  });
+
+  factory Student.fromJson(Map<String, dynamic> json) =>
+      _$StudentFromJson(json);
+
+  final String id;
+  final String name;
+  final String phone;
+
+  @JsonKey(name: 'tariff_type')
+  final TariffType tariffType;
+
+  /// So'mda BUTUN son (`Money` = int64). Hech qachon `double`.
+  @JsonKey(name: 'tariff_price')
+  final int tariffPrice;
+
+  /// Faqat `package` tarifda.
+  @JsonKey(name: 'sessions_total')
+  final int? sessionsTotal;
+
+  @JsonKey(name: 'sessions_used')
+  final int sessionsUsed;
+
+  /// `package` va `single` tariflarda `null`.
+  @DateOnlyNullableConverter()
+  @JsonKey(name: 'next_due_date')
+  final DateTime? nextDueDate;
+
+  /// Musbat bo'lsa — qarzdor.
+  @JsonKey(name: 'days_overdue')
+  final int? daysOverdue;
+
+  final StudentStatus status;
+
+  @JsonKey(name: 'payment_state')
+  final PaymentState paymentState;
+
+  @JsonKey(name: 'tg_connected')
+  final bool tgConnected;
+
+  /// `t.me/UstozBot?start=<invite_token>`.
+  @JsonKey(name: 'invite_token')
+  final String? inviteToken;
+
+  @UtcDateTimeConverter()
+  @JsonKey(name: 'created_at')
+  final DateTime createdAt;
+
+  /// Paketda qolgan mashg'ulotlar. `package` bo'lmasa `null`.
+  int? get sessionsLeft =>
+      sessionsTotal == null ? null : sessionsTotal! - sessionsUsed;
+
+  bool get isDebtor => (daysOverdue ?? 0) > 0;
+  bool get isArchived => status == StudentStatus.archived;
+}
+
+/// `POST /students` tanasi.
+@JsonSerializable(createFactory: false, includeIfNull: false)
+class StudentCreate {
+  const StudentCreate({
+    required this.name,
+    required this.phone,
+    required this.tariffType,
+    required this.tariffPrice,
+    this.sessionsTotal,
+    this.startDate,
+  });
+
+  final String name;
+  final String phone;
+
+  @JsonKey(name: 'tariff_type')
+  final TariffType tariffType;
+
+  @JsonKey(name: 'tariff_price')
+  final int tariffPrice;
+
+  /// `tariff_type=package` bo'lsa MAJBURIY (server 422 qaytaradi).
+  @JsonKey(name: 'sessions_total')
+  final int? sessionsTotal;
+
+  /// Berilmasa — bugun. `monthly` uchun birinchi `next_due_date` shundan.
+  @DateOnlyNullableConverter()
+  @JsonKey(name: 'start_date')
+  final DateTime? startDate;
+
+  Map<String, dynamic> toJson() => _$StudentCreateToJson(this);
+}
+
+/// `PATCH /students/{id}` tanasi. `status` YO'Q — arxivlash alohida endpoint.
+@JsonSerializable(createFactory: false, includeIfNull: false)
+class StudentUpdate {
+  const StudentUpdate({
+    this.name,
+    this.phone,
+    this.tariffType,
+    this.tariffPrice,
+    this.sessionsTotal,
+    this.nextDueDate,
+  });
+
+  final String? name;
+  final String? phone;
+
+  @JsonKey(name: 'tariff_type')
+  final TariffType? tariffType;
+
+  @JsonKey(name: 'tariff_price')
+  final int? tariffPrice;
+
+  @JsonKey(name: 'sessions_total')
+  final int? sessionsTotal;
+
+  @DateOnlyNullableConverter()
+  @JsonKey(name: 'next_due_date')
+  final DateTime? nextDueDate;
+
+  Map<String, dynamic> toJson() => _$StudentUpdateToJson(this);
+}
+
+/// Sahifalangan shogirdlar ro'yxati.
+@JsonSerializable(createToJson: false)
+class PagedStudents {
+  const PagedStudents({
+    required this.items,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
+
+  factory PagedStudents.fromJson(Map<String, dynamic> json) =>
+      _$PagedStudentsFromJson(json);
+
+  final List<Student> items;
+  final int total;
+  final int page;
+  final int limit;
+
+  /// Kontraktda `has_next` YO'Q — o'zimiz hisoblaymiz.
+  bool get hasMore => page * limit < total;
+}
+
+/// `POST /students/{id}/remind` tanasi (ixtiyoriy).
+@JsonSerializable(createFactory: false, includeIfNull: false)
+class RemindRequest {
+  const RemindRequest({this.templateKey, this.lang});
+
+  @JsonKey(name: 'template_key')
+  final RemindTemplate? templateKey;
+
+  final Lang? lang;
+
+  Map<String, dynamic> toJson() => _$RemindRequestToJson(this);
+}
+
+/// `POST /students/{id}/remind` javobi (**202**, 200 emas).
+@JsonSerializable(createToJson: false)
+class RemindResponse {
+  const RemindResponse({
+    required this.notificationId,
+    required this.status,
+    this.warning,
+  });
+
+  factory RemindResponse.fromJson(Map<String, dynamic> json) =>
+      _$RemindResponseFromJson(json);
+
+  @JsonKey(name: 'notification_id')
+  final String notificationId;
+
+  final NotificationStatus status;
+
+  /// Kuniga 3 martadan ko'p eslatilganda — bloklamaydigan ogohlantirish.
+  /// UI buni toast'da ko'rsatadi (T4).
+  final String? warning;
+}
