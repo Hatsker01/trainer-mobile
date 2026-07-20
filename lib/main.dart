@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ustoz_trainer/core/router/app_router.dart';
+import 'package:ustoz_trainer/core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,12 +34,23 @@ class _UstozAppState extends State<UstozApp> {
       title: 'USTOZ',
       debugShowCheckedModeBanner: false,
       routerConfig: _router,
-      // To'liq dizayn tizimi (AppColors / AppText) — T1.
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0C0D10),
-        fontFamily: 'Manrope',
-      ),
+      theme: AppTheme.dark,
+      // MVP dark-only (spec §9) — tizim sozlamasi qanday bo'lsa ham.
+      themeMode: ThemeMode.dark,
+      builder: (BuildContext context, Widget? child) {
+        // textScale 1.3 gacha qo'llab-quvvatlanadi (T9 adaptivlik matritsasi);
+        // undan yuqorisi qattiq balandlikdagi elementlarni buzadi.
+        final MediaQueryData mq = MediaQuery.of(context);
+        return MediaQuery(
+          data: mq.copyWith(
+            textScaler: mq.textScaler.clamp(
+              minScaleFactor: 1,
+              maxScaleFactor: 1.3,
+            ),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
