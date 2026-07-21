@@ -6,22 +6,21 @@ import 'package:go_router/go_router.dart';
 import 'package:ustoz_trainer/core/api/app_exception.dart';
 import 'package:ustoz_trainer/core/api/dto/enums.dart';
 import 'package:ustoz_trainer/core/api/dto/student_dto.dart';
+import 'package:ustoz_trainer/core/i18n/lang_provider.dart';
 import 'package:ustoz_trainer/core/i18n/strings.dart';
 import 'package:ustoz_trainer/core/router/app_router.dart';
 import 'package:ustoz_trainer/core/theme/app_colors.dart';
 import 'package:ustoz_trainer/core/theme/app_spacing.dart';
 import 'package:ustoz_trainer/core/theme/app_text.dart';
 import 'package:ustoz_trainer/core/utils/money.dart';
-import 'package:ustoz_trainer/core/widgets/app_chip.dart';
+import 'package:ustoz_trainer/core/widgets/avatar.dart';
 import 'package:ustoz_trainer/core/widgets/empty_state.dart';
-import 'package:ustoz_trainer/core/widgets/glass_card.dart';
-import 'package:ustoz_trainer/core/widgets/plita_ring.dart';
 import 'package:ustoz_trainer/core/widgets/skeleton.dart';
-import 'package:ustoz_trainer/core/widgets/status_badge.dart';
-import 'package:ustoz_trainer/core/widgets/student_card.dart';
+import 'package:ustoz_trainer/features/payments/ui/payment_sheet.dart';
 import 'package:ustoz_trainer/features/students/providers/students_provider.dart';
 
-/// S5 — shogirdlar ro'yxati.
+/// S5 — Shogirdlar ro'yxati (REDESIGN, root-1-11): boy kartalar (avatar,
+/// balans, jami to'langan, To'lov qo'shish) + segment filtrlar.
 class StudentsScreen extends ConsumerStatefulWidget {
   const StudentsScreen({super.key});
 
@@ -49,7 +48,6 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   }
 
   void _onScroll() {
-    // Oxiriga 400px qolganda keyingi sahifani so'raymiz.
     if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 400) {
       unawaited(ref.read(studentsProvider.notifier).loadMore());
     }
@@ -64,7 +62,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     return RefreshIndicator(
       onRefresh: () => ref.read(studentsProvider.notifier).refresh(),
       backgroundColor: c.sheet,
-      color: c.anor,
+      color: c.anor2,
       child: CustomScrollView(
         controller: _scroll,
         slivers: <Widget>[
@@ -77,20 +75,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
             ),
             sliver: SliverList.list(
               children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text(
-                        s.students,
-                        style: AppText.display24.copyWith(color: c.ink),
-                      ),
-                    ),
-                    Text(
-                      s.activeCount(async.value?.total ?? 0),
-                      style: AppText.body13Bold.copyWith(color: c.dim),
-                    ),
-                  ],
-                ),
+                _Header(students: s.students),
                 const SizedBox(height: AppSpacing.xxl),
                 _SearchBar(
                   controller: _search,
@@ -154,12 +139,12 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
         sliver: SliverList.separated(
           itemCount: data.items.length + (data.loadingMore ? 1 : 0),
           separatorBuilder: (BuildContext _, int _) =>
-              const SizedBox(height: AppSpacing.cardGap),
+              const SizedBox(height: AppSpacing.xl),
           itemBuilder: (BuildContext context, int i) {
             if (i >= data.items.length) {
-              return const Skeleton(height: 92, radius: AppRadius.card);
+              return const Skeleton(height: 68, radius: 18);
             }
-            return _StudentTile(student: data.items[i]);
+            return _StudentCard(student: data.items[i]);
           },
         ),
       ),
@@ -167,50 +152,185 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   }
 }
 
-class _StudentTile extends StatelessWidget {
-  const _StudentTile({required this.student});
+BoxDecoration cardDecoration(AppColors c, {double radius = 18}) {
+  return BoxDecoration(
+    color: c.glass,
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: c.line),
+    boxShadow: const <BoxShadow>[
+      BoxShadow(
+        color: Color.fromRGBO(17, 24, 39, 0.05),
+        blurRadius: 18,
+        offset: Offset(0, 6),
+      ),
+    ],
+  );
+}
+
+class _Header extends ConsumerWidget {
+  const _Header({required this.students});
+
+  final String students;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppColors c = context.colors;
+    final Lang lang = ref.watch(langProvider);
+
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Text(
+            students,
+            style: AppText.display24.copyWith(color: c.anor2),
+          ),
+        ),
+        GestureDetector(
+          onTap: () => ref
+              .read(langProvider.notifier)
+              .set(lang == Lang.uz ? Lang.ru : Lang.uz),
+          child: Container(
+            width: 48,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: c.glassHi,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              lang == Lang.uz ? 'UZ' : 'RU',
+              style: AppText.body13Bold.copyWith(color: c.anor2),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        GestureDetector(
+          onTap: () => context.push(Routes.studentNew),
+          child: Container(
+            width: 48,
+            height: 48,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: c.anor2, shape: BoxShape.circle),
+            child: const Icon(Icons.add, size: 24, color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StudentCard extends ConsumerWidget {
+  const _StudentCard({required this.student});
 
   final Student student;
 
-  @override
-  Widget build(BuildContext context) {
-    final AppStrings s = context.s;
-    final int? left = student.sessionsLeft;
+  Future<void> _pay(BuildContext context, WidgetRef ref) async {
+    final bool? saved = await showPaymentSheet(
+      context,
+      studentId: student.id,
+      studentName: student.name,
+      amount: student.tariffPrice,
+    );
+    if (saved ?? false) {
+      await ref.read(studentsProvider.notifier).refresh();
+    }
+  }
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+
+    // F3: bitta semantik signal — holat nuqtasi + bitta ikkilamchi qator.
     final (
-      RingTone tone,
-      BadgeTone badgeTone,
-      String label,
-      double value,
+      Color dot,
+      String? sub,
+      Color subColor,
+      bool showPay,
     ) = switch (student.paymentState) {
       PaymentState.overdue => (
-        RingTone.debt,
-        BadgeTone.debt,
-        s.filterDebtors,
-        1.0,
+        c.debt,
+        '${s.daysLate(student.daysOverdue ?? 0)} · '
+            '${Money.withUnit(student.balance?.abs() ?? student.tariffPrice)}',
+        c.debt,
+        true,
       ),
-      PaymentState.dueToday => (RingTone.warn, BadgeTone.warn, s.today, 0.12),
-      PaymentState.dueSoon => (RingTone.warn, BadgeTone.warn, s.dueSoon, 0.4),
-      PaymentState.paid ||
-      PaymentState.none => (RingTone.ok, BadgeTone.ok, s.filterActive, 0.83),
+      PaymentState.dueToday => (c.warn, s.today, c.warn, true),
+      PaymentState.dueSoon => (
+        c.warn,
+        student.nextDueDate == null ? null : s.dayMonth(student.nextDueDate!),
+        c.soft,
+        false,
+      ),
+      PaymentState.paid || PaymentState.none => (c.ok, null, c.soft, false),
     };
 
-    return StudentCard(
-      name: student.name,
-      subtitle: Text(
-        left == null
-            ? '${s.tariffName(student.tariffType)} · '
-                  '${Money.format(student.tariffPrice)}'
-            : '${s.tariffName(student.tariffType)} '
-                  '${student.sessionsTotal} · ${s.sessionsLeft(left)}',
-      ),
-      ringValue: value,
-      ringTone: tone,
-      ringLabel: student.isDebtor ? '!' : null,
-      debt: student.isDebtor,
-      badge: StatusBadge(label, tone: badgeTone),
-      trailingText: student.isDebtor ? Money.format(student.tariffPrice) : null,
+    return GestureDetector(
       onTap: () => context.push(Routes.student(student.id)),
+      child: Container(
+        decoration: cardDecoration(c),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Avatar.small(student.name, url: student.avatarUrl),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    student.name,
+                    style: AppText.body15Bold.copyWith(color: c.ink),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (sub != null) ...<Widget>[
+                    const SizedBox(height: 2),
+                    Text(
+                      sub,
+                      style: AppText.body13.copyWith(color: subColor),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            if (showPay)
+              GestureDetector(
+                onTap: () => _pay(context, ref),
+                child: Container(
+                  height: 34,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
+                  decoration: BoxDecoration(
+                    color: c.anor2,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    s.payment,
+                    style: AppText.body13Bold.copyWith(color: Colors.white),
+                  ),
+                ),
+              )
+            else
+              Icon(Icons.chevron_right, size: 22, color: c.dim),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -225,22 +345,26 @@ class _SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppColors c = context.colors;
 
-    return GlassCard(
+    return Container(
+      decoration: BoxDecoration(
+        color: c.glass,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: c.line),
+      ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xxl,
-        vertical: AppSpacing.lg,
+        vertical: AppSpacing.xl,
       ),
-      radius: AppRadius.xxl,
       child: Row(
         children: <Widget>[
-          Icon(Icons.search, size: 17, color: c.dim),
+          Icon(Icons.search, size: 18, color: c.dim),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: TextField(
               controller: controller,
               onChanged: onChanged,
               style: AppText.body145.copyWith(color: c.ink),
-              cursorColor: c.anor,
+              cursorColor: c.anor2,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 isDense: true,
@@ -265,32 +389,70 @@ class _Filters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AppColors c = context.colors;
     final AppStrings s = context.s;
 
-    // Hisoblagichlar SERVERDAN kelmaydi (kontraktda filtr bo'yicha
-    // sonlar yo'q) — shuning uchun chiplar sonsiz. Dizayndagi sonlar
-    // uchun `GET /students?filter=X` ni har filtr uchun chaqirish
-    // kerak bo'lardi: 5 ta ortiqcha so'rov, arzimaydi.
-    final List<(StudentFilter, String, Color?)> filters =
-        <(StudentFilter, String, Color?)>[
-          (StudentFilter.all, s.all, null),
-          (StudentFilter.debtors, s.filterDebtors, c.debt),
-          (StudentFilter.upcoming, s.filterUpcoming, null),
-          (StudentFilter.active, s.filterActive, null),
-          (StudentFilter.archived, s.filterArchived, null),
-        ];
+    final List<(StudentFilter, String)> filters = <(StudentFilter, String)>[
+      (StudentFilter.all, s.all),
+      (StudentFilter.debtors, s.filterDebtors),
+      (StudentFilter.upcoming, s.filterUpcoming),
+      (StudentFilter.active, s.filterActive),
+      (StudentFilter.archived, s.filterArchived),
+    ];
 
-    return AppChipRow(
-      children: <Widget>[
-        for (final (StudentFilter f, String label, Color? color) in filters)
-          AppChip(
-            label: label,
-            selected: current == f,
-            labelColor: color,
-            onTap: () => onSelect(f),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: <Widget>[
+          for (final (StudentFilter f, String label) in filters)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              child: _FilterTab(
+                label: label,
+                selected: current == f,
+                onTap: () => onSelect(f),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterTab extends StatelessWidget {
+  const _FilterTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.x4l,
+          vertical: AppSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? c.anor2 : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Text(
+          label,
+          style: AppText.body14Bold.copyWith(
+            color: selected ? Colors.white : c.soft,
           ),
-      ],
+        ),
+      ),
     );
   }
 }
@@ -303,11 +465,11 @@ class _ListSkeleton extends StatelessWidget {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
       sliver: SliverList.separated(
-        itemCount: 5,
+        itemCount: 4,
         separatorBuilder: (BuildContext _, int _) =>
-            const SizedBox(height: AppSpacing.cardGap),
+            const SizedBox(height: AppSpacing.xl),
         itemBuilder: (BuildContext _, int _) =>
-            const Skeleton(height: 92, radius: AppRadius.card),
+            const Skeleton(height: 68, radius: 18),
       ),
     );
   }

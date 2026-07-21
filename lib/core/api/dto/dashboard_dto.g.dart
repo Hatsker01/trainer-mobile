@@ -79,6 +79,8 @@ DashboardResponse _$DashboardResponseFromJson(Map<String, dynamic> json) =>
       totals: json['totals'] == null
           ? null
           : DashboardTotals.fromJson(json['totals'] as Map<String, dynamic>),
+      collectedThisMonth: (json['collected_this_month'] as num?)?.toInt(),
+      expectedThisMonth: (json['expected_this_month'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$DashboardResponseToJson(DashboardResponse instance) =>
@@ -89,6 +91,8 @@ Map<String, dynamic> _$DashboardResponseToJson(DashboardResponse instance) =>
       'due_soon': instance.dueSoon,
       'overdue': instance.overdue,
       'totals': instance.totals,
+      'collected_this_month': instance.collectedThisMonth,
+      'expected_this_month': instance.expectedThisMonth,
       'attendance_today': instance.attendanceToday,
     };
 

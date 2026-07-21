@@ -91,6 +91,8 @@ class DashboardResponse {
     required this.overdue,
     required this.attendanceToday,
     this.totals,
+    this.collectedThisMonth,
+    this.expectedThisMonth,
   });
 
   factory DashboardResponse.fromJson(Map<String, dynamic> json) =>
@@ -116,6 +118,14 @@ class DashboardResponse {
   final List<DashboardStudent> overdue;
 
   final DashboardTotals? totals;
+
+  /// G4 (backend D060) — shu oy (Asia/Tashkent) yig'ilgan summa (so'm).
+  @JsonKey(name: 'collected_this_month')
+  final int? collectedThisMonth;
+
+  /// G4 (backend D060) — shu oy kutilgan summa (faol oylik shogirdlar).
+  @JsonKey(name: 'expected_this_month')
+  final int? expectedThisMonth;
 
   @JsonKey(name: 'attendance_today')
   final AttendanceToday attendanceToday;

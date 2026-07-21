@@ -9,7 +9,9 @@ import 'package:ustoz_trainer/features/auth/ui/onboarding_screen.dart';
 import 'package:ustoz_trainer/features/auth/ui/otp_screen.dart';
 import 'package:ustoz_trainer/features/auth/ui/phone_screen.dart';
 import 'package:ustoz_trainer/features/auth/ui/profile_setup_screen.dart';
+import 'package:ustoz_trainer/features/calendar/ui/calendar_screen.dart';
 import 'package:ustoz_trainer/features/dashboard/ui/dashboard_screen.dart';
+import 'package:ustoz_trainer/features/notifications/ui/notifications_screen.dart';
 import 'package:ustoz_trainer/features/settings/ui/settings_screen.dart';
 import 'package:ustoz_trainer/features/shell/ui/app_shell.dart';
 import 'package:ustoz_trainer/features/splash/ui/splash_screen.dart';
@@ -29,6 +31,8 @@ abstract final class Routes {
   static const String students = '/students';
   static const String studentNew = '/students/new';
   static const String stats = '/stats';
+  static const String calendar = '/calendar';
+  static const String notifications = '/notifications';
   static const String settings = '/settings';
 
   /// `/students/:id`.
@@ -137,6 +141,11 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
                 const StudentsScreen(),
           ),
           GoRoute(
+            path: Routes.calendar,
+            builder: (BuildContext _, GoRouterState _) =>
+                const CalendarScreen(),
+          ),
+          GoRoute(
             path: Routes.stats,
             builder: (BuildContext _, GoRouterState _) => const StatsScreen(),
           ),
@@ -146,6 +155,13 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
                 const SettingsScreen(),
           ),
         ],
+      ),
+
+      // Bildirishnomalar — to'liq ekran (qo'ng'iroqdan ochiladi).
+      GoRoute(
+        path: Routes.notifications,
+        builder: (BuildContext _, GoRouterState _) =>
+            const NotificationsScreen(),
       ),
 
       // Qobiqdan tashqari (to'liq ekran) sahifalar.

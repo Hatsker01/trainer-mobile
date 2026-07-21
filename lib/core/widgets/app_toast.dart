@@ -100,19 +100,20 @@ class _ToastViewState extends State<_ToastView> {
               decoration: BoxDecoration(
                 color: c.toast,
                 borderRadius: BorderRadius.circular(AppRadius.xxl),
-                border: Border.all(color: c.line),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                 boxShadow: const <BoxShadow>[
                   BoxShadow(
-                    color: Color.fromRGBO(0, 0, 0, 0.5),
-                    blurRadius: 40,
-                    offset: Offset(0, 16),
+                    color: Color.fromRGBO(17, 24, 39, 0.28),
+                    blurRadius: 32,
+                    offset: Offset(0, 12),
                   ),
                 ],
               ),
+              // Toast har doim to'q "pill" — matn oq (temadan mustaqil).
               child: Text(
                 widget.message,
                 textAlign: TextAlign.center,
-                style: AppText.body135Bold.copyWith(color: c.ink),
+                style: AppText.body135Bold.copyWith(color: Colors.white),
               ),
             ),
           ),

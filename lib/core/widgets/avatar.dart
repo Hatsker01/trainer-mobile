@@ -1,33 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:ustoz_trainer/core/theme/app_colors.dart';
-import 'package:ustoz_trainer/core/theme/app_spacing.dart';
 import 'package:ustoz_trainer/core/theme/app_text.dart';
 
-/// Initsialli avatar — dizayndagi `.avatar`.
+/// Avatar (REDESIGN, root-1-11/17): DOIRA. Foto (`url`) yoki fallback —
+/// navy-tint doira + bosh harflar (navy). `url` null bo'lsa initsiallar.
 ///
-/// ```css
-/// 44×44; border-radius: 16px;
-/// background: linear-gradient(145deg, #23262D, #17191E);
-/// border: 1px solid --line; color: --soft;
-/// font: Unbounded 600 14px;
-/// ```
-///
-/// Qarzdor varianti: `color:#FF7A6B; border-color: rgba(255,83,64,.3)`.
-///
-/// Rasm YO'Q — MVP da shogird fotosi yuklanmaydi (spec §9), initsial yetarli.
+/// Konstruktorlar orqaga mos: `Avatar(name)` / `Avatar.small(name)`.
 class Avatar extends StatelessWidget {
-  const Avatar(this.name, {this.size = 44, this.debt = false, super.key});
+  const Avatar(
+    this.name, {
+    this.size = 44,
+    this.debt = false,
+    this.url,
+    super.key,
+  });
 
-  /// Ro'yxat qatorlaridagi kichik variant (38×38, 12px shrift).
-  const Avatar.small(this.name, {this.debt = false, super.key}) : size = 38;
+  /// Ro'yxat qatorlaridagi kichik variant (38×38).
+  const Avatar.small(this.name, {this.debt = false, this.url, super.key})
+    : size = 38;
 
   final String name;
   final double size;
   final bool debt;
+  final String? url;
 
   /// Ism → initsial. "Aziz Karimov" → "AK", "Aziz" → "A".
-  ///
-  /// Bo'sh/probelli ism ham xavfsiz — `?` qaytadi, hech qachon crash emas.
   static String initialsOf(String name) {
     final List<String> parts = name
         .trim()
@@ -49,21 +46,37 @@ class Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppColors c = context.colors;
 
+    if (url != null && url!.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          url!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (BuildContext _, Object _, StackTrace? _) =>
+              _fallback(c),
+        ),
+      );
+    }
+    return _fallback(c);
+  }
+
+  Widget _fallback(AppColors c) {
     return Container(
       width: size,
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         gradient: c.avatarGradient,
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        shape: BoxShape.circle,
         border: Border.all(
-          color: debt ? const Color.fromRGBO(255, 83, 64, 0.3) : c.line,
+          color: debt ? c.debt.withValues(alpha: 0.35) : c.line,
         ),
       ),
       child: Text(
         initialsOf(name),
         style: (size >= 44 ? AppText.avatar14 : AppText.avatar12).copyWith(
-          color: debt ? c.debt : c.soft,
+          color: debt ? c.debt : c.anor2,
         ),
       ),
     );

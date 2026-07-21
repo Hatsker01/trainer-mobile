@@ -74,6 +74,52 @@ class AppColors extends ThemeExtension<AppColors> {
     avatarTo: Color(0xFF17191E),
   );
 
+  /// REDESIGN (2026-07-21, D208) — "USTOZ light" · navy #1A3D7C birlamchi +
+  /// emerald #2ECC71 ikkilamchi. Qiymatlar yangi dizayn frame'laridan
+  /// pikseldan namuna olingan. Maydon nomlari `dark` bilan bir xil — barcha
+  /// widget `context.colors` orqali avtomatik yangi rangga o'tadi.
+  static const AppColors light = AppColors(
+    // Ekran foni — deyarli oq (frame'lardan #FDFDFD).
+    bg0: Color(0xFFFDFDFD),
+    // Ikkilamchi sirt / frosted tabbar bazasi.
+    bg1: Color(0xFFFFFFFF),
+    // "glass" endi qattiq oq karta (light rejimda shaffoflik kerak emas).
+    glass: Color(0xFFFFFFFF),
+    glassHi: Color(0xFFF4F6F8),
+    // Asosiy matn — to'q kulrang (sof qora emas).
+    ink: Color(0xFF222222),
+    soft: Color(0xFF6B7179),
+    dim: Color(0xFF9AA0A6),
+    // Brend gradienti: navy hi → navy (tugma/chip/FAB).
+    anor: Color(0xFF244C8E),
+    anor2: Color(0xFF1A3D7C),
+    anorGlow: Color.fromRGBO(26, 61, 124, 0.28),
+    // Ring — navy ohanglar (motiv ixtiyoriy, D208).
+    ringStart: Color(0xFF2E63B0),
+    ringEnd: Color(0xFF1A3D7C),
+    // Muvaffaqiyat — emerald.
+    ok: Color(0xFF2ECC71),
+    okSoft: Color.fromRGBO(46, 204, 113, 0.14),
+    // Ogohlantirish / qisman — amber (matn uchun to'qroq; fon tint ochiq).
+    warn: Color(0xFFB8860B),
+    warnSoft: Color.fromRGBO(228, 170, 37, 0.16),
+    // Qarz — o'qiladigan qizil (kichik matn AA, R1-F3: #D63C2C 4.62:1).
+    debt: Color(0xFFD63C2C),
+    debtSoft: Color.fromRGBO(231, 76, 60, 0.12),
+    // Chegara / chiziq — ochiq kulrang.
+    line: Color(0xFFE7EAEE),
+    sheet: Color(0xFFFFFFFF),
+    // Toast — to'q "pill" (matn oq, app_toast forsirlaydi) — light'da ham to'q.
+    toast: Color(0xFF222A35),
+    // Scrim — light uchun yumshoqroq.
+    scrim: Color.fromRGBO(17, 24, 39, 0.45),
+    // Frosted oq tabbar (blur yoqilgan).
+    tabBar: Color.fromRGBO(255, 255, 255, 0.82),
+    // Avatar fallback foni — navy-tint ochiq gradient.
+    avatarFrom: Color(0xFFE9EDF3),
+    avatarTo: Color(0xFFDCE3EC),
+  );
+
   final Color bg0;
   final Color bg1;
   final Color glass;
@@ -219,5 +265,5 @@ class AppColors extends ThemeExtension<AppColors> {
 /// yozmaslik uchun.
 extension AppColorsX on BuildContext {
   AppColors get colors =>
-      Theme.of(this).extension<AppColors>() ?? AppColors.dark;
+      Theme.of(this).extension<AppColors>() ?? AppColors.light;
 }

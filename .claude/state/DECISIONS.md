@@ -276,3 +276,62 @@ to'qnashtiradi.
 
 **Alternativa.** Anorni saqlab navy'ga aralashtirish — rad: chalkash, ikkala palitra ham
 zaiflashadi. Plate-ringni majburlash — rad: yangi dashboard KPI-birinchi.
+
+---
+
+# ── REAL-QURILMA FIX ROUND (G1–G7, D209–D213) ──
+
+## D209 · 2026-07-21 · Yig'im % — backend `collected/expected_this_month`, fallback proksi
+
+**Qaror.** Dashboard "Yig'ildi: N%" (G4) backend `DashboardResponse.collected_this_month` /
+`expected_this_month` (backend D060) dan hisoblanadi. Bu maydonlar bo'lmasa (eski backend) —
+proksi: `monthRevenue / (monthRevenue + debtTotal)`.
+
+**Sabab.** Aniq "kutilgan vs yig'ilgan" faqat backendda hisoblanadi (faol oylik shogirdlar
+tarif yig'indisi). Client uni takrorlamaydi (pul nuqtasi). Proksi — faqat orqaga-moslik uchun.
+
+**Alternativa.** Faqat proksi — rad: qarz o'z ichiga o'tgan davrlarni ham oladi, aniq emas.
+
+## D210 · 2026-07-21 · Zichlik tokenlari (screenEdge 16, cardPadDense 14, sectionGapDense 18)
+
+**Qaror.** G1 zichlik token darajasida: yangi `AppSpacing.screenEdge=16`, `cardPadDense=14`,
+`sectionGapDense=18` qo'shildi; dashboard/kalendar shularni ishlatadi. Eski `screenH=20`,
+`cardPad=16`, `sectionGap=26` saqlanadi (boshqa ekranlar buzilmasin — G5 auditda bosqichma-bosqich).
+
+**Sabab.** Foydalanuvchi real qurilmada "hamma narsa haddan katta" dedi. Zich moliyaviy ilova
+standarti (bank ilovalari). Eski tokenni global o'zgartirish barcha ekran + testlarni bir vaqtda
+buzardi — yangi dense tokenlar bilan bosqichma-bosqich ko'chirish xavfsizroq.
+
+**Alternativa.** Eski tokenlarni global kamaytirish — rad: bir zarbada 12+ ekran regressiya xavfi.
+
+## D211 · 2026-07-21 · `MoneyText` — pul KO'RSATISHNING yagona komponenti
+
+**Qaror.** Barcha pul UI'da `MoneyText` widget: raqam asosiy o'lchamda, `so'm` suffiks ~57%
+o'lcham + soft rang. `Money.format/compact` (probel ajratgich) o'zgarmaydi. KPI qiymati 18-24px
+(Display EMAS). To'lov sheetidagi bitta katta summa (`money40`) — yagona istisno hero raqam.
+
+**Sabab.** G1: "so'm kichik suffiks, qiymatning ~55-60% o'lchami". Bitta komponent = vergul/format
+divergensiyasi imkonsiz. Audit (G5) grep bilan eski format ovlandi.
+
+**Alternativa.** Har joyda qo'lda `Money.withUnit` + copyWith — rad: suffiks o'lchami/rangi
+takrorlanadi, farq ketadi.
+
+## D212 · 2026-07-21 · Kalendar kun rangi — kun-darajali status (backend D057)
+
+**Qaror.** Kun rangi backend `day.status` (unpaid→qizil, partial→sariq, paid→yashil,
+planned→neytral-ko'k) dan. Kelasi due qizil qilinmaydi (planned). Kun sheeti shogird qoldig'ini
+("300 000 / 550 000") + qoldiq-prefill to'lovni beradi.
+
+**Sabab.** G3. Client status hisoblamaydi (backend yagona manba). Kelajakni qizil qilib qo'rqitmaslik
+(brief). Qoldiq-prefill — qisman to'lovni tez yopish uchun.
+
+## D213 · 2026-07-21 · Streak/haftalik digest — bu roundda QURILMAYDI (G4 talab qilinmagan)
+
+**Qaror.** So'ralgan set G1,G2,G3,G5,G6. G4'dan faqat maqsad ringi + goal-set + yig'im% + milestone
+toast qurildi (G2 hero'ga kerak). SERIYA (streak) va haftalik DIGEST template QURILMADI.
+
+**Sabab.** Streak uchun ishonchli backend ma'lumot yo'q (ketma-ket qarzdorsiz haftalar =
+yangi agregatsiya); digest — notify/bot oqimi. Ikkovi ham talab setidan tashqarida. Fluff
+qo'shmaslik (brief: "foydali bo'lardi deb qo'shma").
+
+**Alternativa.** Lokal "app-open streak" (Duolingo uslubi) — rad: ma'lumotsiz motivatsiya soxta.

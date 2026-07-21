@@ -6,7 +6,26 @@ Belgilar: `[ ]` boshlanmagan · `[~]` ishlanmoqda · `[x]` tugallangan · `[!]` 
 
 ---
 
-## AKTIV: REDESIGN (yangi dizayn → light/navy tizim)
+## AKTIV: REAL-QURILMA FIX (G1–G7) — sessiya: fix-1 (2026-07-21)
+
+Foydalanuvchi real telefonda sinab uch muammo topdi: (A) hamma narsa HADDAN KATTA
+(zichlik yo'q), (B) kalendar ishlamayapti + to'lov holatlari kerak, (C) motivatsiya yo'q.
+So'ralgan: **G1, G2, G3, G5, G6** (+G4 dan faqat maqsad ringi G2 hero uchun).
+
+| # | Vazifa | Holat | Izoh |
+|---|---|---|---|
+| G1 | Zichlik + tipografiya (token darajasi) + pul util test | `[x]` | dense tokenlar (screenEdge16/cardPadDense14/sectionGapDense18), `money20/15`, `MoneyText` (so'm ~57% suffiks), stale `money_test` mln'ga fix (edi RED) |
+| G2 | Dashboard qayta kompozitsiya (zich, hero+ring, BUGUN, tezkor 3, faoliyat) | `[x]` | screenshot: `screenshots/density/dashboard.png`. 1-4 bo'lim 393×852 scroll'siz (test) |
+| G3 | Kalendar fix + to'lov holatlari + BACKEND `/calendar` | `[x]` | kun rangi (3 rang+today), kun sheet+qoldiq-prefill, oy xulosasi. screenshot: `calendar.png`. Backend D057 |
+| G4 | (talab qilinmagan) — maqsad ringi + goal-set + yig'im% + milestone | `[x]*` | ring+goal-set+yig'im% qurildi. Milestone toast OLIB TASHLANDI (test-fragil, D213). streak/digest QURILMADI (D213) |
+| G5 | Chuqur dizayn-audit (DESIGN_AUDIT3.md) + `grep ","` = 0 | `[x]` | `DESIGN_AUDIT3.md`. settings `50,000`→`Money.format` [FIXED]. Vergulli pul 0 ta |
+| G6 | Yakuniy tekshiruv: analyze+test yashil, screenshot, hisobot | `[x]` | `flutter analyze` 0; `flutter test` 120/120 (+2 capture); 360/393/430 × 1.0/1.3 overflow 0; screenshotlar |
+
+**BACKEND TOUCHED (fix-1, sub-agent):** `/calendar` endpoint (D057), qisman-to'lov `next_due_date` bug FIX (D058), `/me` `monthly_goal` (D059), dashboard `collected/expected_this_month` (D060). `go build` ok, `go test` 237/237 (real PG), `gofmt` toza.
+
+---
+
+## OLD-AKTIV: REDESIGN (yangi dizayn → light/navy tizim)
 
 Yangi dizayn manbasi: `Jamshidbek Ikromov's team library/` (Figma eksport, 42 frame).
 To'liq tahlil: **`.claude/state/REDESIGN.md`**. Qarorlar: DECISIONS D201–D208.

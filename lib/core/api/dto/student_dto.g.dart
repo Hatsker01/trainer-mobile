@@ -25,6 +25,12 @@ Student _$StudentFromJson(Map<String, dynamic> json) => Student(
   ),
   daysOverdue: (json['days_overdue'] as num?)?.toInt(),
   inviteToken: json['invite_token'] as String?,
+  avatarUrl: json['avatar_url'] as String?,
+  balance: (json['balance'] as num?)?.toInt(),
+  totalPaid: (json['total_paid'] as num?)?.toInt(),
+  lastPaymentAt: const DateOnlyNullableConverter().fromJson(
+    json['last_payment_at'] as String?,
+  ),
 );
 
 Map<String, dynamic> _$StudentToJson(Student instance) => <String, dynamic>{
@@ -43,6 +49,12 @@ Map<String, dynamic> _$StudentToJson(Student instance) => <String, dynamic>{
   'payment_state': _$PaymentStateEnumMap[instance.paymentState]!,
   'tg_connected': instance.tgConnected,
   'invite_token': instance.inviteToken,
+  'avatar_url': instance.avatarUrl,
+  'balance': instance.balance,
+  'total_paid': instance.totalPaid,
+  'last_payment_at': const DateOnlyNullableConverter().toJson(
+    instance.lastPaymentAt,
+  ),
   'created_at': const UtcDateTimeConverter().toJson(instance.createdAt),
 };
 

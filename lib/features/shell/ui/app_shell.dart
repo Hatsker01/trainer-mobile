@@ -9,16 +9,10 @@ import 'package:ustoz_trainer/core/theme/app_colors.dart';
 import 'package:ustoz_trainer/core/theme/app_motion.dart';
 import 'package:ustoz_trainer/core/theme/app_spacing.dart';
 import 'package:ustoz_trainer/core/theme/app_text.dart';
-import 'package:ustoz_trainer/core/widgets/press_scale.dart';
-import 'package:ustoz_trainer/features/attendance/ui/attendance_sheet.dart';
 import 'package:ustoz_trainer/features/shell/ui/offline_banner.dart';
 
-/// Asosiy qobiq: kontent + suzuvchi tabbar.
-///
-/// Dizayn (`#tabbar`): `left:16 right:16 bottom:16; height:76;
-/// background: rgba(19,21,25,.72); border-radius:28; backdrop-filter:
-/// blur(28px); box-shadow: 0 20px 50px rgba(0,0,0,.5)`.
-/// Tartib: Asosiy · Shogirdlar · [+] · Statistika · Profil.
+/// Asosiy qobiq: kontent + suzuvchi tabbar (REDESIGN — 4 tab, markaziy FAB yo'q).
+/// Tartib: Bosh sahifa · Shogirdlar · Kalendar · Sozlamalar (D203).
 class AppShell extends ConsumerWidget {
   const AppShell({required this.location, required this.child, super.key});
 
@@ -28,9 +22,6 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      // `extendBody` — kontent tabbar ostidan o'tadi (shisha effekti
-      // ko'rinishi uchun). Ekranlar pastdan `AppSpacing.screenBottom`
-      // padding oladi.
       extendBody: true,
       body: Column(
         children: <Widget>[
@@ -64,20 +55,18 @@ class _TabBar extends ConsumerWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppRadius.tabBar),
           child: BackdropFilter(
-            // Bu yerda blur HAQIQATAN kerak: kontent tabbar ostidan
-            // suzib o'tadi (D105 dagi istisno).
-            filter: ui.ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+            filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
-              height: 76,
+              height: 72,
               decoration: BoxDecoration(
                 color: c.tabBar,
                 borderRadius: BorderRadius.circular(AppRadius.tabBar),
                 border: Border.all(color: c.line),
                 boxShadow: const <BoxShadow>[
                   BoxShadow(
-                    color: Color.fromRGBO(0, 0, 0, 0.5),
-                    blurRadius: 50,
-                    offset: Offset(0, 20),
+                    color: Color.fromRGBO(17, 24, 39, 0.10),
+                    blurRadius: 30,
+                    offset: Offset(0, 12),
                   ),
                 ],
               ),
@@ -86,27 +75,26 @@ class _TabBar extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
                   _Tab(
-                    icon: Icons.home_outlined,
-                    label: s.today,
+                    icon: Icons.home_rounded,
+                    label: s.navHome,
                     active: location == Routes.dashboard,
                     onTap: () => context.go(Routes.dashboard),
                   ),
                   _Tab(
-                    icon: Icons.people_outline,
+                    icon: Icons.people_alt_rounded,
                     label: s.students,
                     active: location.startsWith(Routes.students),
                     onTap: () => context.go(Routes.students),
                   ),
-                  const _PlusButton(),
                   _Tab(
-                    icon: Icons.bar_chart_outlined,
-                    label: s.stats,
-                    active: location == Routes.stats,
-                    onTap: () => context.go(Routes.stats),
+                    icon: Icons.calendar_today_rounded,
+                    label: s.calendarTitle,
+                    active: location == Routes.calendar,
+                    onTap: () => context.go(Routes.calendar),
                   ),
                   _Tab(
-                    icon: Icons.person_outline,
-                    label: s.profile,
+                    icon: Icons.settings_rounded,
+                    label: s.navSettings,
                     active: location == Routes.settings,
                     onTap: () => context.go(Routes.settings),
                   ),
@@ -136,13 +124,13 @@ class _Tab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppColors c = context.colors;
-    final Color color = active ? c.ink : c.dim;
+    final Color color = active ? c.anor2 : c.dim;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
-        width: 62,
+        width: 72,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
@@ -150,7 +138,7 @@ class _Tab extends StatelessWidget {
             AnimatedContainer(
               duration: AppDuration.fast,
               curve: AppMotion.short,
-              child: Icon(icon, size: 22, color: color.withValues(alpha: 0.85)),
+              child: Icon(icon, size: 24, color: color),
             ),
             const SizedBox(height: AppSpacing.xxs),
             Text(
@@ -160,61 +148,6 @@ class _Tab extends StatelessWidget {
               style: AppText.tab105.copyWith(color: color),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Markazdagi `+` — dizaynda tabbar ustiga chiqadi (`margin-top: -26px`)
-/// va sheet ochilganda 45° buriladi.
-class _PlusButton extends ConsumerStatefulWidget {
-  const _PlusButton();
-
-  @override
-  ConsumerState<_PlusButton> createState() => _PlusButtonState();
-}
-
-class _PlusButtonState extends ConsumerState<_PlusButton> {
-  bool _open = false;
-
-  Future<void> _openSheet() async {
-    setState(() => _open = true);
-    await showAttendanceSheet(context);
-    if (mounted) {
-      setState(() => _open = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final AppColors c = context.colors;
-
-    return Transform.translate(
-      offset: const Offset(0, -26),
-      child: PressScale(
-        onTap: _openSheet,
-        child: AnimatedRotation(
-          turns: _open ? 0.125 : 0,
-          duration: AppDuration.fast,
-          curve: AppMotion.short,
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              gradient: c.anorGradient,
-              borderRadius: BorderRadius.circular(AppRadius.card),
-              boxShadow: <BoxShadow>[
-                BoxShadow(
-                  color: c.anorGlow,
-                  blurRadius: 28,
-                  spreadRadius: -6,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.add, size: 26, color: Colors.white),
-          ),
         ),
       ),
     );

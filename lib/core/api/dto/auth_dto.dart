@@ -37,6 +37,7 @@ class OtpRequestResponse {
 
   Map<String, dynamic> toJson() => _$OtpRequestResponseToJson(this);
 
+  @JsonKey(unknownEnumValue: OtpChannel.sms)
   final OtpChannel channel;
 
   /// Kod amal qilish muddati (sekund, masalan 300).
@@ -132,6 +133,7 @@ class Me {
     this.gymName,
     this.remindTime,
     this.planUntil,
+    this.monthlyGoal,
   });
 
   /// Salomlashish uchun faqat ism (`greeting_name` kabi).
@@ -167,6 +169,11 @@ class Me {
   @UtcDateTimeConverter()
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
+
+  /// G4 — trener oylik daromad maqsadi (so'm, BIGINT). `null` = qo'yilmagan
+  /// (dashboard "maqsad qo'ying" taklifini ko'rsatadi). Migratsiya 0017.
+  @JsonKey(name: 'monthly_goal')
+  final int? monthlyGoal;
 }
 
 /// `PATCH /me` tanasi. `minProperties: 1` — faqat o'zgargan maydon yuboriladi.
@@ -177,7 +184,13 @@ class Me {
 /// alohida `clearGymName` bayrog'i qo'shiladi.
 @JsonSerializable(createFactory: false, includeIfNull: false)
 class MeUpdate {
-  const MeUpdate({this.name, this.gymName, this.lang, this.remindTime});
+  const MeUpdate({
+    this.name,
+    this.gymName,
+    this.lang,
+    this.remindTime,
+    this.monthlyGoal,
+  });
 
   final String? name;
 
@@ -188,6 +201,10 @@ class MeUpdate {
 
   @JsonKey(name: 'remind_time')
   final String? remindTime;
+
+  /// G4 — oylik maqsad (so'm > 0). `null` = tegilmaydi (`includeIfNull: false`).
+  @JsonKey(name: 'monthly_goal')
+  final int? monthlyGoal;
 
   Map<String, dynamic> toJson() => _$MeUpdateToJson(this);
 }

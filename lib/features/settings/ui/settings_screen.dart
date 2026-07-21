@@ -47,14 +47,39 @@ class SettingsScreen extends ConsumerWidget {
         AppSpacing.screenBottom,
       ),
       children: <Widget>[
-        Text(s.settings, style: AppText.display24.copyWith(color: c.ink)),
+        // Header + chiqish.
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                s.settings,
+                style: AppText.display24.copyWith(color: c.anor2),
+              ),
+            ),
+            GestureDetector(
+              onTap: () => _signOut(context, ref),
+              child: Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: c.debtSoft,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.logout, size: 20, color: c.debt),
+              ),
+            ),
+          ],
+        ),
 
         // Profil.
         const SizedBox(height: AppSpacing.x3l),
-        GlassCard(
+        Container(
+          decoration: settingsCard(c),
+          padding: const EdgeInsets.all(AppSpacing.x4l),
           child: Row(
             children: <Widget>[
-              Avatar(me.name),
+              Avatar(me.name, size: 56),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
@@ -63,45 +88,100 @@ class SettingsScreen extends ConsumerWidget {
                   children: <Widget>[
                     Text(
                       me.name,
-                      style: AppText.body15Bold.copyWith(color: c.ink),
+                      style: AppText.h18.copyWith(color: c.ink),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: AppSpacing.xxs),
                     Text(
-                      me.gymName ?? me.phone,
-                      style: AppText.caption125.copyWith(color: c.dim),
+                      me.gymName ?? s.trainerRole,
+                      style: AppText.body13.copyWith(color: c.soft),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              StatusBadge(
-                me.plan == Plan.free ? s.planFree : 'PRO',
-                tone: me.plan == Plan.free ? BadgeTone.neutral : BadgeTone.ok,
+              GestureDetector(
+                onTap: () => _editProfile(context, ref, me),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: c.anor2,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.edit, size: 18, color: Colors.white),
+                ),
               ),
             ],
           ),
         ),
 
-        // Til — darhol almashadi.
-        const SizedBox(height: AppSpacing.sectionGap),
-        SectionHeader(s.language),
-        Row(
-          spacing: AppSpacing.sm,
-          children: <Widget>[
-            for (final (Lang lang, String label) in <(Lang, String)>[
-              (Lang.uz, "O'zbekcha"),
-              (Lang.ru, 'Русский'),
-            ])
-              AppChip(
-                label: label,
-                selected: me.lang == lang,
-                expand: true,
-                onTap: () => _setLang(context, ref, me, lang),
+        // Til sozlamalari.
+        const SizedBox(height: AppSpacing.xl),
+        Container(
+          decoration: settingsCard(c),
+          padding: const EdgeInsets.all(AppSpacing.x4l),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                s.languageSettings,
+                style: AppText.h20.copyWith(color: c.anor2),
               ),
-          ],
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: <Widget>[
+                  Container(
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: c.glassHi,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.language, size: 20, color: c.anor2),
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  Expanded(
+                    child: Text(
+                      s.language,
+                      style: AppText.body15Bold.copyWith(color: c.ink),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _setLang(
+                      context,
+                      ref,
+                      me,
+                      me.lang == Lang.uz ? Lang.ru : Lang.uz,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.x4l,
+                        vertical: AppSpacing.md,
+                      ),
+                      decoration: BoxDecoration(
+                        color: c.anor2,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Text(
+                        me.lang == Lang.uz ? s.langUz : s.langRu,
+                        style: AppText.body14Bold.copyWith(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
+
+        // Obuna.
+        const SizedBox(height: AppSpacing.xl),
+        _ObunaCard(me: me),
 
         // Eslatma vaqti.
         const SizedBox(height: AppSpacing.sectionGap),
@@ -260,6 +340,350 @@ class SettingsScreen extends ConsumerWidget {
       await ref.read(localStoreProvider).clearAll();
       await ref.read(sessionProvider.notifier).signOut();
     }
+  }
+
+  Future<void> _editProfile(BuildContext context, WidgetRef ref, Me me) async {
+    final AppStrings s = context.s;
+    final AppColors c = context.colors;
+    final TextEditingController name = TextEditingController(text: me.name);
+    final TextEditingController gym = TextEditingController(
+      text: me.gymName ?? '',
+    );
+
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext d) => AlertDialog(
+        backgroundColor: c.sheet,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(s.edit, style: AppText.h18.copyWith(color: c.ink)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextField(
+              controller: name,
+              style: AppText.body145.copyWith(color: c.ink),
+              cursorColor: c.anor2,
+              decoration: InputDecoration(
+                labelText: s.fieldName,
+                labelStyle: AppText.caption125.copyWith(color: c.dim),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            TextField(
+              controller: gym,
+              style: AppText.body145.copyWith(color: c.ink),
+              cursorColor: c.anor2,
+              decoration: InputDecoration(
+                labelText: s.gymNameLabel,
+                labelStyle: AppText.caption125.copyWith(color: c.dim),
+              ),
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          GhostButton(
+            label: s.cancel,
+            size: AppButtonSize.small,
+            expand: false,
+            onPressed: () => Navigator.of(d).pop(false),
+          ),
+          GradientButton(
+            label: s.save,
+            size: AppButtonSize.small,
+            expand: false,
+            onPressed: () => Navigator.of(d).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (ok ?? false) {
+      try {
+        final Me updated = await ref
+            .read(meRepositoryProvider)
+            .updateMe(
+              MeUpdate(
+                name: name.text.trim(),
+                gymName: gym.text.trim().isEmpty ? null : gym.text.trim(),
+              ),
+            );
+        ref.read(sessionProvider.notifier).setMe(updated);
+      } on AppException catch (e) {
+        if (context.mounted) {
+          AppToast.show(context, e.message);
+        }
+      }
+    }
+    name.dispose();
+    gym.dispose();
+  }
+}
+
+BoxDecoration settingsCard(AppColors c) => BoxDecoration(
+  color: c.glass,
+  borderRadius: BorderRadius.circular(18),
+  border: Border.all(color: c.line),
+  boxShadow: const <BoxShadow>[
+    BoxShadow(
+      color: Color.fromRGBO(17, 24, 39, 0.05),
+      blurRadius: 18,
+      offset: Offset(0, 6),
+    ),
+  ],
+);
+
+/// Obuna kartasi (root-1-26) — S12 paywall UI (D202: flag ortida ishlaydi).
+class _ObunaCard extends ConsumerWidget {
+  const _ObunaCard({required this.me});
+
+  final Me me;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+
+    final bool pro = me.plan == Plan.pro;
+    final int? daysLeft = me.planUntil?.difference(DateTime.now()).inDays;
+
+    return Container(
+      decoration: settingsCard(c),
+      padding: const EdgeInsets.all(AppSpacing.x4l),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Text(
+            s.subscriptionTitle,
+            style: AppText.h20.copyWith(color: c.anor2),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Container(
+            decoration: BoxDecoration(
+              gradient: c.anorGradient,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.all(AppSpacing.x4l),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        s.currentPlanLabel,
+                        style: AppText.body13.copyWith(
+                          color: Colors.white.withValues(alpha: 0.75),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: c.ok,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        s.badgePaid,
+                        style: AppText.badge11.copyWith(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  pro ? s.planPremium : s.planFree,
+                  style: AppText.h20.copyWith(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                _navyRow(
+                  s.nextPaymentLabel,
+                  me.planUntil == null ? '—' : s.fullDate(me.planUntil!),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                _navyRow(
+                  s.daysLeftLabel,
+                  daysLeft == null ? '—' : s.streakDays(daysLeft),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          GradientButton(
+            label: s.changePlan,
+            onPressed: () => _showPlanPicker(context),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          GhostButton(
+            label: s.paymentHistory,
+            onPressed: () => _showBilling(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _navyRow(String label, String value) {
+    return Builder(
+      builder: (BuildContext context) {
+        return Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                label,
+                style: AppText.body13.copyWith(
+                  color: Colors.white.withValues(alpha: 0.75),
+                ),
+              ),
+            ),
+            Text(
+              value,
+              style: AppText.body14Bold.copyWith(color: Colors.white),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showBilling(BuildContext context) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: c.sheet,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext _) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.x4l),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(s.paymentHistory, style: AppText.h18.copyWith(color: c.anor2)),
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              s.noBillingHistory,
+              style: AppText.body14.copyWith(color: c.soft),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPlanPicker(BuildContext context) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: c.sheet,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext sheetContext) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.x4l),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(
+              s.choosePlanTitle,
+              style: AppText.h18.copyWith(color: c.anor2),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            _PlanOption(
+              name: s.planFree,
+              price: '0 ${Money.unit}${s.perMonth}',
+              features: s.planFreeFeatures,
+              selected: me.plan == Plan.free,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _PlanOption(
+              name: s.planPremium,
+              price: '${Money.format(50000)} ${Money.unit}${s.perMonth}',
+              features: s.planPremiumFeatures,
+              selected: me.plan == Plan.pro,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            GradientButton(
+              label: s.confirmAndPay,
+              onPressed: () => Navigator.of(sheetContext).pop(),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlanOption extends StatelessWidget {
+  const _PlanOption({
+    required this.name,
+    required this.price,
+    required this.features,
+    required this.selected,
+  });
+
+  final String name;
+  final String price;
+  final List<String> features;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: c.glass,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: selected ? c.anor2 : c.line,
+          width: selected ? 2 : 1,
+        ),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.x4l),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(name, style: AppText.h18.copyWith(color: c.ink)),
+              ),
+              Text(price, style: AppText.body14Bold.copyWith(color: c.anor2)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          for (final String f in features)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Row(
+                children: <Widget>[
+                  Icon(Icons.check_circle, size: 18, color: c.ok),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(
+                      f,
+                      style: AppText.body14.copyWith(color: c.ink),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 

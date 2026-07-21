@@ -31,28 +31,31 @@ void main() {
     });
   });
 
-  group('Money.compact', () {
-    test('million va ming qisqartmalari', () {
-      expect(Money.compact(6800000), '6.8M');
-      expect(Money.compact(800000), '800K');
+  // G1 (DECISIONS D057): qisqartma millionlar uchun `mln`, million ostida
+  // to'liq (probel ajratgich). Eski `K/M` sxemasi bekor qilindi.
+  group('Money.compact — millionlar "mln", million ostida to\'liq', () {
+    test('million qisqartmasi', () {
+      expect(Money.compact(6800000), '6.8${nb}mln');
+      expect(Money.compact(1200000), '1.2${nb}mln');
       expect(Money.compact(950), '950');
       expect(Money.compact(0), '0');
     });
 
-    test('butun qiymatlarda ortiqcha nol ko\'rsatilmaydi', () {
-      expect(Money.compact(7000000), '7M');
-      expect(Money.compact(2000), '2K');
+    test('butun million — ortiqcha nol yo\'q', () {
+      expect(Money.compact(7000000), '7${nb}mln');
+      expect(Money.compact(10000000), '10${nb}mln');
     });
 
-    test('chegara qiymatlari', () {
+    test('million ostida to\'liq (K ISHLATILMAYDI)', () {
       expect(Money.compact(999), '999');
-      expect(Money.compact(1000), '1K');
-      expect(Money.compact(999999), '1000K');
-      expect(Money.compact(1000000), '1M');
+      expect(Money.compact(1000), '1${nb}000');
+      expect(Money.compact(800000), '800${nb}000');
+      expect(Money.compact(999999), '999${nb}999');
+      expect(Money.compact(1000000), '1${nb}mln');
     });
 
     test('manfiy qiymat', () {
-      expect(Money.compact(-6800000), '-6.8M');
+      expect(Money.compact(-6800000), '-6.8${nb}mln');
     });
   });
 }

@@ -97,8 +97,184 @@ class AppStrings {
   // ----------------------------------------------------------- dashboard
   String greeting(String name) => _p('Salom, $name', 'Привет, $name');
   String streakDays(int days) => _p('$days kun', '$days дн.');
+
+  // ---------------------------------------------- REDESIGN (dashboard/umumiy)
+  String get dashSubtitle =>
+      _p("Bugungi umumiy ma'lumotlar", 'Общая информация за сегодня');
+  String get kpiMonthRevenue => _p('Oylik daromad', 'Месячный доход');
+  String get kpiThisMonth => _p('Shu oy', 'Этот месяц');
+  String get kpiTotalDebt => _p('Jami qarzdorlik', 'Общий долг');
+  String get kpiActiveStudents => _p('Faol shogirdlar', 'Активные ученики');
+  String get statusPaidShort => _p("To'langan", 'Оплачено');
+  String get statusPendingShort => _p('Kutilmoqda', 'Ожидается');
+  String get quickActions => _p('Tezkor amallar', 'Быстрые действия');
+  String get recentActivity => _p("So'nggi faoliyat", 'Последние действия');
+  String get seeAll => _p("Barchasini ko'rish", 'Смотреть все');
+  String studentsCount(int n) => _p('$n shogird', '$n учеников');
+  String get activityPaid => _p("To'lov qabul qilindi", 'Оплата принята');
+  String get activityPartial => _p("Qisman to'lov", 'Частичная оплата');
+  String get activityOverdue => _p("Muddati o'tgan", 'Просрочено');
+
+  // ------------------------------------------------ REDESIGN (shogird kartasi)
+  String get currentBalance => _p('Joriy balans', 'Текущий баланс');
+  String get totalPaidLabel => _p("Jami to'langan", 'Всего оплачено');
+  String get lastPaymentLabel => _p("Oxirgi to'lov", 'Последняя оплата');
+  String get badgeDebt => _p('Qarz', 'Долг');
+  String get badgePaid => _p('Faol', 'Активен');
+  String daysLate(int n) => _p('$n kun kechikdi', '$n дн. просрочки');
+
+  // ------------------------------------------------ REDESIGN (shogird profili)
+  String get studentProfileTitle => _p('Shogird profili', 'Профиль ученика');
+  String get monthlyFeeLabel => _p("Oylik to'lov", 'Ежемесячная оплата');
+  String get paymentPaid => _p("To'langan", 'Оплачено');
+  String get paymentPartial => _p('Qisman', 'Частично');
+
+  // ------------------------------------------------------- REDESIGN (kalendar)
+  String get calendarTitle => _p('Kalendar', 'Календарь');
+  String get calPlanned => _p('Rejal', 'План');
+  String get legendTitle => _p('Belgilar', 'Обозначения');
+  String get legendPaid => _p("To'langan to'lovlar", 'Оплаченные платежи');
+  String get legendPartial => _p("Qisman to'lovlar", 'Частичные платежи');
+  String get legendPlanned =>
+      _p("Rejalashtirilgan to'lovlar", 'Запланированные платежи');
+  String get dayPaymentsTitle => _p("To'lovlar", 'Платежи');
+  String get noPaymentsDay =>
+      _p("Bu kunda to'lov yo'q", 'Нет платежей в этот день');
+  String get legendUnpaid => _p("To'lanmagan", 'Не оплачено');
+  String get statusUnpaidLabel => _p("To'lanmagan", 'Не оплачено');
+  String get calRemainder => _p('Qoldiq', 'Остаток');
+  String get calAddPaymentRemainder =>
+      _p("Qoldiqni to'lash", 'Оплатить остаток');
+
+  /// "Iyul: 12 to'liq · 2 qisman · 3 kutilmoqda".
+  String calMonthSummary(int month, int full, int partial, int planned) => _p(
+    '${monthName(month)}: $full to\'liq · $partial qisman · $planned kutilmoqda',
+    '${monthName(month)}: $full полн. · $partial частичн. · $planned ожид.',
+  );
+
+  // ------------------------------------------------- REDESIGN (bildirishnoma)
+  String get notificationsTitle => _p('Bildirishnomalar', 'Уведомления');
+  String newCount(int n) => _p('$n yangi', '$n новых');
+  String dueOverdueDays(int n) => _p(
+    "To'lov muddati $n kun oldin o'tgan",
+    'Срок оплаты прошёл $n дн. назад',
+  );
+  String get dueTodayMsg => _p("To'lov muddati bugun", 'Срок оплаты сегодня');
+  String weeksAgo(int n) => _p('$n hafta oldin', '$n нед. назад');
+  String get noNotifications => _p("Bildirishnoma yo'q", 'Нет уведомлений');
+  String get notifDetailTitle =>
+      _p('Bildirishnoma tafsilotlari', 'Детали уведомления');
+  String get markPaidAction =>
+      _p("To'langan deb belgilash", 'Отметить оплаченным');
+  String get viewProfile => _p("Profilni ko'rish", 'Открыть профиль');
+
+  // ------------------------------------------------------- REDESIGN (navigatsiya)
+  String get navHome => _p('Bosh sahifa', 'Главная');
+  String get navSettings => _p('Sozlamalar', 'Настройки');
+
+  // ------------------------------------------------------ REDESIGN (tavsiyalar)
+  String get recommendationsTab => _p('Tavsiyalar', 'Рекомендации');
+  String get addRecommendation =>
+      _p("Tavsiya qo'shish", 'Добавить рекомендацию');
+  String get recCategory => _p('Kategoriya', 'Категория');
+  String get recTextHint => _p('Tavsiya matni…', 'Текст рекомендации…');
+  String get linkProduct => _p("Mahsulot bog'lash", 'Привязать товар');
+  String get toAllStudents => _p('Barcha shogirdlarga', 'Всем ученикам');
+  String get referralHint => _p('Referal', 'Реферал');
+  String get noRecommendations =>
+      _p("Hali tavsiya yo'q", 'Пока нет рекомендаций');
+  String recSentTo(String name) => _p(
+    '✓ $name ga yuborildi — app + Telegram',
+    '✓ Отправлено $name — app + Telegram',
+  );
+  String get recBroadcastSent =>
+      _p('✓ Barcha shogirdlarga yuborildi', '✓ Отправлено всем ученикам');
+  String get recDelete => _p("O'chirish", 'Удалить');
+  String get recDeleteConfirm =>
+      _p("Tavsiyani o'chirasizmi?", 'Удалить рекомендацию?');
+  String get searchProduct => _p('Mahsulot qidirish', 'Поиск товара');
+  String get send => _p('Yuborish', 'Отправить');
+  String recCategoryName(String c) {
+    switch (c) {
+      case 'sportpit':
+        return _p('Sport pit', 'Спортпит');
+      case 'water':
+        return _p('Suv', 'Вода');
+      case 'sleep':
+        return _p('Uyqu', 'Сон');
+      case 'nutrition':
+        return _p('Ovqatlanish', 'Питание');
+      case 'training':
+        return _p("Mashg'ulot", 'Тренировка');
+      default:
+        return _p('Boshqa', 'Другое');
+    }
+  }
+
+  // ---------------------------------------------------------- REDESIGN (obuna)
+  String get trainerRole => _p('Shaxsiy murabbiy', 'Персональный тренер');
+  String get gymNameLabel => _p('Zal nomi', 'Название зала');
+  String get languageSettings => _p('Til sozlamalari', 'Настройки языка');
+  String get langUz => _p("O'zbek", 'Узбекский');
+  String get langRu => _p('Rus', 'Русский');
+  String get subscriptionTitle => _p('Obuna', 'Подписка');
+  String get currentPlanLabel => _p('Joriy tarif', 'Текущий тариф');
+  String get planPremium => 'Premium';
+  String get nextPaymentLabel => _p("Keyingi to'lov", 'Следующая оплата');
+  String get daysLeftLabel => _p('Qolgan kunlar', 'Осталось дней');
+  String get changePlan => _p("Tarifni o'zgartirish", 'Изменить тариф');
+  String get choosePlanTitle =>
+      _p('Tarif rejasini tanlang', 'Выберите тарифный план');
+  String get confirmAndPay =>
+      _p("Tasdiqlash va to'lash", 'Подтвердить и оплатить');
+  String get perMonth => _p('/ oy', '/ мес');
+  String get noBillingHistory =>
+      _p("To'lov tarixi yo'q", 'Нет истории платежей');
+  List<String> get planFreeFeatures => _p2(
+    const <String>[
+      '10 tagacha shogird',
+      "Asosiy to'lov kuzatuvi",
+      "Kalendar ko'rinishi",
+    ],
+    const <String>['До 10 учеников', 'Базовый учёт оплат', 'Календарь'],
+  );
+  List<String> get planPremiumFeatures => _p2(
+    const <String>[
+      'Cheksiz shogirdlar',
+      "Ilg'or to'lov kuzatuvi",
+      'Avtomatik bildirishnomalar',
+      'Hisobotlar va statistika',
+      "Prioritet qo'llab-quvvatlash",
+    ],
+    const <String>[
+      'Неограниченно учеников',
+      'Продвинутый учёт оплат',
+      'Автоуведомления',
+      'Отчёты и статистика',
+      'Приоритетная поддержка',
+    ],
+  );
+
+  List<String> _p2(List<String> uz, List<String> ru) =>
+      lang == Lang.uz ? uz : ru;
   String monthIncome(String month) => _p('$month daromadi', 'Доход за $month');
   String get goal => _p('maqsad', 'цель');
+
+  // ------------------------------------------- G2/G4 (dashboard zichlik + maqsad)
+  String get monthlyGoalLabel => _p('Oylik maqsad', 'Цель на месяц');
+  String get setGoalPrompt =>
+      _p('Oylik maqsad qo\'ying', 'Установите цель на месяц');
+  String get setGoal => _p('Maqsad qo\'yish', 'Установить цель');
+  String collectedPercent(int p) => _p('Yig\'ildi: $p%', 'Собрано: $p%');
+  String get todaySection => _p('BUGUN', 'СЕГОДНЯ');
+  String get qaPayment => _p('To\'lov', 'Оплата');
+  String get qaStudent => _p('Shogird', 'Ученик');
+  String get qaAttendance => _p('Davomad', 'Посещ.');
+  String get goalReached50 =>
+      _p('Maqsadning yarmiga yetdingiz! 💪', 'Половина цели достигнута! 💪');
+  String get goalReached100 =>
+      _p('Oylik maqsad bajarildi! 🎯', 'Цель месяца выполнена! 🎯');
+  String daysOverdueShort(int n) => _p('$n kun', '$n дн.');
   String get dueToday => _p("Bugun to'lov", 'Оплата сегодня');
   String get dueSoon => _p('3 kun ichida', 'В ближайшие 3 дня');
   String get overdue => _p('Qarzdorlar', 'Должники');
@@ -343,6 +519,14 @@ class AppStrings {
   /// Grafik yorlig'i: `Iyl` / `Июл`.
   String monthShort(int month) =>
       lang == Lang.uz ? _monthsShortUz[month - 1] : _monthsShortRu[month - 1];
+
+  /// Kalendar ustun sarlavhalari (Du..Ya).
+  List<String> get weekdayShort => lang == Lang.uz
+      ? const <String>['Du', 'Se', 'Cho', 'Pa', 'Ju', 'Sha', 'Ya']
+      : const <String>['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+  /// `Fevral 2026`.
+  String monthYear(DateTime d) => '${monthName(d.month)} ${d.year}';
 
   static String _capitalize(String s) =>
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);

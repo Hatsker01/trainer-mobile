@@ -33,9 +33,10 @@ class UstozApp extends ConsumerWidget {
         title: 'USTOZ',
         debugShowCheckedModeBanner: false,
         routerConfig: ref.watch(routerProvider),
-        theme: AppTheme.dark,
-        // MVP dark-only (spec §9) — tizim sozlamasi qanday bo'lsa ham.
-        themeMode: ThemeMode.dark,
+        // REDESIGN (D208): aktiv tema — light navy/emerald.
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.light,
         builder: (BuildContext context, Widget? child) {
           // textScale 1.3 gacha qo'llab-quvvatlanadi (T9 adaptivlik
           // matritsasi); undan yuqorisi qattiq balandliklarni buzadi.

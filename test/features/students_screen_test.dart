@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ustoz_trainer/core/api/dto/enums.dart';
 import 'package:ustoz_trainer/core/api/dto/student_dto.dart';
-import 'package:ustoz_trainer/core/widgets/app_chip.dart';
 import 'package:ustoz_trainer/features/students/ui/students_screen.dart';
 
 import '../support/fakes.dart';
@@ -42,7 +41,9 @@ void main() {
     await tester.pumpWidget(screen(repo));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(AppChip, 'Qarzdor'));
+    // REDESIGN: filtr endi `_FilterTab` (private) — matn bo'yicha bosamiz.
+    // "Qarzdor" faqat filtr yorlig'i (shogird badge'i "Qarz").
+    await tester.tap(find.text('Qarzdor'));
     await tester.pumpAndSettle();
 
     expect(

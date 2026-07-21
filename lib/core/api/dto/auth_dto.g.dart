@@ -11,7 +11,11 @@ Map<String, dynamic> _$OtpRequestToJson(OtpRequest instance) =>
 
 OtpRequestResponse _$OtpRequestResponseFromJson(Map<String, dynamic> json) =>
     OtpRequestResponse(
-      channel: $enumDecode(_$OtpChannelEnumMap, json['channel']),
+      channel: $enumDecode(
+        _$OtpChannelEnumMap,
+        json['channel'],
+        unknownValue: OtpChannel.sms,
+      ),
       expiresIn: (json['expires_in'] as num).toInt(),
       retryAfter: (json['retry_after'] as num?)?.toInt(),
     );
@@ -69,6 +73,7 @@ Me _$MeFromJson(Map<String, dynamic> json) => Me(
   planUntil: const DateOnlyNullableConverter().fromJson(
     json['plan_until'] as String?,
   ),
+  monthlyGoal: (json['monthly_goal'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$MeToJson(Me instance) => <String, dynamic>{
@@ -83,6 +88,7 @@ Map<String, dynamic> _$MeToJson(Me instance) => <String, dynamic>{
   'plan_until': const DateOnlyNullableConverter().toJson(instance.planUntil),
   'tg_connected': instance.tgConnected,
   'created_at': const UtcDateTimeConverter().toJson(instance.createdAt),
+  'monthly_goal': instance.monthlyGoal,
 };
 
 const _$UserRoleEnumMap = {
@@ -100,4 +106,5 @@ Map<String, dynamic> _$MeUpdateToJson(MeUpdate instance) => <String, dynamic>{
   'gym_name': ?instance.gymName,
   'lang': ?_$LangEnumMap[instance.lang],
   'remind_time': ?instance.remindTime,
+  'monthly_goal': ?instance.monthlyGoal,
 };

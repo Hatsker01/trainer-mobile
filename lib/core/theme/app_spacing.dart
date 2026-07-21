@@ -21,6 +21,16 @@ abstract final class AppSpacing {
   /// Ekran gorizontal padding (`.screen { padding: 74px 20px 120px }`).
   static const double screenH = 20;
 
+  /// G1 ZICHLIK — asosiy ekran cheti (16, zich standart). Dashboard/Kalendar
+  /// shu qiymatni ishlatadi (eski 20 o'rniga).
+  static const double screenEdge = 16;
+
+  /// G1 ZICHLIK — zich karta ichki padding (14, eski 16/20 o'rniga).
+  static const double cardPadDense = 14;
+
+  /// G1 ZICHLIK — bo'limlar orasi zich variant (18, eski sectionGap 26 o'rniga).
+  static const double sectionGapDense = 18;
+
   /// Tabbar ostidagi bo'sh joy — kontent tabbar tagida qolib ketmasligi uchun.
   /// (HTML: `padding-bottom: 120px`; tabbar 76 + pastdan 16 + nafas 28.)
   static const double screenBottom = 120;

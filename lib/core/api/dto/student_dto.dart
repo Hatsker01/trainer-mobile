@@ -22,6 +22,10 @@ class Student {
     this.nextDueDate,
     this.daysOverdue,
     this.inviteToken,
+    this.avatarUrl,
+    this.balance,
+    this.totalPaid,
+    this.lastPaymentAt,
   });
 
   factory Student.fromJson(Map<String, dynamic> json) =>
@@ -67,6 +71,21 @@ class Student {
   /// `t.me/UstozBot?start=<invite_token>`.
   @JsonKey(name: 'invite_token')
   final String? inviteToken;
+
+  // REDESIGN (root-1-11/17): kartochka boyroq ma'lumot ko'rsatadi.
+  // Barchasi nullable — backend qo'shguncha `null` (UI fallback beradi).
+  @JsonKey(name: 'avatar_url')
+  final String? avatarUrl;
+
+  /// Joriy balans (so'mda). Manfiy = qarz. `null` — backend hali bermaydi.
+  final int? balance;
+
+  @JsonKey(name: 'total_paid')
+  final int? totalPaid;
+
+  @DateOnlyNullableConverter()
+  @JsonKey(name: 'last_payment_at')
+  final DateTime? lastPaymentAt;
 
   @UtcDateTimeConverter()
   @JsonKey(name: 'created_at')

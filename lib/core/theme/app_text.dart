@@ -238,6 +238,24 @@ abstract final class AppText {
     fontFeatures: _tnum,
   );
 
+  /// G1 ZICHLIK — dashboard KPI qiymati (18-22px oralig'i, zich moliyaviy
+  /// ilova standarti). Eski KPI money24@27px o'rniga. Mono 700 / 20, tnum.
+  static const TextStyle money20 = TextStyle(
+    fontFamily: monoFamily,
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    fontFeatures: _tnum,
+  );
+
+  /// G1 ZICHLIK — mini-ko'rsatkich qiymati (hero ichidagi qarz/faol).
+  /// Mono 700 / 15, tnum.
+  static const TextStyle money15 = TextStyle(
+    fontFamily: monoFamily,
+    fontSize: 15,
+    fontWeight: FontWeight.w700,
+    fontFeatures: _tnum,
+  );
+
   /// Profil stat plitkasi. Mono 600 / 17, tnum.
   static const TextStyle money17 = TextStyle(
     fontFamily: monoFamily,
