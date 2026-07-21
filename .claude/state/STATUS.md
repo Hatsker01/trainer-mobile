@@ -6,20 +6,43 @@ Belgilar: `[ ]` boshlanmagan · `[~]` ishlanmoqda · `[x]` tugallangan · `[!]` 
 
 ---
 
-## Vazifalar (T0–T9)
+## AKTIV: REDESIGN (yangi dizayn → light/navy tizim)
+
+Yangi dizayn manbasi: `Jamshidbek Ikromov's team library/` (Figma eksport, 42 frame).
+To'liq tahlil: **`.claude/state/REDESIGN.md`**. Qarorlar: DECISIONS D201–D208.
+
+| # | Bosqich | Holat | Izoh |
+|---|---|---|---|
+| R0 | Study & gap analysis (kod o'zgarmaydi) | `[x]` | sessiya: redesign-1 — REDESIGN.md yozildi (inventar, token/komponent/data-gap/flaw). Kod tegilmadi |
+| R1 | Design QA — dizayn kamchiliklari (qog'ozda) | `[x]` | REDESIGN.md §6, F0–F9. Kontrast o'lchandi, auth/paywall/attendance ziddiyatlari hal qilindi |
+| R3 | Tokenlar + komponent kutubxona rebuild | `[ ]` | `core/theme` light/navy ThemeExtension; komponentlar (REDESIGN §4); gallery yangilanadi. **Mac'da build/analyze kerak** |
+| R4 | Backend gaplar (`trainer-back`, kontrakt-birinchi) | `[ ]` | G1–G8 (REDESIGN §5). G9 email/parol QURILMAYDI (D201). openapi→DECISIONS→migratsiya→handler→RBAC→test→seed |
+| R5 | Ekran-ma-ekran migratsiya | `[ ]` | Tartib: Dashboard→Shogirdlar→Profil→To'lov→Davomad→Kalendar(yangi)→Bildirishnomalar(yangi)→Auth restyle→Sozlamalar/Obuna→Stats merge. Har ekran 4 holat + real backend |
+| R6 | Run & verify (emulyator + proof) | `[ ]` | backend up + seed + emulyator + `make dev-android`; qo'lda stsenariy; perf (cold<2s, jank, APK<20MB); analyze+test yashil. **Mac talab qiladi** |
+| R7 | Yakuniy hisobot | `[ ]` | R0–R7 jadval, flaw'lar, chetlanishlar, backend qo'shimchalar, skrinshot indeksi, perf, testlar |
+
+> **MUHIM (redesign-1 topdi):** R3–R7 build/run darvozalari (`flutter analyze`, `flutter test`,
+> emulyator, APK) foydalanuvchi Mac'ida bajarilishi shart. Bulutli sessiya ularni tekshira
+> olmaydi (device_bash — tarmoqsiz Linux VM). Shu bois redesign-1 R0 (tahlil) bilan cheklandi
+> va **hech qanday ilova kodini o'zgartirmadi** (R0 talabi). Keyingi round Mac'da (desktop app
+> "On your computer" yoki lokal terminal) davom etadi. Sabab: REDESIGN.md §0.
+
+---
+
+## Oldingi round — MVP dizayn (T0–T9) · HAMMASI `[x]`
 
 | # | Vazifa | Holat | Izoh |
 |---|---|---|---|
-| T0 | Loyiha poydevori | `[x]` | Flutter loyiha, paket siyosati, fontlar, analysis_options, Env, splash |
-| T1 | Design system (HTML'dan 1:1) | `[x]` | Tokenlar + 16 komponent + galereya. 22 test yashil, analyze toza |
+| T0 | Loyiha poydevori | `[x]` | Flutter loyiha, paket siyosati, fontlar, Env, splash |
+| T1 | Design system (eski HTML'dan) | `[x]` | Tokenlar + 16 komponent + galereya |
 | T2 | API qatlam + auth infra | `[x]` | DTO 1:1, Dio+interceptorlar, refresh single-flight |
-| T3 | Auth + onboarding ekranlari | `[x]` | onboarding, telefon/OTP, profil, router redirect |
-| T4 | Dashboard (S4) | `[x]` | hero ring, bugungi to'lov, skeleton, SWR kesh |
-| T5 | Shogirdlar moduli (S5/S6/S7) | `[x]` | ro'yxat (debounce/scroll), profil, qo'shish+invite |
-| T6 | To'lov + davomad sheetlari (S8/S9) | `[x]` | Idempotency+double-tap, davomad bulk |
-| T7 | Statistika + sozlamalar (S10/S11) | `[x]` | KPI+grafik, til/tarif CRUD/remind_time |
-| T8 | Offline-tolerantlik | `[x]` | SWR kesh + davomad outbox + offline banner |
-| T9 | Sifat, testlar, release | `[x]` | APK arm64 18.4MB<20, 97 test, adaptivlik matritsasi |
+| T3 | Auth + onboarding | `[x]` | onboarding, telefon/OTP, profil, router redirect |
+| T4 | Dashboard (S4) | `[x]` | hero ring, bugungi to'lov, skeleton, SWR |
+| T5 | Shogirdlar (S5/S6/S7) | `[x]` | ro'yxat, profil, qo'shish+invite |
+| T6 | To'lov + davomad sheetlari (S8/S9) | `[x]` | Idempotency, davomad bulk |
+| T7 | Statistika + sozlamalar (S10/S11) | `[x]` | KPI+grafik, til/tarif CRUD |
+| T8 | Offline-tolerantlik | `[x]` | SWR kesh + outbox + banner |
+| T9 | Sifat, testlar, release | `[x]` | APK arm64 18.4MB, 97 test, adaptivlik |
 
 ---
 
@@ -27,30 +50,35 @@ Belgilar: `[ ]` boshlanmagan · `[~]` ishlanmoqda · `[x]` tugallangan · `[!]` 
 
 | # | Bloker | Ta'sir | Kim hal qiladi |
 |---|---|---|---|
-| B1 | ~~Flutter SDK yo'q edi~~ | — | **HAL QILINDI** — `~/flutter` (3.44.6 stable, Dart 3.12.2), D101 |
-| B2 | **Xcode yo'q** (faqat Command Line Tools) | iOS RELEASE build tasdiqlanmagan (Dart/engine qismi kompilyatsiya bo'ldi, Xcode app build qismi qoldi) | **Foydalanuvchi** — App Store'dan Xcode (~15GB). Kod tayyor |
-| B3 | ~~JDK + Android SDK yo'q~~ | — | **HAL QILINDI** — Homebrew OpenJDK 17 + android-commandlinetools (SDK 36). APK muvaffaqiyatli qurildi |
-| B4 | **`POST /payments/preview` backendda YO'Q** | T6: to'lov sheetidagi "Keyingi to'lov: X" | **YECHIM O'ZGARDI:** `PaymentCreated.student.next_due_date` serverdan kelgani uchun preview to'lovni saqlagach ko'rsatiladi (toast). Alohida endpoint SHART EMAS — D102 ni ko'r |
+| B2 | **Xcode yo'q** (faqat CLT) | iOS release build tasdiqlanmagan | Foydalanuvchi — App Store'dan Xcode |
+| B5 | **Redesign build/run bulutdan mumkin emas** | R3–R7 Mac'da bajariladi | Foydalanuvchi — lokal/desktop "On your computer" round |
 
 ---
 
-## Cross-stream so'rovlar (mobile → backend)
+## Cross-stream so'rovlar (mobile → backend, redesign R4)
 
 | # | So'rov | Holat |
 |---|---|---|
-| X1 | `POST /payments/preview` — to'lovni saqlamasdan `next_due_date` ni hisoblab qaytarish. Sabab: sana hisoblash mantig'i client'da takrorlanmasligi kerak (yagona haqiqat manbai — backend). | `[ ]` yuborilmagan |
+| X2 | `/dashboard` aggregat + `recent_activity[]` (G1) | `[ ]` R4 |
+| X3 | `GET /calendar?month=` oy aggregati + kun to'lovlari (G2) | `[ ]` R4 |
+| X4 | `GET /notifications` trenerga qaratilgan + `read` (G3) | `[ ]` R4 |
+| X5 | `Student.avatar_url` + `POST /students/{id}/avatar`; `Me.avatar_url` (G4) | `[ ]` R4 |
+| X6 | `Student.first_name`/`last_name` (G5) | `[ ]` R4 |
+| X7 | `Student.balance` (G6) | `[ ]` R4 |
+| X8 | `PaymentCreate.period_month` (G7) | `[ ]` R4 |
+| X9 | `GET/POST /me/subscription*` obuna+billing — **feature-flag ostida** (G8, D202) | `[ ]` R4 |
 
 ---
 
 ## Keyingi sessiya nimadan boshlaydi
 
-**T2 — API qatlami + auth infra.**
+**R3 — tokenlar + komponent rebuild (Mac'da).**
 
-1. `PATH` ga SDK: `export PATH="$HOME/flutter/bin:$PATH"` (yoki `~/.zshrc` ga).
-2. DTO'lar (`json_serializable`) — openapi sxemalaridan 1:1. Diqqat:
-   `Money` = `int`, `format: date` va `format: date-time` FARQLI parse,
-   `change_percent` — yagona `double?`.
-3. Dio client + interceptorlar: auth (401 → bitta refresh, parallel
-   so'rovlar uchun `Completer` qulfi), xato → `AppException` mapping.
-4. Testlar: refresh oqimi (mock adapter), xato mapping jadval-testi.
-</content>
+1. `export PATH="$HOME/flutter/bin:$PATH"` + JAVA_HOME/ANDROID_SDK_ROOT (SYSTEM §7).
+2. `.claude/state/REDESIGN.md` ni o'qi — §3 token qiymatlari (navy #1A3D7C, green #2ECC71,
+   qarz #E74C3C→kichik #D63C2C, amber matn #8A6D0B, bg #FDFDFD, ink #222), §4 komponentlar,
+   §6 flaw tuzatishlari (kontrast, ≥44 nishon, 4 holat).
+3. `core/theme` — light/navy `AppColors` ThemeExtension (dark arxitekturasini yenglashtir,
+   lekin light-birinchi). `AppRadius` kamaytir (card 16, button 14, sheet 24).
+4. Komponentlarni yangi tilga ko'chir; `dev/gallery.dart` yangila (vizual regressiya vositasi).
+5. Har qadamda `dart format` + `flutter analyze` + `flutter test` yashil (DoD).
