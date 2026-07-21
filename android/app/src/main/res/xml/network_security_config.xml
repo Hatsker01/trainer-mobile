@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- USTOZ: domensiz prod server IP uchun HTTP (cleartext) ruxsati.
+     Domen+TLS ulangach bu faylni olib tashlang yoki domenni HTTPS qiling. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">169.58.51.242</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
