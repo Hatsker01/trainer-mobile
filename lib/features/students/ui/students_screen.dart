@@ -68,9 +68,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
         slivers: <Widget>[
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screenH,
+              AppSpacing.screenEdge,
               AppSpacing.x4l,
-              AppSpacing.screenH,
+              AppSpacing.screenEdge,
               0,
             ),
             sliver: SliverList.list(
@@ -131,9 +131,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     return <Widget>[
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenH,
+          AppSpacing.screenEdge,
           0,
-          AppSpacing.screenH,
+          AppSpacing.screenEdge,
           AppSpacing.screenBottom,
         ),
         sliver: SliverList.separated(
@@ -251,7 +251,7 @@ class _StudentCard extends ConsumerWidget {
       PaymentState.overdue => (
         c.debt,
         '${s.daysLate(student.daysOverdue ?? 0)} · '
-            '${Money.withUnit(student.balance?.abs() ?? student.tariffPrice)}',
+            '${Money.compact(student.balance?.abs() ?? student.tariffPrice)}',
         c.debt,
         true,
       ),
@@ -463,7 +463,7 @@ class _ListSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenEdge),
       sliver: SliverList.separated(
         itemCount: 4,
         separatorBuilder: (BuildContext _, int _) =>

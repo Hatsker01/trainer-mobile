@@ -55,7 +55,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       child: async.when(
         skipLoadingOnRefresh: true,
         loading: () => ListView(
-          padding: const EdgeInsets.all(AppSpacing.screenH),
+          padding: const EdgeInsets.all(AppSpacing.screenEdge),
           children: const <Widget>[
             SizedBox(height: AppSpacing.x4l),
             Skeleton(height: 28, width: 160),
@@ -108,9 +108,9 @@ class _Body extends StatelessWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.screenH,
+        AppSpacing.screenEdge,
         AppSpacing.x4l,
-        AppSpacing.screenH,
+        AppSpacing.screenEdge,
         AppSpacing.screenBottom,
       ),
       children: <Widget>[

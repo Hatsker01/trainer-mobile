@@ -41,9 +41,9 @@ class SettingsScreen extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
-        AppSpacing.screenH,
+        AppSpacing.screenEdge,
         AppSpacing.x4l,
-        AppSpacing.screenH,
+        AppSpacing.screenEdge,
         AppSpacing.screenBottom,
       ),
       children: <Widget>[
@@ -76,7 +76,7 @@ class SettingsScreen extends ConsumerWidget {
         const SizedBox(height: AppSpacing.x3l),
         Container(
           decoration: settingsCard(c),
-          padding: const EdgeInsets.all(AppSpacing.x4l),
+          padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Row(
             children: <Widget>[
               Avatar(me.name, size: 56),
@@ -123,7 +123,7 @@ class SettingsScreen extends ConsumerWidget {
         const SizedBox(height: AppSpacing.xl),
         Container(
           decoration: settingsCard(c),
-          padding: const EdgeInsets.all(AppSpacing.x4l),
+          padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -448,7 +448,7 @@ class _ObunaCard extends ConsumerWidget {
 
     return Container(
       decoration: settingsCard(c),
-      padding: const EdgeInsets.all(AppSpacing.x4l),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -462,7 +462,7 @@ class _ObunaCard extends ConsumerWidget {
               gradient: c.anorGradient,
               borderRadius: BorderRadius.circular(16),
             ),
-            padding: const EdgeInsets.all(AppSpacing.x4l),
+            padding: const EdgeInsets.all(AppSpacing.xxl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -561,7 +561,7 @@ class _ObunaCard extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (BuildContext _) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.x4l),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -590,7 +590,7 @@ class _ObunaCard extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (BuildContext sheetContext) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.x4l),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -652,7 +652,7 @@ class _PlanOption extends StatelessWidget {
           width: selected ? 2 : 1,
         ),
       ),
-      padding: const EdgeInsets.all(AppSpacing.x4l),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

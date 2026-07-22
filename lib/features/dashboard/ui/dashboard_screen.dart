@@ -16,6 +16,7 @@ import 'package:ustoz_trainer/core/widgets/plita_ring.dart';
 import 'package:ustoz_trainer/core/widgets/press_scale.dart';
 import 'package:ustoz_trainer/core/widgets/skeleton.dart';
 import 'package:ustoz_trainer/core/widgets/status_badge.dart';
+import 'package:ustoz_trainer/features/attendance/ui/attendance_sheet.dart';
 import 'package:ustoz_trainer/features/auth/providers/session_provider.dart';
 import 'package:ustoz_trainer/features/dashboard/providers/dashboard_provider.dart';
 import 'package:ustoz_trainer/features/dashboard/ui/goal_sheet.dart';
@@ -688,7 +689,7 @@ class _QuickActions extends StatelessWidget {
           child: _QuickAction(
             icon: Icons.event_available_outlined,
             label: s.qaAttendance,
-            onTap: () => context.go(Routes.students),
+            onTap: () => showAttendanceSheet(context),
           ),
         ),
       ],

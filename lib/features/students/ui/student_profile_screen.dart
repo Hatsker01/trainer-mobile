@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:ustoz_trainer/core/api/app_exception.dart';
 import 'package:ustoz_trainer/core/api/dto/auth_dto.dart';
+import 'package:ustoz_trainer/core/api/dto/dashboard_dto.dart';
 import 'package:ustoz_trainer/core/api/dto/enums.dart';
 import 'package:ustoz_trainer/core/api/dto/payment_dto.dart';
 import 'package:ustoz_trainer/core/api/dto/student_dto.dart';
@@ -20,6 +21,7 @@ import 'package:ustoz_trainer/core/widgets/app_button.dart';
 import 'package:ustoz_trainer/core/widgets/app_toast.dart';
 import 'package:ustoz_trainer/core/widgets/avatar.dart';
 import 'package:ustoz_trainer/core/widgets/empty_state.dart';
+import 'package:ustoz_trainer/core/widgets/heatmap.dart';
 import 'package:ustoz_trainer/core/widgets/skeleton.dart';
 import 'package:ustoz_trainer/core/widgets/status_badge.dart';
 import 'package:ustoz_trainer/features/dashboard/providers/dashboard_provider.dart';
@@ -120,7 +122,7 @@ class _Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<_Body> {
-  int _tab = 0; // 0 = to'lovlar, 1 = tavsiyalar (F2)
+  int _tab = 0; // 0 = to'lovlar, 1 = davomad (H2), 2 = tavsiyalar
 
   Future<void> _pay() async {
     final Student student = widget.student;
@@ -313,20 +315,23 @@ class _BodyState extends ConsumerState<_Body> {
                 children: <Widget>[
                   _profileTab(c, s.paymentHistory, 0),
                   const SizedBox(width: AppSpacing.md),
-                  _profileTab(c, s.recommendationsTab, 1),
+                  _profileTab(c, s.attendance, 1),
+                  const SizedBox(width: AppSpacing.md),
+                  _profileTab(c, s.recommendationsTab, 2),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
-              if (_tab == 0)
-                _PaymentsHistory(
+              switch (_tab) {
+                0 => _PaymentsHistory(
                   studentId: student.id,
                   tariffPrice: student.tariffPrice,
-                )
-              else
-                RecommendationsTab(
+                ),
+                1 => _AttendanceTab(studentId: student.id),
+                _ => RecommendationsTab(
                   studentId: student.id,
                   studentName: student.name,
                 ),
+              },
             ],
           ),
         ),
@@ -453,6 +458,55 @@ class _PaymentsHistory extends ConsumerWidget {
                   ),
                 ),
               ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Davomad tabi (H2) — `/students/{id}/attendance` → heatmap.
+class _AttendanceTab extends ConsumerWidget {
+  const _AttendanceTab({required this.studentId});
+
+  final String studentId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+
+    return FutureBuilder<AttendanceList>(
+      future: ref.read(studentRepositoryProvider).attendance(studentId),
+      builder: (BuildContext context, AsyncSnapshot<AttendanceList> snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Skeleton(height: 160, radius: 12);
+        }
+        if (snap.hasError) {
+          return EmptyState(
+            emoji: '😕',
+            title: snap.error is AppException
+                ? (snap.error! as AppException).message
+                : s.errGeneric,
+            compact: true,
+          );
+        }
+        final AttendanceList list =
+            snap.data ?? const AttendanceList(items: <AttendanceDay>[]);
+        if (list.items.isEmpty) {
+          return EmptyState(emoji: '📅', title: s.noAttendance, compact: true);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(s.lastWeeks, style: AppText.body13.copyWith(color: c.soft)),
+            const SizedBox(height: AppSpacing.lg),
+            Heatmap(
+              levels: Heatmap.fromDays(
+                attended: list.days,
+                end: DateTime.now(),
+              ),
+            ),
           ],
         );
       },

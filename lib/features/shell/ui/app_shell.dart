@@ -23,11 +23,17 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       extendBody: true,
-      body: Column(
-        children: <Widget>[
-          const OfflineBanner(),
-          Expanded(child: child),
-        ],
+      // H1 — status bar himoyasi BUTUN qobiq kontenti uchun (dashboard,
+      // shogirdlar, kalendar, statistika, sozlamalar bir joyda). Past
+      // tomon `false` — tabbar o'z SafeArea'siga ega + extendBody suzadi.
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: <Widget>[
+            const OfflineBanner(),
+            Expanded(child: child),
+          ],
+        ),
       ),
       bottomNavigationBar: _TabBar(location: location),
     );

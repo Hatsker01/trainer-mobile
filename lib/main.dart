@@ -15,6 +15,23 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
 
+  // H1 — SAMSUNG/edge-to-edge: zamonaviy Android (One UI, Android 15) ilovani
+  // status bar ORTIGA chizadi. Ikonalar shaffof bar ustida ko'rinishi uchun
+  // MAJBURAN qora (light fon), navigatsiya bari ham shaffof+qora. Kontent
+  // SafeArea bilan himoyalanadi (AppShell + har standalone ekran).
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      // Android: yorug' fonda QORA status-bar ikonalari.
+      statusBarIconBrightness: Brightness.dark,
+      // iOS: yorug' fon → qora matn.
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
+
   runApp(const ProviderScope(child: UstozApp()));
 }
 

@@ -6,7 +6,23 @@ Belgilar: `[ ]` boshlanmagan · `[~]` ishlanmoqda · `[x]` tugallangan · `[!]` 
 
 ---
 
-## AKTIV: REAL-QURILMA FIX (G1–G7) — sessiya: fix-1 (2026-07-21)
+## AKTIV: REAL-QURILMA FIX 2 (H1–H4) — sessiya: fix-2 (2026-07-22)
+
+Tanqid: o'tgan pass zichlikni faqat dashboardga qo'lladi. Bu safar tizimli.
+
+| # | Vazifa | Holat | Izoh |
+|---|---|---|---|
+| H1 | Samsung status bar / SafeArea — TIZIMLI | `[x]` | ILDIZ: `AppShell` kontentida SafeArea yo'q + `main.dart` da SystemUiOverlayStyle yo'q (edge-to-edge). FIX: main.dart (edgeToEdge + qora status ikonalar) + AppShell `SafeArea(bottom:false)`. Pushed ekranlar AppBar/o'z SafeArea bilan qoplangan. Isbot: `screenshots/audit/*.png` (44px status-zona + qizil chegara, kontent PASTDA) — 7 ekran tekshirildi |
+| H2 | Davomad — ishga tushirish | `[x]` | ILDIZ: `showAttendanceSheet` YETIM edi (hech kim chaqirmasdi) + profilda Davomad tab yo'q edi. FIX: dashboard "Davomad" tezkor amal → sheet; profilga 3-tab (Davomad heatmap, `/students/{id}/attendance`); heatmap light-rejim rangi tuzatildi. Test: `attendance_test.dart`. Screenshot: `attendance_sheet.png`, `profile_attendance.png` |
+| H3 | Full dizayn-audit — density HAMMA ekranga | `[x]*` | screenEdge 16 + money compact + card padding: students/stats/settings/profile. Har ekran screenshot (audit ro'yxati pastda). `[*]` = ba'zi ikkilamchi holatlar (dialog/toast) ko'zdan kechirildi, alohida screenshot yo'q |
+| H4 | Yakun | `[x]` | analyze 0; test 121/121; capture 10/10 (11 PNG); hisobot |
+
+**H3 ekran audit ro'yxati (screenshots/audit/):**
+[x] Dashboard `dashboard.png` · [x] Shogirdlar `students.png` · [x] Profil-To'lovlar `profile_payments.png` · [x] Profil-Davomad `profile_attendance.png` · [x] Kalendar `calendar.png` · [x] Statistika `stats.png` · [x] Sozlamalar `settings.png` · [x] Davomad sheet `attendance_sheet.png` · [x] To'lov sheet `payment_sheet.png` · [x] Onboarding `onboarding.png` · [x] Telefon/OTP `phone.png` · [~] Tavsiyalar/Tarif/dialoglar — kod auditi (screenEdge/money) qildim, alohida screenshot YO'Q (BAJARILMADI: vaqt/screenshot; kod density-mos)
+
+---
+
+## OLD-AKTIV: REAL-QURILMA FIX (G1–G7) — sessiya: fix-1 (2026-07-21)
 
 Foydalanuvchi real telefonda sinab uch muammo topdi: (A) hamma narsa HADDAN KATTA
 (zichlik yo'q), (B) kalendar ishlamayapti + to'lov holatlari kerak, (C) motivatsiya yo'q.

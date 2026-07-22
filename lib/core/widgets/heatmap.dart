@@ -40,9 +40,10 @@ class Heatmap extends StatelessWidget {
 
   static Color colorFor(int level, AppColors c) => switch (level) {
     >= 3 => c.ok,
-    2 => const Color.fromRGBO(61, 214, 140, 0.55),
-    1 => const Color.fromRGBO(61, 214, 140, 0.25),
-    _ => const Color.fromRGBO(255, 255, 255, 0.06),
+    2 => const Color.fromRGBO(46, 204, 113, 0.55),
+    1 => const Color.fromRGBO(46, 204, 113, 0.22),
+    // Light rejim (H3): bo'sh katak — ochiq kulrang (oq-alpha oq fonda ko'rinmasdi).
+    _ => c.glassHi,
   };
 
   @override
