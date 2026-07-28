@@ -11,8 +11,12 @@ import 'package:ustoz_trainer/core/theme/app_spacing.dart';
 import 'package:ustoz_trainer/core/theme/app_text.dart';
 import 'package:ustoz_trainer/features/shell/ui/offline_banner.dart';
 
-/// Asosiy qobiq: kontent + suzuvchi tabbar (REDESIGN — 4 tab, markaziy FAB yo'q).
-/// Tartib: Bosh sahifa · Shogirdlar · Kalendar · Sozlamalar (D203).
+/// Asosiy qobiq: kontent + suzuvchi tabbar.
+///
+/// **P4:** TZ §3.0 talab qilgan **5 tab** — Bugun · Shogirdlar · Jadval ·
+/// **Kassa** · **Menyu**. Ilgari 4 ta edi va Kassa umuman yo'q edi
+/// (mahsulotning "yuragi" — to'lovlar moduli navigatsiyadan tushib
+/// qolgandi). Statistika endi Menyu ichidan ochiladi.
 class AppShell extends ConsumerWidget {
   const AppShell({required this.location, required this.child, super.key});
 
@@ -78,31 +82,46 @@ class _TabBar extends ConsumerWidget {
               ),
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
-                  _Tab(
-                    icon: Icons.home_rounded,
-                    label: s.navHome,
-                    active: location == Routes.dashboard,
-                    onTap: () => context.go(Routes.dashboard),
+                  Expanded(
+                    child: _Tab(
+                      icon: Icons.today_rounded,
+                      label: s.navHome,
+                      active: location == Routes.dashboard,
+                      onTap: () => context.go(Routes.dashboard),
+                    ),
                   ),
-                  _Tab(
-                    icon: Icons.people_alt_rounded,
-                    label: s.students,
-                    active: location.startsWith(Routes.students),
-                    onTap: () => context.go(Routes.students),
+                  Expanded(
+                    child: _Tab(
+                      icon: Icons.people_alt_rounded,
+                      label: s.students,
+                      active: location.startsWith(Routes.students),
+                      onTap: () => context.go(Routes.students),
+                    ),
                   ),
-                  _Tab(
-                    icon: Icons.calendar_today_rounded,
-                    label: s.calendarTitle,
-                    active: location == Routes.calendar,
-                    onTap: () => context.go(Routes.calendar),
+                  Expanded(
+                    child: _Tab(
+                      icon: Icons.calendar_today_rounded,
+                      label: s.navSchedule,
+                      active: location == Routes.calendar,
+                      onTap: () => context.go(Routes.calendar),
+                    ),
                   ),
-                  _Tab(
-                    icon: Icons.settings_rounded,
-                    label: s.navSettings,
-                    active: location == Routes.settings,
-                    onTap: () => context.go(Routes.settings),
+                  Expanded(
+                    child: _Tab(
+                      icon: Icons.account_balance_wallet_rounded,
+                      label: s.navCash,
+                      active: location == Routes.cash,
+                      onTap: () => context.go(Routes.cash),
+                    ),
+                  ),
+                  Expanded(
+                    child: _Tab(
+                      icon: Icons.menu_rounded,
+                      label: s.navMenu,
+                      active: location == Routes.settings,
+                      onTap: () => context.go(Routes.settings),
+                    ),
                   ),
                 ],
               ),
@@ -135,26 +154,24 @@ class _Tab extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: SizedBox(
-        width: 72,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            AnimatedContainer(
-              duration: AppDuration.fast,
-              curve: AppMotion.short,
-              child: Icon(icon, size: 24, color: color),
-            ),
-            const SizedBox(height: AppSpacing.xxs),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppText.tab105.copyWith(color: color),
-            ),
-          ],
-        ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          AnimatedContainer(
+            duration: AppDuration.fast,
+            curve: AppMotion.short,
+            child: Icon(icon, size: 24, color: color),
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: AppText.tab105.copyWith(color: color),
+          ),
+        ],
       ),
     );
   }

@@ -25,6 +25,11 @@ dependencies:
   connectivity_plus: ^7.0.0       # offline aniqlash (T8)
   path_provider: ^2.1.5           # kesh/outbox papkasi (T8) — D108
 
+  # Umumiy dizayn tizimi (D5): tokenlar (2 tema) + yadro widget'lar.
+  # Melos yo'q — oddiy path dependency yetarli.
+  ustoz_ui:
+    path: ../packages/ustoz_ui
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

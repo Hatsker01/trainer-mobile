@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0C10}
+a{color:#FF6B6B;text-decoration:none}
+a:hover{color:#E5484D}
+*{box-sizing:border-box}
+::-webkit-scrollbar{width:0;height:0}
+@keyframes shimmer{0%{background-position:-340px 0}100%{background-position:340px 0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes pulseRing{0%{opacity:.35;transform:scale(.96)}70%{opacity:0;transform:scale(1.25)}100%{opacity:0}}
+@keyframes scanline{0%{top:8%}100%{top:88%}}
+</style>
+</helmet>
+
+<div style="font-family:Manrope,system-ui,sans-serif;background:#0B0C10;min-height:100vh;display:flex;gap:40px;padding:36px 44px;align-items:flex-start">
+
+  <div style="width:288px;flex:none;display:flex;flex-direction:column;gap:22px;position:sticky;top:36px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font:600 11px Manrope;letter-spacing:.2em;text-transform:uppercase;color:#E5484D">USTOZ · Trainer App</div>
+      <div style="font:600 22px/1.15 Unbounded,sans-serif;color:#F3F5F8;letter-spacing:-.01em">Jonli prototip</div>
+      <div style="font:500 13px/1.5 Manrope;color:#6A7280">Haqiqiy ilovadek ishlaydi: bosing, svayp qiling, to'lov kiriting. Pastdagi panel — holat va edge-case'lar.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font:600 10px Manrope;letter-spacing:.18em;text-transform:uppercase;color:#565D68">Tema</div>
+      <div style="display:flex;gap:8px">
+        <div onClick="{{ set.dark }}" style="flex:1;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font:700 13px Manrope;cursor:pointer;background:{{ ui.darkBg }};color:{{ ui.darkFg }};border:1px solid rgba(255,255,255,.07)">Kechki zal</div>
+        <div onClick="{{ set.light }}" style="flex:1;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font:700 13px Manrope;cursor:pointer;background:{{ ui.lightBg }};color:{{ ui.lightFg }};border:1px solid rgba(255,255,255,.07)">Gips</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font:600 10px Manrope;letter-spacing:.18em;text-transform:uppercase;color:#565D68">Ekran holati (§1.4)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <sc-for list="{{ netStates }}" as="n" hint-placeholder-count="5">
+          <div onClick="{{ n.pick }}" style="height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:600 12px Manrope;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }};border:1px solid rgba(255,255,255,.06)">{{ n.label }}</div>
+        </sc-for>
+      </div>
+      <div style="font:500 11px/1.5 Manrope;color:#4E5560">Holat ro'yxatli ekranlarga (Bugun · Shogirdlar · Kassa · Jadval · Hisobotlar) qo'llanadi.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font:600 10px Manrope;letter-spacing:.18em;text-transform:uppercase;color:#565D68">Ekranlar reyestri · 26</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <sc-for list="{{ screenList }}" as="s" hint-placeholder-count="26">
+          <div onClick="{{ s.go }}" style="padding:7px 11px;border-radius:9px;font:600 11.5px Manrope;cursor:pointer;background:{{ s.bg }};color:{{ s.fg }};border:1px solid rgba(255,255,255,.05)">{{ s.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div onClick="{{ set.reset }}" style="height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;font:700 13px Manrope;color:#98A1AE;background:#171B22;border:1px solid rgba(255,255,255,.07);cursor:pointer">Demo ma'lumotni tiklash</div>
+  </div>
+
+  <div style="{{ themeVars }}">
+    <div style="width:390px;height:844px;border-radius:40px;overflow:hidden;position:relative;background:var(--bg);color:var(--tx);box-shadow:0 40px 90px rgba(0,0,0,.55),0 0 0 10px #16181C,0 0 0 11px rgba(255,255,255,.06);flex:none">
+
+      <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font:700 13px Manrope;color:var(--tx);position:relative;z-index:20;font-variant-numeric:tabular-nums">
+        <span>09:41</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <sc-if value="{{ isOffline }}" hint-placeholder-val="{{ false }}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="2" stroke-linecap="round"><path d="M2 2l20 20"></path><path d="M5 12.5a10 10 0 0 1 4-2.4"></path><path d="M12 20h.01"></path><path d="M8.5 16.4a5 5 0 0 1 7 0"></path></svg>
+          </sc-if>
+          <div style="width:16px;height:10px;border-radius:2px;background:var(--tx);opacity:.85"></div>
+          <div style="width:22px;height:11px;border-radius:3px;border:1.5px solid var(--t2);position:relative"><div style="position:absolute;top:1.5px;bottom:1.5px;left:1.5px;width:11px;border-radius:1px;background:var(--tx)"></div></div>
+        </div>
+      </div>
+
+      <sc-if value="{{ r.splash }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;z-index:30">
+          <div style="position:relative;width:120px;height:120px">
+            <div style="position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,#E5484D,#FF6B6B);animation:pulseRing 2.4s infinite ease-out"></div>
+            <div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#E5484D 0deg,#FF6B6B 300deg,var(--s2) 300deg)"></div>
+            <div style="position:absolute;inset:9px;border-radius:50%;background:var(--bg)"></div>
+            <div style="position:absolute;left:50%;top:50%;width:10px;height:18px;margin:-9px 0 0 -5px;border-radius:5px;background:var(--bg);transform:rotate(0deg) translateY(-55px)"></div>
+            <div style="position:absolute;left:50%;top:50%;width:10px;height:18px;margin:-9px 0 0 -5px;border-radius:5px;background:var(--bg);transform:rotate(72deg) translateY(-55px)"></div>
+            <div style="position:absolute;left:50%;top:50%;width:10px;height:18px;margin:-9px 0 0 -5px;border-radius:5px;background:var(--bg);transform:rotate(144deg) translateY(-55px)"></div>
+            <div style="position:absolute;left:50%;top:50%;width:10px;height:18px;margin:-9px 0 0 -5px;border-radius:5px;background:var(--bg);transform:rotate(216deg) translateY(-55px)"></div>
+            <div style="position:absolute;left:50%;top:50%;width:10px;height:18px;margin:-9px 0 0 -5px;border-radius:5px;background:var(--bg);transform:rotate(288deg) translateY(-55px)"></div>
+            <div style="position:absolute;inset:22px;border-radius:50%;background:var(--s2);display:flex;align-items:center;justify-content:center;font:600 30px Unbounded,sans-serif;color:var(--tx)">U</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="font:600 30px Unbounded,sans-serif;color:var(--tx);letter-spacing:.02em">USTOZ</div>
+            <div style="font:500 14px Manrope;color:var(--t2)">Trenerning ish daftari</div>
+          </div>
+          <div style="position:absolute;bottom:56px;width:160px;height:3px;border-radius:999px;background:var(--s2);overflow:hidden"><div style="width:60%;height:100%;border-radius:999px;background:linear-gradient(90deg,#E5484D,#FF6B6B)"></div></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.lang }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;padding:32px 20px;display:flex;flex-direction:column;gap:28px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font:600 28px/1.15 Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">Tilni tanlang</div>
+            <div style="font:500 15px/1.5 Manrope;color:var(--t2)">Keyinchalik Menyu → Til bo'limidan o'zgartirasiz.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div onClick="{{ set.uz }}" style="height:64px;border-radius:20px;background:var(--s1);border:1.5px solid {{ ui.uzBd }};display:flex;align-items:center;gap:14px;padding:0 18px;cursor:pointer">
+              <div style="width:40px;height:40px;border-radius:12px;background:var(--s2);display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:var(--tx)">UZ</div>
+              <div style="flex:1;font:700 17px Manrope;color:var(--tx)">O'zbekcha</div>
+              <div style="width:22px;height:22px;border-radius:50%;border:2px solid {{ ui.uzBd }};display:flex;align-items:center;justify-content:center"><div style="width:11px;height:11px;border-radius:50%;background:{{ ui.uzDot }}"></div></div>
+            </div>
+            <div onClick="{{ set.ru }}" style="height:64px;border-radius:20px;background:var(--s1);border:1.5px solid {{ ui.ruBd }};display:flex;align-items:center;gap:14px;padding:0 18px;cursor:pointer">
+              <div style="width:40px;height:40px;border-radius:12px;background:var(--s2);display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:var(--tx)">RU</div>
+              <div style="flex:1;font:700 17px Manrope;color:var(--tx)">Русский</div>
+              <div style="width:22px;height:22px;border-radius:50%;border:2px solid {{ ui.ruBd }};display:flex;align-items:center;justify-content:center"><div style="width:11px;height:11px;border-radius:50%;background:{{ ui.ruDot }}"></div></div>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <div onClick="{{ go.phone }}" style="height:56px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;cursor:pointer;box-shadow:0 12px 26px rgba(229,72,77,.3)">Davom etish</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.phone }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;padding:20px 20px 28px;display:flex;flex-direction:column;gap:24px">
+          <div onClick="{{ go.lang }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font:600 28px/1.15 Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">Telefon raqamingiz</div>
+            <div style="font:500 15px/1.5 Manrope;color:var(--t2)">SMS yoki Telegram bot orqali 6 xonali kod yuboramiz.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="height:60px;border-radius:16px;background:var(--s1);border:1.5px solid var(--an);box-shadow:0 0 0 4px rgba(229,72,77,.12);display:flex;align-items:center;padding:0 18px;gap:12px">
+              <span style="font:700 18px Manrope;color:var(--t2);font-variant-numeric:tabular-nums">+998</span>
+              <div style="width:1px;height:24px;background:var(--bd)"></div>
+              <span style="font:700 18px Manrope;color:var(--tx);font-variant-numeric:tabular-nums;letter-spacing:.02em">{{ phoneMask }}</span>
+              <div style="width:2px;height:22px;background:var(--an);margin-left:2px"></div>
+            </div>
+            <div style="font:500 13px Manrope;color:var(--t3)">Faqat O'zbekiston raqamlari qabul qilinadi.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <sc-for list="{{ keys }}" as="k" hint-placeholder-count="12">
+              <div onClick="{{ k.press }}" style="height:58px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:600 22px Manrope;color:var(--tx);cursor:pointer;font-variant-numeric:tabular-nums">{{ k.label }}</div>
+            </sc-for>
+          </div>
+          <div onClick="{{ go.otp }}" style="height:56px;border-radius:16px;background:{{ ui.phoneBtnBg }};display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:{{ ui.phoneBtnFg }};cursor:pointer">Kod olish</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.otp }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;padding:20px 20px 28px;display:flex;flex-direction:column;gap:22px">
+          <div onClick="{{ go.phone }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font:600 28px/1.15 Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">Kodni kiriting</div>
+            <div style="font:500 15px/1.5 Manrope;color:var(--t2)">+998 90 123 45 67 raqamiga yubordik. <span style="color:var(--an)">Kod: 4 2 8 1 9 3</span></div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <sc-for list="{{ otpCells }}" as="c" hint-placeholder-count="6">
+              <div style="flex:1;height:64px;border-radius:16px;background:var(--s1);border:1.5px solid {{ c.bd }};display:flex;align-items:center;justify-content:center;font:700 26px Unbounded,sans-serif;color:{{ c.fg }};font-variant-numeric:tabular-nums">{{ c.v }}</div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ otpErr }}" hint-placeholder-val="{{ false }}">
+            <div style="border-radius:16px;background:var(--rdb);border:1px solid var(--rdbd);padding:14px 16px;display:flex;gap:12px;align-items:flex-start">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font:700 14px Manrope;color:var(--rd)">Kod noto'g'ri · 2 urinish qoldi</div>
+                <div style="font:500 13px/1.45 Manrope;color:var(--t2)">3 xatodan keyin raqam 10 daqiqaga bloklanadi.</div>
+              </div>
+            </div>
+          </sc-if>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <sc-for list="{{ otpKeys }}" as="k" hint-placeholder-count="12">
+              <div onClick="{{ k.press }}" style="height:56px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:600 22px Manrope;color:var(--tx);cursor:pointer;font-variant-numeric:tabular-nums">{{ k.label }}</div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+            <div style="font:600 14px Manrope;color:{{ ui.resendFg }};cursor:pointer" onClick="{{ set.resend }}">{{ resendLabel }}</div>
+            <sc-if value="{{ showTgFallback }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ set.tgOtp }}" style="height:46px;padding:0 18px;border-radius:999px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;font:700 14px Manrope;color:var(--tx);cursor:pointer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--an2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m21 4-9 16-2.5-6.5L3 11z"></path></svg>
+                Telegram orqali olish
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.profile }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;padding:20px 20px 28px;display:flex;flex-direction:column;gap:20px;overflow-y:auto">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font:600 12px Manrope;letter-spacing:.14em;text-transform:uppercase;color:var(--t3)">3-qadam · 4 dan</div>
+            <div style="font:600 26px/1.15 Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">O'zingiz haqingizda</div>
+            <div style="height:4px;border-radius:999px;background:var(--s2);overflow:hidden"><div style="width:75%;height:100%;background:linear-gradient(90deg,#E5484D,#FF6B6B)"></div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:74px;height:74px;border-radius:50%;background:var(--s2);border:1.5px dashed var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t3)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></div>
+            <div style="display:flex;flex-direction:column;gap:3px"><div style="font:700 15px Manrope;color:var(--tx)">Suratingiz</div><div style="font:500 13px Manrope;color:var(--t2)">Mini-saytda ko'rinadi</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Ism-familiya</div>
+            <div style="height:54px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;padding:0 16px;font:600 16px Manrope;color:var(--tx)">Aziz Karimov</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Shahar</div>
+            <div style="height:54px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 16px;font:600 16px Manrope;color:var(--tx)">Toshkent<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"></path></svg></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Yo'nalish</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ dirs }}" as="d" hint-placeholder-count="5">
+                <div onClick="{{ d.pick }}" style="height:42px;padding:0 16px;border-radius:999px;background:{{ d.bg }};border:1px solid {{ d.bd }};display:flex;align-items:center;font:600 14px Manrope;color:{{ d.fg }};cursor:pointer">{{ d.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Ish joyi</div>
+            <div style="height:54px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;padding:0 16px;font:600 16px Manrope;color:var(--tx)">Iron Gym · Chilonzor</div>
+          </div>
+          <div onClick="{{ go.bot }}" style="height:56px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;cursor:pointer;box-shadow:0 12px 26px rgba(229,72,77,.3);margin-top:4px">Davom etish</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.bot }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;padding:20px 20px 28px;display:flex;flex-direction:column;gap:22px">
+          <div style="font:600 12px Manrope;letter-spacing:.14em;text-transform:uppercase;color:var(--t3)">4-qadam · 4 dan</div>
+          <div style="border-radius:24px;background:var(--s1);border:1px solid var(--bd);padding:24px;display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center">
+            <div style="position:relative;width:96px;height:96px">
+              <div style="position:absolute;inset:0;border-radius:28px;background:var(--s2)"></div>
+              <div style="position:absolute;left:22px;top:26px;width:52px;height:34px;border-radius:10px;background:rgba(229,72,77,.18)"></div>
+              <div style="position:absolute;left:30px;top:36px;width:36px;height:4px;border-radius:2px;background:var(--an)"></div>
+              <div style="position:absolute;left:30px;top:46px;width:22px;height:4px;border-radius:2px;background:var(--an2);opacity:.7"></div>
+              <div style="position:absolute;right:16px;bottom:14px;width:18px;height:18px;border-radius:50%;background:var(--an)"></div>
+            </div>
+            <div style="font:600 22px/1.2 Unbounded,sans-serif;color:var(--tx)">Telegram botni ulang</div>
+            <div style="font:500 14.5px/1.55 Manrope;color:var(--t2);text-wrap:pretty">Eslatmalar bepul bot orqali ketadi. Botsiz ular SMS'ga tushadi — bu qimmat va kechikadi.</div>
+            <div style="width:100%;display:flex;flex-direction:column;gap:10px">
+              <div onClick="{{ go.todayToast }}" style="height:54px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;gap:10px;font:700 16px Manrope;color:#fff;cursor:pointer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m21 4-9 16-2.5-6.5L3 11z"></path></svg>Botni ulash
+              </div>
+              <div onClick="{{ go.today }}" style="height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;font:700 15px Manrope;color:var(--t2);cursor:pointer">Keyinroq</div>
+            </div>
+          </div>
+          <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;gap:14px;align-items:center">
+            <div style="width:44px;height:44px;border-radius:14px;background:var(--s2);display:flex;align-items:center;justify-content:center;color:var(--an2);flex:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"></circle><path d="M2 21v-2a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v2"></path><path d="M17 3.2a4 4 0 0 1 0 7.6"></path></svg></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <div style="font:700 15px Manrope;color:var(--tx)">3 namunaviy shogird bilan ko'ring</div>
+              <div style="font:500 13px Manrope;color:var(--t2)">Bir tugmada tozalanadi</div>
+            </div>
+            <div onClick="{{ go.todayDemo }}" style="height:38px;padding:0 14px;border-radius:999px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;font:700 13px Manrope;color:var(--tx);cursor:pointer">Qo'shish</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.today }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;overflow-y:auto;padding:8px 20px 130px;display:flex;flex-direction:column;gap:18px">
+
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+              <div style="font:600 22px Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">Assalomu alaykum, Aziz</div>
+              <div style="font:500 14px Manrope;color:var(--t2)">27-iyul, dushanba</div>
+            </div>
+            <div style="height:38px;padding:0 12px;border-radius:999px;background:var(--amb);border:1px solid var(--ambd);display:flex;align-items:center;gap:7px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4.5 5 9a5 5 0 0 1-10 0c0-2 1-3.2 2-4.2.4 2 2 2.7 2 2.7S12 7 12 3z"></path></svg>
+              <span style="font:700 13px Manrope;color:var(--am);font-variant-numeric:tabular-nums">14 kun</span>
+            </div>
+            <div onClick="{{ cash.voice }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--an2);cursor:pointer;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v4"></path></svg></div>
+          </div>
+
+          <sc-if value="{{ st.offline }}" hint-placeholder-val="{{ false }}">
+            <div style="border-radius:16px;background:var(--amb);border:1px solid var(--ambd);padding:12px 14px;display:flex;align-items:center;gap:11px">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="1.9" stroke-linecap="round" style="flex:none"><path d="M2 2l20 20"></path><path d="M5 12.5a10 10 0 0 1 4-2.4"></path><path d="M8.5 16.4a5 5 0 0 1 7 0"></path><path d="M12 20h.01"></path></svg>
+              <div style="flex:1;font:600 13px/1.4 Manrope;color:var(--tx)">Offlayn · 12:04 dagi ma'lumot. 2 amal navbatda.</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ st.loading }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="grid-column:span 2;height:118px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+                <div style="height:96px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+                <div style="height:96px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+              </div>
+              <div style="height:14px;width:45%;border-radius:7px;background:var(--sk1)"></div>
+              <div style="height:82px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+              <div style="height:82px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+              <div style="height:82px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ st.error }}" hint-placeholder-val="{{ false }}">
+            <div style="border-radius:24px;background:var(--s1);border:1px solid var(--bd);padding:28px 22px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;margin-top:24px">
+              <div style="position:relative;width:88px;height:88px">
+                <div style="position:absolute;inset:0;border-radius:26px;background:var(--rdb)"></div>
+                <div style="position:absolute;left:26px;top:22px;width:36px;height:36px;border-radius:50%;border:3px solid var(--rd);opacity:.55"></div>
+                <div style="position:absolute;left:42px;top:32px;width:4px;height:16px;border-radius:2px;background:var(--rd)"></div>
+                <div style="position:absolute;left:42px;top:54px;width:4px;height:4px;border-radius:2px;background:var(--rd)"></div>
+                <div style="position:absolute;right:14px;bottom:12px;width:22px;height:5px;border-radius:3px;background:var(--rd);opacity:.35"></div>
+              </div>
+              <div style="font:600 19px Unbounded,sans-serif;color:var(--tx)">Ma'lumot yuklanmadi</div>
+              <div style="font:500 14.5px/1.55 Manrope;color:var(--t2);text-wrap:pretty">Ulanishda muammo bo'ldi. Internetni tekshirib, qayta urinib ko'ring.</div>
+              <div onClick="{{ retry }}" style="height:50px;padding:0 26px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 15px Manrope;color:#fff;cursor:pointer">Qayta urinish</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ st.empty }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;margin-top:10px">
+              <div style="border-radius:24px;background:var(--s1);border:1px solid var(--bd);padding:26px 22px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+                <div style="position:relative;width:96px;height:96px">
+                  <div style="position:absolute;left:8px;top:20px;width:80px;height:56px;border-radius:18px;background:var(--s2)"></div>
+                  <div style="position:absolute;left:20px;top:34px;width:36px;height:5px;border-radius:3px;background:rgba(229,72,77,.5)"></div>
+                  <div style="position:absolute;left:20px;top:46px;width:22px;height:5px;border-radius:3px;background:var(--t3);opacity:.5"></div>
+                  <div style="position:absolute;right:10px;top:8px;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+                  </div>
+                </div>
+                <div style="font:600 20px Unbounded,sans-serif;color:var(--tx)">Bugun hali reja yo'q</div>
+                <div style="font:500 14.5px/1.55 Manrope;color:var(--t2);text-wrap:pretty">Uchta qadamni bajaring — ilova o'zi ishlay boshlaydi.</div>
+              </div>
+              <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:6px">
+                <sc-for list="{{ checklist }}" as="c" hint-placeholder-count="3">
+                  <div onClick="{{ c.go }}" style="height:64px;display:flex;align-items:center;gap:14px;padding:0 14px;cursor:pointer">
+                    <div style="width:30px;height:30px;border-radius:50%;background:{{ c.bg }};display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:{{ c.fg }};flex:none">{{ c.n }}</div>
+                    <div style="flex:1;font:600 15.5px Manrope;color:var(--tx)">{{ c.label }}</div>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="height:6px;border-radius:999px;background:var(--s2);overflow:hidden"><div style="width:33%;height:100%;background:linear-gradient(90deg,#E5484D,#FF6B6B)"></div></div>
+              <div style="font:600 13px Manrope;color:var(--t2);text-align:center">1 / 3 bajarildi</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ st.content }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:18px">
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div onClick="{{ go.cash }}" style="grid-column:span 2;border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:18px;display:flex;flex-direction:column;gap:14px;cursor:pointer">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div style="font:600 13px Manrope;color:var(--t2)">Kassa svetofori</div>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg>
+                  </div>
+                  <div style="display:flex;gap:8px">
+                    <div style="flex:1;height:60px;border-radius:14px;background:var(--grb);border:1px solid var(--grbd);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+                      <div style="display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="font:600 24px Unbounded,sans-serif;color:var(--gr);font-variant-numeric:tabular-nums">{{ counts.gr }}</span></div>
+                      <span style="font:600 11px Manrope;color:var(--t2)">to'langan</span>
+                    </div>
+                    <div style="flex:1;height:60px;border-radius:14px;background:var(--amb);border:1px solid var(--ambd);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+                      <div style="display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><span style="font:600 24px Unbounded,sans-serif;color:var(--am);font-variant-numeric:tabular-nums">{{ counts.am }}</span></div>
+                      <span style="font:600 11px Manrope;color:var(--t2)">yaqin</span>
+                    </div>
+                    <div style="flex:1;height:60px;border-radius:14px;background:var(--rdb);border:1px solid var(--rdbd);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+                      <div style="display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg><span style="font:600 24px Unbounded,sans-serif;color:var(--rd);font-variant-numeric:tabular-nums">{{ counts.rd }}</span></div>
+                      <span style="font:600 11px Manrope;color:var(--t2)">qarzdor</span>
+                    </div>
+                  </div>
+                  <div style="font:600 13.5px Manrope;color:var(--rd)">Qizillar: {{ counts.debt }} so'm qarz</div>
+                </div>
+
+                <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:6px">
+                  <div style="font:600 12.5px Manrope;color:var(--t2)">Bugun keldi</div>
+                  <div style="font:600 32px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums;letter-spacing:-.02em">{{ counts.done }}<span style="font:600 17px Unbounded,sans-serif;color:var(--t3)">/{{ counts.total }}</span></div>
+                  <div style="height:5px;border-radius:999px;background:var(--s2);overflow:hidden;margin-top:2px"><div style="width:34%;height:100%;background:var(--gr)"></div></div>
+                </div>
+
+                <div onClick="{{ go.stats }}" style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:6px;cursor:pointer">
+                  <div style="font:600 12.5px Manrope;color:var(--t2)">Retsept xaridlari</div>
+                  <div style="font:600 32px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums;letter-spacing:-.02em">4</div>
+                  <div style="font:600 12px Manrope;color:var(--gr)">bu hafta · +2</div>
+                </div>
+              </div>
+
+              <div style="border-radius:20px;background:var(--rdb);border:1px solid var(--rdbd);padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;gap:12px;align-items:flex-start">
+                  <div style="width:34px;height:34px;border-radius:12px;background:var(--rd);display:flex;align-items:center;justify-content:center;flex:none">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"></path><path d="M12 7a5 5 0 1 0 5 5"></path><path d="M12 12h.01"></path></svg>
+                  </div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+                    <div style="font:700 15px Manrope;color:var(--tx)">Ketish riski · Sardor</div>
+                    <div style="font:500 13.5px/1.45 Manrope;color:var(--t2);text-wrap:pretty">2 haftada 1 marta keldi (odatda 3). Yozib qo'ying?</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <div onClick="{{ churn.msg }}" style="flex:1;height:42px;border-radius:13px;background:var(--rd);display:flex;align-items:center;justify-content:center;font:700 13.5px Manrope;color:#fff;cursor:pointer">Xabar yuborish</div>
+                  <div onClick="{{ churn.go }}" style="height:42px;padding:0 16px;border-radius:13px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;font:700 13.5px Manrope;color:var(--tx);cursor:pointer">Radar</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">
+                <div style="font:600 17px Unbounded,sans-serif;color:var(--tx)">Bugungi lenta</div>
+                <div style="font:500 12.5px Manrope;color:var(--t3)">← kelmadi · keldi →</div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ sessions }}" as="x" hint-placeholder-count="6">
+                  <div style="position:relative;border-radius:20px;overflow:hidden">
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--grb)">
+                      <div style="display:flex;align-items:center;gap:8px;opacity:{{ x.leftOp }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg><span style="font:700 14px Manrope;color:var(--gr)">Keldi</span></div>
+                      <div style="display:flex;align-items:center;gap:8px;opacity:{{ x.rightOp }}"><span style="font:700 14px Manrope;color:var(--rd)">Kelmadi</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2.6" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+                    </div>
+                    <div onPointerDown="{{ x.down }}" onPointerMove="{{ x.move }}" onPointerUp="{{ x.up }}" onPointerLeave="{{ x.up }}" style="position:relative;border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:14px;display:flex;align-items:center;gap:13px;cursor:grab;touch-action:pan-y;transform:translateX({{ x.dx }}px)">
+                      <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:2px;flex:none">
+                        <div style="font:600 16px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">{{ x.time }}</div>
+                        <div style="font:500 10.5px Manrope;color:var(--t3)">{{ x.type }}</div>
+                      </div>
+                      <div style="width:1px;height:38px;background:var(--bd);flex:none"></div>
+                      <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
+                        <div style="display:flex;align-items:center;gap:7px">
+                          <div style="font:700 15.5px Manrope;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ x.name }}</div>
+                          <sc-if value="{{ x.conflict }}" hint-placeholder-val="{{ false }}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                          </sc-if>
+                        </div>
+                        <div style="font:500 12.5px Manrope;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ x.place }}</div>
+                      </div>
+                      <div style="height:28px;padding:0 10px;border-radius:999px;background:{{ x.bg }};border:1px solid {{ x.bd }};display:flex;align-items:center;font:700 11.5px Manrope;color:{{ x.fg }};flex:none">{{ x.label }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="border-radius:16px;background:var(--amb);border:1px solid var(--ambd);padding:12px 14px;display:flex;gap:10px;align-items:center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                <div style="flex:1;font:600 12.5px/1.4 Manrope;color:var(--tx)">10:00 da ikki yozuv to'qnashadi — Guruh-A va Nodira.</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.clients }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:8px 20px 14px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font:600 24px Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">Shogirdlar</div>
+              <div style="height:34px;padding:0 12px;border-radius:999px;background:var(--s2);display:flex;align-items:center;font:700 13px Manrope;color:var(--t2);font-variant-numeric:tabular-nums">8 / 5 bepul</div>
+            </div>
+            <div style="height:48px;border-radius:999px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:0 16px">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.9" stroke-linecap="round" style="flex:none"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              <input value="{{ q }}" onChange="{{ searchSet }}" placeholder="Ism yoki telefon" style="flex:1;background:transparent;border:none;outline:none;font:500 15px Manrope;color:var(--tx)">
+            </div>
+            <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+              <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+                <div onClick="{{ f.pick }}" style="height:36px;padding:0 14px;border-radius:999px;background:{{ f.bg }};border:1px solid {{ f.bd }};display:flex;align-items:center;font:600 13px Manrope;color:{{ f.fg }};cursor:pointer;white-space:nowrap;flex:none">{{ f.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ st.loading }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:0 20px;display:flex;flex-direction:column;gap:10px">
+              <div style="height:76px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+              <div style="height:76px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+              <div style="height:76px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+              <div style="height:76px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ st.empty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:30px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
+              <div style="position:relative;width:104px;height:104px">
+                <div style="position:absolute;left:12px;top:16px;width:44px;height:44px;border-radius:50%;background:var(--s2)"></div>
+                <div style="position:absolute;left:48px;top:32px;width:44px;height:44px;border-radius:50%;background:rgba(229,72,77,.16)"></div>
+                <div style="position:absolute;left:24px;top:70px;width:56px;height:12px;border-radius:6px;background:var(--s2)"></div>
+                <div style="position:absolute;left:26px;top:32px;width:16px;height:4px;border-radius:2px;background:var(--t3);opacity:.6"></div>
+                <div style="position:absolute;left:62px;top:48px;width:16px;height:4px;border-radius:2px;background:var(--an)"></div>
+              </div>
+              <div style="font:600 20px Unbounded,sans-serif;color:var(--tx)">Hali shogird yo'q</div>
+              <div style="font:500 14.5px/1.55 Manrope;color:var(--t2);text-wrap:pretty">Birinchi shogirdni qo'shing — davomat, to'lov va eslatmalar avtomatik ishlaydi.</div>
+              <div onClick="{{ go.addClient }}" style="height:50px;padding:0 24px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;font:700 15px Manrope;color:#fff;cursor:pointer">Shogird qo'shish</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ st.error }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:24px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+              <div style="width:76px;height:76px;border-radius:24px;background:var(--rdb);display:flex;align-items:center;justify-content:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg></div>
+              <div style="font:600 18px Unbounded,sans-serif;color:var(--tx)">Ro'yxat yuklanmadi</div>
+              <div style="font:500 14px/1.5 Manrope;color:var(--t2)">Qayta urinib ko'ring — oxirgi saqlangan nusxa ko'rsatilmoqda.</div>
+              <div onClick="{{ retry }}" style="height:46px;padding:0 22px;border-radius:15px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;font:700 14px Manrope;color:var(--tx);cursor:pointer">Qayta urinish</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ st.content }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;overflow-y:auto;padding:0 20px 130px;display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ clientList }}" as="c" hint-placeholder-count="8">
+                <div onClick="{{ c.open }}" style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:13px;display:flex;align-items:center;gap:13px;cursor:pointer">
+                  <div style="position:relative;width:54px;height:54px;flex:none">
+                    <div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,{{ c.col }} {{ c.deg }},var(--s2) 0)"></div>
+                    <div style="position:absolute;inset:4px;border-radius:50%;background:var(--s1)"></div>
+                    <div style="position:absolute;left:50%;top:50%;width:6px;height:11px;margin:-5.5px 0 0 -3px;border-radius:3px;background:var(--s1);transform:rotate(0deg) translateY(-24px)"></div>
+                    <div style="position:absolute;left:50%;top:50%;width:6px;height:11px;margin:-5.5px 0 0 -3px;border-radius:3px;background:var(--s1);transform:rotate(90deg) translateY(-24px)"></div>
+                    <div style="position:absolute;left:50%;top:50%;width:6px;height:11px;margin:-5.5px 0 0 -3px;border-radius:3px;background:var(--s1);transform:rotate(180deg) translateY(-24px)"></div>
+                    <div style="position:absolute;left:50%;top:50%;width:6px;height:11px;margin:-5.5px 0 0 -3px;border-radius:3px;background:var(--s1);transform:rotate(270deg) translateY(-24px)"></div>
+                    <div style="position:absolute;inset:9px;border-radius:50%;background:var(--av);display:flex;align-items:center;justify-content:center;font:600 14px Unbounded,sans-serif;color:var(--tx)">{{ c.ini }}</div>
+                  </div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">
+                    <div style="font:700 16px Manrope;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
+                    <div style="font:600 12.5px Manrope;color:{{ c.subFg }}">{{ c.sub }}</div>
+                    <div style="font:500 11.5px Manrope;color:var(--t3)">{{ c.tagText }} · {{ c.last }}</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none">
+                    <div style="width:10px;height:10px;border-radius:50%;background:{{ c.col }}"></div>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="font:500 12px/1.5 Manrope;color:var(--t3);text-align:center;padding:8px 0">Arxivlangan shogirdlar qidiruvda kulrang ko'rinadi · 1 tap bilan qayta faollashtiriladi</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.client }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:6px 20px 0;display:flex;align-items:center;justify-content:space-between">
+            <div onClick="{{ go.clients }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+            <div style="display:flex;gap:8px">
+              <div onClick="{{ go.freeze }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--bl);cursor:pointer"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3v18"></path><path d="M4.5 7.5 19.5 16.5"></path><path d="M19.5 7.5 4.5 16.5"></path></svg></div>
+              <div style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
+            </div>
+          </div>
+
+          <div style="padding:16px 20px 14px;display:flex;align-items:center;gap:16px">
+            <div style="position:relative;width:82px;height:82px;flex:none">
+              <div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,{{ cl.col }} {{ cl.deg }},var(--s2) 0)"></div>
+              <div style="position:absolute;inset:6px;border-radius:50%;background:var(--bg)"></div>
+              <div style="position:absolute;left:50%;top:50%;width:8px;height:14px;margin:-7px 0 0 -4px;border-radius:4px;background:var(--bg);transform:rotate(0deg) translateY(-37px)"></div>
+              <div style="position:absolute;left:50%;top:50%;width:8px;height:14px;margin:-7px 0 0 -4px;border-radius:4px;background:var(--bg);transform:rotate(60deg) translateY(-37px)"></div>
+              <div style="position:absolute;left:50%;top:50%;width:8px;height:14px;margin:-7px 0 0 -4px;border-radius:4px;background:var(--bg);transform:rotate(120deg) translateY(-37px)"></div>
+              <div style="position:absolute;left:50%;top:50%;width:8px;height:14px;margin:-7px 0 0 -4px;border-radius:4px;background:var(--bg);transform:rotate(180deg) translateY(-37px)"></div>
+              <div style="position:absolute;left:50%;top:50%;width:8px;height:14px;margin:-7px 0 0 -4px;border-radius:4px;background:var(--bg);transform:rotate(240deg) translateY(-37px)"></div>
+              <div style="position:absolute;left:50%;top:50%;width:8px;height:14px;margin:-7px 0 0 -4px;border-radius:4px;background:var(--bg);transform:rotate(300deg) translateY(-37px)"></div>
+              <div style="position:absolute;inset:13px;border-radius:50%;background:var(--av);display:flex;align-items:center;justify-content:center;font:600 21px Unbounded,sans-serif;color:var(--tx)">{{ cl.ini }}</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0">
+              <div style="font:600 21px/1.15 Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">{{ cl.name }}</div>
+              <div style="height:28px;padding:0 10px;border-radius:999px;background:var(--s2);display:flex;align-items:center;width:max-content;font:700 12px Manrope;color:{{ cl.col }}">{{ cl.statusText }}</div>
+              <div style="font:500 12.5px Manrope;color:var(--t2);font-variant-numeric:tabular-nums">{{ cl.phone }}</div>
+            </div>
+          </div>
+
+          <div style="padding:0 20px 12px;display:flex;gap:6px;overflow-x:auto">
+            <sc-for list="{{ ctabs }}" as="t" hint-placeholder-count="6">
+              <div onClick="{{ t.pick }}" style="height:36px;padding:0 14px;border-radius:999px;background:{{ t.bg }};display:flex;align-items:center;font:700 13px Manrope;color:{{ t.fg }};cursor:pointer;white-space:nowrap;flex:none">{{ t.label }}</div>
+            </sc-for>
+          </div>
+
+          <div style="flex:1;overflow-y:auto;padding:0 20px 130px">
+            <sc-if value="{{ ct.umumiy }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <sc-if value="{{ cl.noBot }}" hint-placeholder-val="{{ false }}">
+                  <div style="border-radius:18px;background:var(--amb);border:1px solid var(--ambd);padding:14px;display:flex;align-items:center;gap:12px">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m21 4-9 16-2.5-6.5L3 11z"></path></svg>
+                    <div style="flex:1;font:600 13px/1.4 Manrope;color:var(--tx)">Bot ulanmagan — eslatmalar SMS'ga tushadi</div>
+                    <div onClick="{{ cl.invite }}" style="height:34px;padding:0 12px;border-radius:999px;background:var(--am);display:flex;align-items:center;font:700 12px Manrope;color:#fff;cursor:pointer">Taklif</div>
+                  </div>
+                </sc-if>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:5px">
+                    <div style="font:600 12.5px Manrope;color:var(--t2)">Keyingi to'lov</div>
+                    <div style="font:600 19px Unbounded,sans-serif;color:var(--tx)">{{ cl.next }}</div>
+                    <div style="font:600 12.5px Manrope;color:{{ cl.col }}">{{ cl.priceText }} so'm</div>
+                  </div>
+                  <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:5px">
+                    <div style="font:600 12.5px Manrope;color:var(--t2)">Streak</div>
+                    <div style="font:600 28px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">{{ cl.streak }}</div>
+                    <div style="font:600 12.5px Manrope;color:var(--t3)">kun ketma-ket</div>
+                  </div>
+                  <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:5px">
+                    <div style="font:600 12.5px Manrope;color:var(--t2)">Jami mashg'ulot</div>
+                    <div style="font:600 28px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">{{ cl.visits }}</div>
+                  </div>
+                  <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:5px">
+                    <div style="font:600 12.5px Manrope;color:var(--t2)">Davomat</div>
+                    <div style="font:600 28px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">{{ cl.pctText }}</div>
+                  </div>
+                </div>
+                <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:12px">
+                  <div style="font:600 13px Manrope;color:var(--t2)">Tarif</div>
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div style="font:700 16px Manrope;color:var(--tx)">{{ cl.tarif }} so'm</div>
+                    <div onClick="{{ go.tariff }}" style="font:700 13px Manrope;color:var(--an2);cursor:pointer">O'zgartirish</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:10px">
+                  <div onClick="{{ go.payment }}" style="flex:1;height:52px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 15px Manrope;color:#fff;cursor:pointer">+ To'lov</div>
+                  <div style="width:52px;height:52px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--gr);cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"></path></svg></div>
+                  <div style="width:52px;height:52px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--an2);cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m21 4-9 16-2.5-6.5L3 11z"></path></svg></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ ct.davomat }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="font:700 16px Manrope;color:var(--tx)">Iyul 2026</div>
+                  <div style="display:flex;gap:8px">
+                    <div style="width:34px;height:34px;border-radius:11px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 6-6 6 6 6"></path></svg></div>
+                    <div style="width:34px;height:34px;border-radius:11px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg></div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+                  <div style="font:600 11px Manrope;color:var(--t3);text-align:center">Du</div>
+                  <div style="font:600 11px Manrope;color:var(--t3);text-align:center">Se</div>
+                  <div style="font:600 11px Manrope;color:var(--t3);text-align:center">Ch</div>
+                  <div style="font:600 11px Manrope;color:var(--t3);text-align:center">Pa</div>
+                  <div style="font:600 11px Manrope;color:var(--t3);text-align:center">Ju</div>
+                  <div style="font:600 11px Manrope;color:var(--t3);text-align:center">Sh</div>
+                  <div style="font:600 11px Manrope;color:var(--t3);text-align:center">Ya</div>
+                  <sc-for list="{{ calDays }}" as="d" hint-placeholder-count="31">
+                    <div style="aspect-ratio:1;border-radius:12px;background:{{ d.bg }};border:{{ d.bd }};display:flex;align-items:center;justify-content:center;font:600 13px Manrope;color:{{ d.fg }};font-variant-numeric:tabular-nums">{{ d.d }}</div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:10px">
+                  <div style="flex:1;border-radius:18px;background:var(--s1);border:1px solid var(--bd);padding:14px;display:flex;flex-direction:column;gap:4px"><div style="font:600 12px Manrope;color:var(--t2)">Keldi</div><div style="font:600 22px Unbounded,sans-serif;color:var(--gr);font-variant-numeric:tabular-nums">8</div></div>
+                  <div style="flex:1;border-radius:18px;background:var(--s1);border:1px solid var(--bd);padding:14px;display:flex;flex-direction:column;gap:4px"><div style="font:600 12px Manrope;color:var(--t2)">Kelmadi</div><div style="font:600 22px Unbounded,sans-serif;color:var(--rd);font-variant-numeric:tabular-nums">3</div></div>
+                  <div style="flex:1;border-radius:18px;background:var(--s1);border:1px solid var(--bd);padding:14px;display:flex;flex-direction:column;gap:4px"><div style="font:600 12px Manrope;color:var(--t2)">Muzlash</div><div style="font:600 22px Unbounded,sans-serif;color:var(--bl);font-variant-numeric:tabular-nums">2</div></div>
+                </div>
+                <div style="font:500 12px/1.5 Manrope;color:var(--t3)">Davomatni 7 kungacha orqaga tahrirlash mumkin — har o'zgarish jurnalda qoladi.</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ ct.tolov }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <sc-if value="{{ cl.hasDebt }}" hint-placeholder-val="{{ false }}">
+                  <div style="border-radius:20px;background:var(--rdb);border:1px solid var(--rdbd);padding:16px;display:flex;flex-direction:column;gap:4px">
+                    <div style="font:600 12.5px Manrope;color:var(--t2)">Qarz balansi</div>
+                    <div style="font:600 30px Unbounded,sans-serif;color:var(--rd);font-variant-numeric:tabular-nums">{{ cl.debtText }} <span style="font:600 15px Unbounded,sans-serif">so'm</span></div>
+                  </div>
+                </sc-if>
+                <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);overflow:hidden">
+                  <sc-for list="{{ payLog }}" as="p" hint-placeholder-count="4">
+                    <div style="height:64px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd)">
+                      <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                        <div style="font:700 15px Manrope;color:var(--tx);font-variant-numeric:tabular-nums">{{ p.a }} so'm</div>
+                        <div style="font:500 12px Manrope;color:var(--t3)">{{ p.d }} · {{ p.who }}</div>
+                      </div>
+                      <div style="height:26px;padding:0 10px;border-radius:999px;background:var(--s2);display:flex;align-items:center;font:700 11.5px Manrope;color:{{ p.fg }}">{{ p.t }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:10px">
+                  <div onClick="{{ go.payment }}" style="flex:1;height:50px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 14.5px Manrope;color:#fff;cursor:pointer">+ To'lov</div>
+                  <div onClick="{{ cl.forgive }}" style="flex:1;height:50px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:700 14.5px Manrope;color:var(--tx);cursor:pointer">Qarz kechirish</div>
+                </div>
+                <div style="font:500 12px/1.5 Manrope;color:var(--t3)">To'lovni o'chirish yo'q — faqat storno (sabab majburiy). Ikkalasi jurnalda qoladi.</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ ct.dastur }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:12px">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div style="font:700 16px Manrope;color:var(--tx)">Push / Pull / Legs</div>
+                    <div onClick="{{ go.builder }}" style="font:700 13px Manrope;color:var(--an2);cursor:pointer">Tahrirlash</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--s2)"><div style="flex:1;font:600 14px Manrope;color:var(--tx)">Jim ustida press</div><div style="font:600 13px Manrope;color:var(--t2);font-variant-numeric:tabular-nums">4×8 · 60 kg</div></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--s2)"><div style="flex:1;font:600 14px Manrope;color:var(--tx)">Gantel yelka</div><div style="font:600 13px Manrope;color:var(--t2);font-variant-numeric:tabular-nums">3×12 · 16 kg</div></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--s2)"><div style="flex:1;font:600 14px Manrope;color:var(--tx)">Trisepsga blok</div><div style="font:600 13px Manrope;color:var(--t2);font-variant-numeric:tabular-nums">3×15</div></div>
+                  </div>
+                </div>
+                <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:8px">
+                  <div style="font:600 13px Manrope;color:var(--t2)">Ovqatlanish eslatmasi</div>
+                  <div style="font:500 14px/1.5 Manrope;color:var(--tx)">Kuniga 1.8 g/kg oqsil · mashg'ulotdan 90 daqiqa oldin uglevod.</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ ct.tavsiya }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;align-items:center;justify-content:space-between"><div style="font:700 15px Manrope;color:var(--tx)">Whey protein 2 kg</div><div style="height:26px;padding:0 10px;border-radius:999px;background:var(--grb);display:flex;align-items:center;font:700 11.5px Manrope;color:var(--gr)">Sotib oldi</div></div>
+                  <div style="font:500 13px/1.5 Manrope;color:var(--t2)">Kuniga 1 skoop, mashg'ulotdan keyin · 21-iyul</div>
+                </div>
+                <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;align-items:center;justify-content:space-between"><div style="font:700 15px Manrope;color:var(--tx)">Kreatin monogidrat</div><div style="height:26px;padding:0 10px;border-radius:999px;background:var(--s2);display:flex;align-items:center;font:700 11.5px Manrope;color:var(--t2)">Ko'rdi</div></div>
+                  <div style="font:500 13px/1.5 Manrope;color:var(--t2)">5 g ertalab · 14-iyul</div>
+                </div>
+                <div onClick="{{ go.recipe }}" style="height:50px;border-radius:16px;background:var(--s1);border:1px dashed var(--bd);display:flex;align-items:center;justify-content:center;gap:8px;font:700 14.5px Manrope;color:var(--an2);cursor:pointer">+ Yangi retsept</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ ct.izoh }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="border-radius:16px;background:var(--amb);border:1px solid var(--ambd);padding:12px 14px;font:600 12.5px/1.4 Manrope;color:var(--tx)">Bu yozuvlarni faqat siz ko'rasiz — shogirdga ko'rinmaydi.</div>
+                <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:8px">
+                  <div style="font:500 14px/1.55 Manrope;color:var(--tx)">O'ng yelkasida eski jarohat — jim ustida press faqat yengil vazn bilan.</div>
+                  <div style="font:500 11.5px Manrope;color:var(--t3)">12-iyun</div>
+                </div>
+                <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;align-items:center;gap:12px">
+                  <div style="width:40px;height:40px;border-radius:50%;background:rgba(229,72,77,.14);display:flex;align-items:center;justify-content:center;color:var(--an2);flex:none"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v4"></path></svg></div>
+                  <div style="flex:1;display:flex;gap:3px;align-items:center;height:24px">
+                    <div style="width:3px;height:8px;border-radius:2px;background:var(--t3)"></div><div style="width:3px;height:16px;border-radius:2px;background:var(--t3)"></div><div style="width:3px;height:22px;border-radius:2px;background:var(--an2)"></div><div style="width:3px;height:12px;border-radius:2px;background:var(--t3)"></div><div style="width:3px;height:18px;border-radius:2px;background:var(--t3)"></div><div style="width:3px;height:9px;border-radius:2px;background:var(--t3)"></div><div style="width:3px;height:14px;border-radius:2px;background:var(--t3)"></div>
+                  </div>
+                  <div style="font:600 12.5px Manrope;color:var(--t2);font-variant-numeric:tabular-nums">0:14</div>
+                </div>
+                <div style="height:50px;border-radius:16px;background:var(--s1);border:1px dashed var(--bd);display:flex;align-items:center;justify-content:center;font:700 14.5px Manrope;color:var(--t2)">+ Izoh qo'shish</div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.addClient }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background:var(--ov);z-index:30"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:var(--s1);border-top:1px solid var(--bd);padding:12px 20px 24px;display:flex;flex-direction:column;gap:16px;z-index:31;animation:sheetUp .26s cubic-bezier(.2,.8,.2,1);max-height:92%;overflow-y:auto">
+          <div style="width:40px;height:4px;border-radius:999px;background:var(--s3);align-self:center"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font:600 22px Unbounded,sans-serif;color:var(--tx)">Shogird qo'shish</div>
+            <div onClick="{{ go.clients }}" style="width:36px;height:36px;border-radius:12px;background:var(--s2);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Ism-familiya</div>
+            <input value="{{ addForm.name }}" onChange="{{ addForm.setName }}" placeholder="Masalan: Jasur Ergashev" style="height:54px;border-radius:16px;background:var(--s2);border:1px solid var(--bd);padding:0 16px;font:600 16px Manrope;color:var(--tx);outline:none">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Telefon</div>
+            <input value="{{ addForm.phone }}" onChange="{{ addForm.setPhone }}" placeholder="+998 __ ___ __ __" style="height:54px;border-radius:16px;background:var(--s2);border:1px solid var(--bd);padding:0 16px;font:600 16px Manrope;color:var(--tx);outline:none;font-variant-numeric:tabular-nums">
+            <div style="font:500 12px Manrope;color:var(--t3)">Sinab ko'ring: 901234567 — dublikat holati chiqadi</div>
+          </div>
+          <sc-if value="{{ addForm.dup }}" hint-placeholder-val="{{ false }}">
+            <div style="border-radius:18px;background:var(--amb);border:1px solid var(--ambd);padding:14px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;gap:11px;align-items:flex-start">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                  <div style="font:700 14px Manrope;color:var(--tx)">Bu raqam allaqachon bor</div>
+                  <div style="font:500 13px/1.45 Manrope;color:var(--t2)">{{ addForm.dupName }} — mavjud karta. Birlashtiramizmi?</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div onClick="{{ addForm.merge }}" style="flex:1;height:42px;border-radius:13px;background:var(--am);display:flex;align-items:center;justify-content:center;font:700 13.5px Manrope;color:#fff;cursor:pointer">Birlashtirish</div>
+                <div style="flex:1;height:42px;border-radius:13px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:700 13.5px Manrope;color:var(--tx);cursor:pointer">Baribir yaratish</div>
+              </div>
+            </div>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Tarif</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <div style="height:42px;padding:0 15px;border-radius:999px;background:rgba(229,72,77,.14);border:1px solid var(--an);display:flex;align-items:center;font:600 13.5px Manrope;color:var(--an2);cursor:pointer">Oylik · 400 000</div>
+              <div style="height:42px;padding:0 15px;border-radius:999px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;font:600 13.5px Manrope;color:var(--t2);cursor:pointer">12 mashg'ulot</div>
+              <div style="height:42px;padding:0 15px;border-radius:999px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;font:600 13.5px Manrope;color:var(--t2);cursor:pointer">Bir martalik</div>
+            </div>
+          </div>
+          <div onClick="{{ addForm.save }}" style="height:56px;border-radius:16px;background:{{ addForm.saveBg }};display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:{{ addForm.saveFg }};cursor:pointer">Saqlash</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.attendance }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:6px 20px 14px;display:flex;align-items:center;gap:14px">
+            <div onClick="{{ go.today }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+            <div style="font:600 21px Unbounded,sans-serif;color:var(--tx)">QR skaner</div>
+          </div>
+          <div style="padding:0 20px;display:flex;flex-direction:column;gap:16px">
+            <div style="position:relative;aspect-ratio:1;border-radius:28px;background:var(--s2);overflow:hidden;display:flex;align-items:center;justify-content:center">
+              <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.06),transparent 60%)"></div>
+              <div style="position:absolute;left:14%;top:14%;width:56px;height:56px;border-left:3px solid var(--an2);border-top:3px solid var(--an2);border-radius:16px 0 0 0"></div>
+              <div style="position:absolute;right:14%;top:14%;width:56px;height:56px;border-right:3px solid var(--an2);border-top:3px solid var(--an2);border-radius:0 16px 0 0"></div>
+              <div style="position:absolute;left:14%;bottom:14%;width:56px;height:56px;border-left:3px solid var(--an2);border-bottom:3px solid var(--an2);border-radius:0 0 0 16px"></div>
+              <div style="position:absolute;right:14%;bottom:14%;width:56px;height:56px;border-right:3px solid var(--an2);border-bottom:3px solid var(--an2);border-radius:0 0 16px 0"></div>
+              <div style="position:absolute;left:14%;right:14%;height:2px;background:linear-gradient(90deg,transparent,#FF6B6B,transparent);animation:scanline 2.2s infinite alternate ease-in-out"></div>
+              <div style="width:96px;height:96px;border-radius:14px;background:var(--s3);display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:5px;padding:12px">
+                <div style="background:var(--t3);border-radius:3px"></div><div style="background:transparent"></div><div style="background:var(--t3);border-radius:3px"></div><div style="background:var(--t3);border-radius:3px"></div>
+                <div style="background:transparent"></div><div style="background:var(--t3);border-radius:3px"></div><div style="background:transparent"></div><div style="background:var(--t3);border-radius:3px"></div>
+                <div style="background:var(--t3);border-radius:3px"></div><div style="background:transparent"></div><div style="background:var(--t3);border-radius:3px"></div><div style="background:transparent"></div>
+                <div style="background:var(--t3);border-radius:3px"></div><div style="background:var(--t3);border-radius:3px"></div><div style="background:transparent"></div><div style="background:var(--t3);border-radius:3px"></div>
+              </div>
+            </div>
+            <sc-if value="{{ scan.offline }}" hint-placeholder-val="{{ false }}">
+              <div style="border-radius:16px;background:var(--blb);border:1px solid var(--blbd);padding:12px 14px;display:flex;gap:10px;align-items:center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bl)" stroke-width="2" stroke-linecap="round" style="flex:none"><path d="M2 2l20 20"></path><path d="M5 12.5a10 10 0 0 1 4-2.4"></path><path d="M8.5 16.4a5 5 0 0 1 7 0"></path></svg>
+                <div style="flex:1;font:600 12.5px/1.4 Manrope;color:var(--tx)">Offlayn rejim — imzo lokal tekshiriladi, ulanish qaytganda sinxron bo'ladi.</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ scan.done }}" hint-placeholder-val="{{ false }}">
+              <div style="border-radius:20px;background:var(--grb);border:1px solid var(--grbd);padding:16px;display:flex;align-items:center;gap:13px;animation:fadeUp .2s ease">
+                <div style="width:44px;height:44px;border-radius:50%;background:var(--gr);display:flex;align-items:center;justify-content:center;flex:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px"><div style="font:700 16px Manrope;color:var(--tx)">Aziz Karimov</div><div style="font:600 13px Manrope;color:var(--gr)">Davomat belgilandi · +10 XP</div></div>
+              </div>
+            </sc-if>
+            <div onClick="{{ scan.do }}" style="height:56px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;gap:10px;font:700 16px Manrope;color:#fff;cursor:pointer;box-shadow:0 12px 26px rgba(229,72,77,.3)">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M3 12h18"></path></svg>QR ni skanerlash
+            </div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;height:50px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;gap:8px;font:700 14px Manrope;color:var(--tx);cursor:pointer"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--an2)" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v4"></path></svg>Ovozli</div>
+              <div onClick="{{ go.today }}" style="flex:1;height:50px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:var(--tx);cursor:pointer">Qo'lda belgilash</div>
+            </div>
+            <div style="font:500 12px/1.5 Manrope;color:var(--t3);text-align:center">Shogird QR'i 30 soniyada yangilanadi — skrinshot ishlamaydi.</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.schedule }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:8px 20px 14px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font:600 24px Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">Jadval</div>
+              <div style="display:flex;background:var(--s2);border-radius:999px;padding:3px">
+                <div style="height:32px;padding:0 14px;border-radius:999px;background:var(--an);display:flex;align-items:center;font:700 12.5px Manrope;color:#fff;cursor:pointer">Hafta</div>
+                <div style="height:32px;padding:0 14px;border-radius:999px;display:flex;align-items:center;font:700 12.5px Manrope;color:var(--t2);cursor:pointer">Kun</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:7px">
+              <sc-for list="{{ weekDays }}" as="w" hint-placeholder-count="7">
+                <div onClick="{{ w.pick }}" style="flex:1;height:70px;border-radius:16px;background:{{ w.bg }};border:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer">
+                  <div style="font:600 10.5px Manrope;color:{{ w.sub }}">{{ w.d }}</div>
+                  <div style="font:600 17px Unbounded,sans-serif;color:{{ w.fg }};font-variant-numeric:tabular-nums">{{ w.n }}</div>
+                  <div style="font:600 10px Manrope;color:{{ w.sub }}">{{ w.cnt }} ta</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 130px;display:flex;flex-direction:column;gap:12px">
+            <div style="border-radius:16px;background:var(--amb);border:1px solid var(--ambd);padding:12px 14px;display:flex;gap:10px;align-items:center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+              <div style="flex:1;font:600 12.5px/1.4 Manrope;color:var(--tx)">Konflikt: 10:00 da 2 yozuv. Bloklamaymiz — guruhni parallel olishingiz mumkin.</div>
+            </div>
+            <sc-for list="{{ sessions }}" as="x" hint-placeholder-count="6">
+              <div style="display:flex;gap:12px;align-items:stretch">
+                <div style="width:46px;flex:none;display:flex;flex-direction:column;align-items:flex-end;padding-top:14px"><div style="font:600 14px Unbounded,sans-serif;color:var(--t2);font-variant-numeric:tabular-nums">{{ x.time }}</div></div>
+                <div style="width:2px;background:var(--bd);flex:none;border-radius:2px"></div>
+                <div style="flex:1;border-radius:18px;background:var(--s1);border:1px solid var(--bd);padding:14px;display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="font:700 15px Manrope;color:var(--tx)">{{ x.name }}</div>
+                    <sc-if value="{{ x.conflict }}" hint-placeholder-val="{{ false }}">
+                      <div style="width:18px;height:18px;border-radius:50%;background:var(--amb);display:flex;align-items:center;justify-content:center;flex:none"><div style="width:3px;height:3px;border-radius:50%;background:var(--am)"></div></div>
+                    </sc-if>
+                  </div>
+                  <div style="font:500 12.5px Manrope;color:var(--t2)">{{ x.place }} · {{ x.type }}</div>
+                </div>
+              </div>
+            </sc-for>
+            <div onClick="{{ go.slot }}" style="height:52px;border-radius:16px;background:var(--s1);border:1px dashed var(--bd);display:flex;align-items:center;justify-content:center;gap:8px;font:700 14.5px Manrope;color:var(--an2);cursor:pointer;margin-top:4px">+ Slot yaratish</div>
+            <div onClick="{{ slotForm.cancelAll }}" style="height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;font:700 13.5px Manrope;color:var(--t2);cursor:pointer">Ta'til: ommaviy bekor qilish</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.slot }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background:var(--ov);z-index:30"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:var(--s1);border-top:1px solid var(--bd);padding:12px 20px 24px;display:flex;flex-direction:column;gap:16px;z-index:31;animation:sheetUp .26s cubic-bezier(.2,.8,.2,1);max-height:92%;overflow-y:auto">
+          <div style="width:40px;height:4px;border-radius:999px;background:var(--s3);align-self:center"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font:600 22px Unbounded,sans-serif;color:var(--tx)">Slot yaratish</div>
+            <div onClick="{{ go.schedule }}" style="width:36px;height:36px;border-radius:12px;background:var(--s2);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;height:46px;border-radius:14px;background:rgba(229,72,77,.14);border:1px solid var(--an);display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:var(--an2);cursor:pointer">Individual</div>
+            <div style="flex:1;height:46px;border-radius:14px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:var(--t2);cursor:pointer">Guruh</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Shogird</div>
+            <div style="height:54px;border-radius:16px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 16px;font:600 15.5px Manrope;color:var(--tx)">Aziz Karimov<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"></path></svg></div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="font:600 13px Manrope;color:var(--t2)">Vaqt</div><div style="height:54px;border-radius:16px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;padding:0 16px;font:600 16px Manrope;color:var(--tx);font-variant-numeric:tabular-nums">18:00</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="font:600 13px Manrope;color:var(--t2)">Davomiylik</div><div style="height:54px;border-radius:16px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;padding:0 16px;font:600 16px Manrope;color:var(--tx)">60 daq</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Takrorlanish</div>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1;height:44px;border-radius:13px;background:var(--an);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:#fff;cursor:pointer">Du</div>
+              <div style="flex:1;height:44px;border-radius:13px;background:var(--s2);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:var(--t2);cursor:pointer">Se</div>
+              <div style="flex:1;height:44px;border-radius:13px;background:var(--an);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:#fff;cursor:pointer">Ch</div>
+              <div style="flex:1;height:44px;border-radius:13px;background:var(--s2);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:var(--t2);cursor:pointer">Pa</div>
+              <div style="flex:1;height:44px;border-radius:13px;background:var(--an);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:#fff;cursor:pointer">Ju</div>
+              <div style="flex:1;height:44px;border-radius:13px;background:var(--s2);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:var(--t2);cursor:pointer">Sh</div>
+              <div style="flex:1;height:44px;border-radius:13px;background:var(--s2);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:var(--t2);cursor:pointer">Ya</div>
+            </div>
+          </div>
+          <div style="border-radius:16px;background:var(--amb);border:1px solid var(--ambd);padding:12px 14px;font:600 12.5px/1.4 Manrope;color:var(--tx)">Chorshanba 18:00 band — Guruh-A. Baribir yaratsangiz konflikt belgisi qo'yiladi.</div>
+          <div onClick="{{ slotForm.save }}" style="height:56px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;cursor:pointer">Yaratish</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.cash }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:8px 20px 14px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font:600 24px Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">Kassa</div>
+              <div onClick="{{ cash.voice }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--an2);cursor:pointer"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v4"></path></svg></div>
+            </div>
+            <div style="border-radius:22px;background:var(--s1);border:1px solid var(--bd);padding:18px;display:flex;flex-direction:column;gap:12px">
+              <div style="font:600 12.5px Manrope;color:var(--t2)">Iyul · tushum</div>
+              <div style="font:600 40px/1 Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums;letter-spacing:-.03em">{{ cash.income }}</div>
+              <div style="display:flex;gap:16px">
+                <div style="display:flex;flex-direction:column;gap:2px"><span style="font:500 11.5px Manrope;color:var(--t3)">Kutilmoqda</span><span style="font:700 14px Manrope;color:var(--am);font-variant-numeric:tabular-nums">{{ cash.expected }}</span></div>
+                <div style="display:flex;flex-direction:column;gap:2px"><span style="font:500 11.5px Manrope;color:var(--t3)">Qarz</span><span style="font:700 14px Manrope;color:var(--rd);font-variant-numeric:tabular-nums">{{ cash.debt }}</span></div>
+                <div style="display:flex;flex-direction:column;gap:2px"><span style="font:500 11.5px Manrope;color:var(--t3)">O'sish</span><span style="font:700 14px Manrope;color:var(--gr)">+18%</span></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;overflow-x:auto">
+              <sc-for list="{{ cash.filters }}" as="f" hint-placeholder-count="4">
+                <div onClick="{{ f.pick }}" style="height:36px;padding:0 14px;border-radius:999px;background:{{ f.bg }};border:1px solid {{ f.bd }};display:flex;align-items:center;font:600 13px Manrope;color:{{ f.fg }};cursor:pointer;white-space:nowrap;flex:none">{{ f.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 130px;display:flex;flex-direction:column;gap:10px">
+            <sc-if value="{{ st.offline }}" hint-placeholder-val="{{ false }}">
+              <div style="border-radius:16px;background:var(--amb);border:1px solid var(--ambd);padding:12px 14px;display:flex;align-items:center;gap:11px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="2" stroke-linecap="round" style="flex:none"><path d="M2 2l20 20"></path><path d="M5 12.5a10 10 0 0 1 4-2.4"></path><path d="M8.5 16.4a5 5 0 0 1 7 0"></path></svg>
+                <div style="flex:1;font:600 12.5px/1.4 Manrope;color:var(--tx)">Offlayn · 1 to'lov navbatda, ulanish qaytganda yuboriladi</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ st.loading }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="height:76px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+                <div style="height:76px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+                <div style="height:76px;border-radius:20px;background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:340px 100%;animation:shimmer 1.4s infinite linear"></div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ st.empty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:24px 10px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+                <div style="position:relative;width:96px;height:96px">
+                  <div style="position:absolute;left:10px;top:26px;width:76px;height:48px;border-radius:14px;background:var(--s2)"></div>
+                  <div style="position:absolute;left:22px;top:14px;width:52px;height:34px;border-radius:12px;background:rgba(229,72,77,.16)"></div>
+                  <div style="position:absolute;left:36px;top:44px;width:24px;height:24px;border-radius:50%;background:var(--an);opacity:.85"></div>
+                </div>
+                <div style="font:600 19px Unbounded,sans-serif;color:var(--tx)">Bu davrda to'lov yo'q</div>
+                <div style="font:500 14px/1.5 Manrope;color:var(--t2)">Birinchi to'lovni kiriting — svetofor va hisobot o'zi to'ladi.</div>
+                <div onClick="{{ go.payment }}" style="height:48px;padding:0 22px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;font:700 14.5px Manrope;color:#fff;cursor:pointer">To'lov kiritish</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ st.error }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:20px 10px;display:flex;flex-direction:column;align-items:center;gap:13px;text-align:center">
+                <div style="width:72px;height:72px;border-radius:24px;background:var(--rdb);display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg></div>
+                <div style="font:600 18px Unbounded,sans-serif;color:var(--tx)">Kassa yuklanmadi</div>
+                <div style="font:500 14px/1.5 Manrope;color:var(--t2)">Pul ma'lumoti keshdan ko'rsatilmayapti — xavfsizlik uchun.</div>
+                <div onClick="{{ retry }}" style="height:46px;padding:0 22px;border-radius:15px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;font:700 14px Manrope;color:var(--tx);cursor:pointer">Qayta urinish</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ st.content }}" hint-placeholder-val="{{ true }}">
+            <sc-for list="{{ cash.rows }}" as="c" hint-placeholder-count="8">
+              <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:13px;display:flex;align-items:center;gap:13px">
+                <div style="position:relative;width:50px;height:50px;flex:none">
+                  <div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,{{ c.col }} {{ c.deg }},var(--s2) 0)"></div>
+                  <div style="position:absolute;inset:4px;border-radius:50%;background:var(--s1)"></div>
+                  <div style="position:absolute;left:50%;top:50%;width:6px;height:10px;margin:-5px 0 0 -3px;border-radius:3px;background:var(--s1);transform:rotate(45deg) translateY(-22px)"></div>
+                  <div style="position:absolute;left:50%;top:50%;width:6px;height:10px;margin:-5px 0 0 -3px;border-radius:3px;background:var(--s1);transform:rotate(225deg) translateY(-22px)"></div>
+                  <div style="position:absolute;inset:9px;border-radius:50%;background:var(--av);display:flex;align-items:center;justify-content:center;font:600 13px Unbounded,sans-serif;color:var(--tx)">{{ c.ini }}</div>
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0">
+                  <div style="font:700 15.5px Manrope;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
+                  <div style="font:600 12.5px Manrope;color:{{ c.col }};font-variant-numeric:tabular-nums">{{ c.amount }}</div>
+                  <div style="font:500 11.5px Manrope;color:var(--t3)">{{ c.when }}</div>
+                </div>
+                <div onClick="{{ c.pay }}" style="height:38px;padding:0 14px;border-radius:999px;background:{{ c.chipBg }};display:flex;align-items:center;font:700 12.5px Manrope;color:{{ c.col }};cursor:pointer;flex:none">To'lov</div>
+              </div>
+            </sc-for>
+            <div onClick="{{ go.reports }}" style="height:50px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;gap:8px;font:700 14px Manrope;color:var(--tx);cursor:pointer;margin-top:4px">Hisobotlar</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.payment }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background:var(--ov);z-index:30"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:var(--s1);border-top:1px solid var(--bd);padding:12px 20px 24px;display:flex;flex-direction:column;gap:16px;z-index:31;animation:sheetUp .26s cubic-bezier(.2,.8,.2,1);max-height:94%;overflow-y:auto">
+          <div style="width:40px;height:4px;border-radius:999px;background:var(--s3);align-self:center"></div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:44px;height:44px;border-radius:50%;background:var(--av);display:flex;align-items:center;justify-content:center;font:600 15px Unbounded,sans-serif;color:var(--tx);flex:none">{{ pay.ini }}</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+              <div style="font:600 19px Unbounded,sans-serif;color:var(--tx)">To'lov kiritish</div>
+              <div style="font:500 13px Manrope;color:var(--t2)">{{ pay.name }} · tarif {{ pay.price }} so'm</div>
+            </div>
+            <div onClick="{{ go.cash }}" style="width:36px;height:36px;border-radius:12px;background:var(--s2);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+          </div>
+
+          <sc-if value="{{ pay.dup }}" hint-placeholder-val="{{ false }}">
+            <div style="border-radius:20px;background:var(--amb);border:1.5px solid var(--ambd);padding:16px;display:flex;flex-direction:column;gap:13px;animation:fadeUp .2s ease">
+              <div style="display:flex;gap:12px;align-items:flex-start">
+                <div style="width:34px;height:34px;border-radius:12px;background:var(--am);display:flex;align-items:center;justify-content:center;flex:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"><path d="M12 8v5"></path><path d="M12 16h.01"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+                  <div style="font:700 15px Manrope;color:var(--tx)">5 daqiqa oldin xuddi shunday to'lov kiritildi</div>
+                  <div style="font:500 13px/1.45 Manrope;color:var(--t2);text-wrap:pretty">400 000 so'm · 09:36 · naqd. Bu yangi to'lovmi yoki tasodifan takrorlandimi?</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div onClick="{{ pay.confirmDup }}" style="flex:1;height:44px;border-radius:13px;background:var(--am);display:flex;align-items:center;justify-content:center;font:700 13.5px Manrope;color:#fff;cursor:pointer">Ha, yangi to'lov</div>
+                <div onClick="{{ pay.cancelDup }}" style="flex:1;height:44px;border-radius:13px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:700 13.5px Manrope;color:var(--tx);cursor:pointer">Bekor qilish</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <div style="border-radius:20px;background:var(--s2);padding:20px;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="font:600 12.5px Manrope;color:var(--t2)">Summa</div>
+            <div style="font:600 40px/1 Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums;letter-spacing:-.03em">{{ pay.amountText }}</div>
+            <div style="font:600 13px Manrope;color:var(--t3)">so'm</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <sc-for list="{{ pay.quick }}" as="q" hint-placeholder-count="4">
+              <div onClick="{{ q.pick }}" style="flex:1;height:46px;border-radius:14px;background:{{ q.bg }};border:1px solid {{ q.bd }};display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:{{ q.fg }};cursor:pointer">{{ q.label }}</div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ pay.partial }}" hint-placeholder-val="{{ false }}">
+            <div style="border-radius:16px;background:var(--rdb);border:1px solid var(--rdbd);padding:12px 14px;display:flex;gap:10px;align-items:center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" stroke-width="2" stroke-linecap="round" style="flex:none"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>
+              <div style="flex:1;font:600 12.5px/1.4 Manrope;color:var(--tx)">Qisman to'lov · {{ pay.restText }} so'm qarzda qoladi</div>
+            </div>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Usul</div>
+            <div style="display:flex;gap:8px">
+              <sc-for list="{{ pay.methods }}" as="m" hint-placeholder-count="3">
+                <div onClick="{{ m.pick }}" style="flex:1;height:44px;border-radius:14px;background:{{ m.bg }};border:1px solid {{ m.bd }};display:flex;align-items:center;justify-content:center;font:700 12.5px Manrope;color:{{ m.fg }};cursor:pointer;text-align:center">{{ m.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="font:600 13px Manrope;color:var(--t2)">Sana</div><div style="height:50px;border-radius:15px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;padding:0 14px;font:600 15px Manrope;color:var(--tx)">Bugun · 27-iyul</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="font:600 13px Manrope;color:var(--t2)">Izoh</div><div style="height:50px;border-radius:15px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;padding:0 14px;font:500 15px Manrope;color:var(--t3)">ixtiyoriy</div></div>
+          </div>
+          <div onClick="{{ pay.save }}" style="height:56px;border-radius:16px;background:{{ pay.saveBg }};display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:{{ pay.saveFg }};cursor:pointer">Qabul qilish</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.tariff }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:6px 20px 14px;display:flex;align-items:center;gap:14px">
+            <div onClick="{{ go.menu }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+            <div style="font:600 21px Unbounded,sans-serif;color:var(--tx)">Tariflar</div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 40px;display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ tariffs }}" as="t" hint-placeholder-count="4">
+              <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;align-items:center;gap:13px">
+                <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+                  <div style="font:700 16px Manrope;color:var(--tx)">{{ t.name }}</div>
+                  <div style="font:500 12.5px Manrope;color:var(--t2)">{{ t.type }} · {{ t.n }} shogird</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+                  <div style="font:600 16px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">{{ t.price }}</div>
+                  <div style="height:22px;padding:0 8px;border-radius:999px;background:{{ t.bg }};display:flex;align-items:center;font:700 10.5px Manrope;color:{{ t.fg }}">{{ t.label }}</div>
+                </div>
+              </div>
+            </sc-for>
+            <div style="border-radius:16px;background:var(--s2);padding:14px;font:500 12.5px/1.5 Manrope;color:var(--t2)">Tarif narxi o'zgarsa eski shogirdlarda eski shart saqlanadi (grandfather). Joriy davr eski narxda yopiladi.</div>
+            <div style="height:52px;border-radius:16px;background:var(--s1);border:1px dashed var(--bd);display:flex;align-items:center;justify-content:center;font:700 14.5px Manrope;color:var(--an2);cursor:pointer">+ Yangi tarif</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.freeze }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background:var(--ov);z-index:30"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:var(--s1);border-top:1px solid var(--bd);padding:12px 20px 24px;display:flex;flex-direction:column;gap:18px;z-index:31;animation:sheetUp .26s cubic-bezier(.2,.8,.2,1)">
+          <div style="width:40px;height:4px;border-radius:999px;background:var(--s3);align-self:center"></div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:44px;height:44px;border-radius:14px;background:var(--blb);display:flex;align-items:center;justify-content:center;color:var(--bl);flex:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3v18"></path><path d="M4.5 7.5 19.5 16.5"></path><path d="M19.5 7.5 4.5 16.5"></path></svg></div>
+            <div style="flex:1;font:600 21px Unbounded,sans-serif;color:var(--tx)">Muzlatish</div>
+            <div onClick="{{ go.clients }}" style="width:36px;height:36px;border-radius:12px;background:var(--s2);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Sabab</div>
+            <div style="display:flex;gap:8px">
+              <sc-for list="{{ freeze.reasons }}" as="rs" hint-placeholder-count="3">
+                <div onClick="{{ rs.pick }}" style="flex:1;height:46px;border-radius:14px;background:{{ rs.bg }};border:1px solid {{ rs.bd }};display:flex;align-items:center;justify-content:center;font:700 13.5px Manrope;color:{{ rs.fg }};cursor:pointer">{{ rs.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Muddat</div>
+            <div style="height:64px;border-radius:18px;background:var(--s2);display:flex;align-items:center;padding:0 8px;gap:8px">
+              <div onClick="{{ freeze.dec }}" style="width:48px;height:48px;border-radius:14px;background:var(--s1);display:flex;align-items:center;justify-content:center;color:var(--tx);cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></div>
+              <div style="flex:1;display:flex;align-items:baseline;justify-content:center;gap:6px"><span style="font:600 28px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">{{ freeze.days }}</span><span style="font:600 14px Manrope;color:var(--t2)">kun</span></div>
+              <div onClick="{{ freeze.inc }}" style="width:48px;height:48px;border-radius:14px;background:var(--s1);display:flex;align-items:center;justify-content:center;color:var(--tx);cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></div>
+            </div>
+            <div style="font:500 12.5px Manrope;color:var(--t3)">{{ freeze.used }} · yillik limit</div>
+          </div>
+          <div style="border-radius:18px;background:var(--blb);border:1px solid var(--blbd);padding:14px;display:flex;flex-direction:column;gap:4px">
+            <div style="font:600 12.5px Manrope;color:var(--t2)">Yangi tugash sanasi</div>
+            <div style="font:600 20px Unbounded,sans-serif;color:var(--bl)">{{ freeze.newDate }}</div>
+            <div style="font:500 12px/1.45 Manrope;color:var(--t2)">Kalendarda muzlatilgan kunlar ko'k, eslatmalar pauzada.</div>
+          </div>
+          <div onClick="{{ freeze.save }}" style="height:56px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;cursor:pointer">Muzlatish</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.builder }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:6px 20px 14px;display:flex;align-items:center;gap:14px">
+            <div onClick="{{ go.clients }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+            <div style="flex:1;font:600 21px Unbounded,sans-serif;color:var(--tx)">Dastur builder</div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 30px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;gap:8px">
+              <div style="height:38px;padding:0 14px;border-radius:999px;background:var(--an);display:flex;align-items:center;font:700 13px Manrope;color:#fff;cursor:pointer">Kun A · Push</div>
+              <div style="height:38px;padding:0 14px;border-radius:999px;background:var(--s2);display:flex;align-items:center;font:700 13px Manrope;color:var(--t2);cursor:pointer">Kun B</div>
+              <div style="height:38px;width:38px;border-radius:999px;background:var(--s2);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ builder.items }}" as="e" hint-placeholder-count="3">
+                <div style="border-radius:18px;background:var(--s1);border:1px solid var(--bd);padding:14px;display:flex;align-items:center;gap:12px">
+                  <div style="width:28px;height:28px;border-radius:9px;background:var(--s2);display:flex;align-items:center;justify-content:center;font:700 12px Manrope;color:var(--t2);flex:none">{{ e.i }}</div>
+                  <div style="flex:1;font:600 15px Manrope;color:var(--tx)">{{ e.n }}</div>
+                  <div style="font:700 13px Manrope;color:var(--t2);font-variant-numeric:tabular-nums">{{ e.s }}</div>
+                  <div style="font:600 12.5px Manrope;color:var(--t3);font-variant-numeric:tabular-nums">{{ e.w }}</div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round" style="flex:none"><path d="M4 8h16"></path><path d="M4 16h16"></path></svg>
+                </div>
+              </sc-for>
+            </div>
+            <div onClick="{{ builder.add }}" style="height:52px;border-radius:16px;background:var(--s1);border:1px dashed var(--bd);display:flex;align-items:center;justify-content:center;font:700 14.5px Manrope;color:var(--an2);cursor:pointer">+ Kutubxonadan mashq</div>
+            <div onClick="{{ builder.save }}" style="height:56px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;cursor:pointer">Saqlash va biriktirish</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.library }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:6px 20px 14px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div onClick="{{ go.builder }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+              <div style="flex:1;font:600 21px Unbounded,sans-serif;color:var(--tx)">Mashq kutubxonasi</div>
+            </div>
+            <div style="height:46px;border-radius:999px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:0 16px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              <span style="font:500 14.5px Manrope;color:var(--t3)">100+ mashq · uz / ru nomlari</span>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 30px;display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ library.list }}" as="x" hint-placeholder-count="7">
+              <div onClick="{{ x.add }}" style="border-radius:16px;background:var(--s1);border:1px solid var(--bd);padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer">
+                <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                  <div style="font:600 15px Manrope;color:var(--tx)">{{ x.n }}</div>
+                  <div style="font:500 12px Manrope;color:var(--t3)">{{ x.ru }}</div>
+                </div>
+                <div style="height:26px;padding:0 10px;border-radius:999px;background:var(--s2);display:flex;align-items:center;font:600 11.5px Manrope;color:var(--t2)">{{ x.g }}</div>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--an2)" stroke-width="2.2" stroke-linecap="round" style="flex:none"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.reports }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:6px 20px 14px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div onClick="{{ go.cash }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+              <div style="flex:1;font:600 21px Unbounded,sans-serif;color:var(--tx)">Hisobotlar</div>
+            </div>
+            <div style="display:flex;background:var(--s2);border-radius:999px;padding:3px;width:max-content">
+              <sc-for list="{{ reports.periods }}" as="p" hint-placeholder-count="3">
+                <div onClick="{{ p.pick }}" style="height:34px;padding:0 18px;border-radius:999px;background:{{ p.bg }};display:flex;align-items:center;font:700 13px Manrope;color:{{ p.fg }};cursor:pointer">{{ p.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 130px;display:flex;flex-direction:column;gap:14px">
+            <div style="border-radius:22px;background:var(--s1);border:1px solid var(--bd);padding:18px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;align-items:flex-end;gap:7px;height:120px">
+                <sc-for list="{{ reports.bars }}" as="b" hint-placeholder-count="7">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end">
+                    <div style="width:100%;height:{{ b.h }};border-radius:8px 8px 4px 4px;background:linear-gradient(180deg,#FF6B6B,#E5484D);opacity:.9"></div>
+                    <div style="font:600 10px Manrope;color:var(--t3)">{{ b.label }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);overflow:hidden">
+              <sc-for list="{{ reports.rows }}" as="rw" hint-placeholder-count="4">
+                <div style="height:58px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)">
+                  <div style="font:600 14.5px Manrope;color:var(--t2)">{{ rw.k }}</div>
+                  <div style="font:700 16px Manrope;color:{{ rw.fg }};font-variant-numeric:tabular-nums">{{ rw.v }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:10px">
+              <div onClick="{{ reports.exp }}" style="flex:1;height:50px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:var(--tx);cursor:pointer">PDF</div>
+              <div onClick="{{ reports.exp }}" style="flex:1;height:50px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:var(--tx);cursor:pointer">CSV</div>
+            </div>
+            <div style="border-radius:16px;background:var(--s2);padding:14px;font:500 12.5px/1.5 Manrope;color:var(--t2)">PRO: oylik avto-hisobot har oy 1-sanada botga PDF bo'lib keladi.</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.recipe }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background:var(--ov);z-index:30"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:var(--s1);border-top:1px solid var(--bd);padding:12px 20px 24px;display:flex;flex-direction:column;gap:16px;z-index:31;animation:sheetUp .26s cubic-bezier(.2,.8,.2,1);max-height:92%;overflow-y:auto">
+          <div style="width:40px;height:4px;border-radius:999px;background:var(--s3);align-self:center"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font:600 22px Unbounded,sans-serif;color:var(--tx)">Retsept yozish</div>
+            <div onClick="{{ go.clients }}" style="width:36px;height:36px;border-radius:12px;background:var(--s2);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+          </div>
+          <div style="height:48px;border-radius:999px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:0 16px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            <span style="font:500 14.5px Manrope;color:var(--t3)">Marketplace'dan mahsulot qidirish</span>
+          </div>
+          <div style="border-radius:18px;background:var(--s2);padding:14px;display:flex;align-items:center;gap:12px">
+            <div style="width:52px;height:52px;border-radius:14px;background:var(--s3);flex:none;display:flex;align-items:center;justify-content:center;font:600 10px Manrope;color:var(--t3);text-align:center">mahsulot<br>rasmi</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <div style="font:700 15px Manrope;color:var(--tx)">Whey protein 2 kg</div>
+              <div style="font:600 12.5px Manrope;color:var(--t2);font-variant-numeric:tabular-nums">420 000 so'm · SportPit.uz</div>
+            </div>
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--gr);display:flex;align-items:center;justify-content:center;flex:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></div>
+          </div>
+          <div style="border-radius:16px;background:var(--amb);border:1px solid var(--ambd);padding:12px 14px;font:600 12.5px/1.4 Manrope;color:var(--tx)">Agar mahsulot moderatsiyadan tushib qolsa — havola «mavjud emas, o'xshashlari» ga aylanadi.</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font:600 13px Manrope;color:var(--t2)">Dozalash / izoh</div>
+            <div style="height:90px;border-radius:16px;background:var(--s2);border:1px solid var(--bd);padding:14px;font:500 14.5px/1.5 Manrope;color:var(--tx)">Kuniga 1 skoop, mashg'ulotdan keyin 30 daqiqa ichida.</div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="font:600 13px Manrope;color:var(--t2)">Muddat</div><div style="height:50px;border-radius:15px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;padding:0 14px;font:600 15px Manrope;color:var(--tx)">30 kun</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="font:600 13px Manrope;color:var(--t2)">Kimga</div><div style="height:50px;border-radius:15px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;padding:0 14px;font:600 15px Manrope;color:var(--tx)">Aziz K.</div></div>
+          </div>
+          <div onClick="{{ recipe.save }}" style="height:56px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;cursor:pointer">Yuborish</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.stats }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:6px 20px 14px;display:flex;align-items:center;gap:14px">
+            <div onClick="{{ go.menu }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+            <div style="flex:1;font:600 21px Unbounded,sans-serif;color:var(--tx)">Statistika</div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 130px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:5px"><div style="font:600 12.5px Manrope;color:var(--t2)">Faol shogird</div><div style="font:600 30px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">8</div><div style="font:600 12px Manrope;color:var(--gr)">+2 oyiga</div></div>
+              <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:5px"><div style="font:600 12.5px Manrope;color:var(--t2)">O'rtacha davomat</div><div style="font:600 30px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">74%</div><div style="font:600 12px Manrope;color:var(--rd)">−6%</div></div>
+            </div>
+            <div style="border-radius:22px;background:var(--s1);border:1px solid var(--bd);padding:18px;display:flex;flex-direction:column;gap:14px">
+              <div style="font:600 13px Manrope;color:var(--t2)">Davomat dinamikasi · 8 hafta</div>
+              <div style="display:flex;align-items:flex-end;gap:8px;height:110px">
+                <sc-for list="{{ stats.bars }}" as="b" hint-placeholder-count="8">
+                  <div style="flex:1;height:{{ b.h }};border-radius:8px;background:var(--s3)"></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);overflow:hidden">
+              <sc-for list="{{ stats.top }}" as="t" hint-placeholder-count="3">
+                <div style="height:56px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)">
+                  <div style="font:600 14.5px Manrope;color:var(--tx)">{{ t.n }}</div>
+                  <div style="font:700 15px Manrope;color:{{ t.fg }};font-variant-numeric:tabular-nums">{{ t.v }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div onClick="{{ go.churn }}" style="height:52px;border-radius:16px;background:var(--rdb);border:1px solid var(--rdbd);display:flex;align-items:center;justify-content:center;font:700 14.5px Manrope;color:var(--rd);cursor:pointer">Churn radar · 3 xavfli</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.churn }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:6px 20px 14px;display:flex;align-items:center;gap:14px">
+            <div onClick="{{ go.today }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+            <div style="flex:1;font:600 21px Unbounded,sans-serif;color:var(--tx)">Churn radar</div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 130px;display:flex;flex-direction:column;gap:12px">
+            <div style="border-radius:16px;background:var(--s2);padding:14px;font:500 12.5px/1.5 Manrope;color:var(--t2)">Shogirdning shaxsiy bazaviy chastotasi (8 hafta) joriy 2 hafta bilan solishtiriladi. Yangi shogird (&lt; 4 hafta) radarga tushmaydi.</div>
+            <sc-for list="{{ churnList }}" as="c" hint-placeholder-count="3">
+              <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:13px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="width:44px;height:44px;border-radius:50%;background:var(--av);display:flex;align-items:center;justify-content:center;font:600 14px Unbounded,sans-serif;color:var(--tx);flex:none">{{ c.ini }}</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                    <div style="font:700 15.5px Manrope;color:var(--tx)">{{ c.n }}</div>
+                    <div style="font:500 12.5px/1.4 Manrope;color:var(--t2)">{{ c.why }}</div>
+                  </div>
+                  <div style="height:26px;padding:0 10px;border-radius:999px;background:{{ c.bg }};display:flex;align-items:center;font:700 11.5px Manrope;color:{{ c.fg }};flex:none">{{ c.lvl }}</div>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <div onClick="{{ c.msg }}" style="flex:1;height:42px;border-radius:13px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:var(--tx);cursor:pointer">Xabar</div>
+                  <div style="flex:1;height:42px;border-radius:13px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:var(--tx);cursor:pointer">Muzlatish</div>
+                  <div onClick="{{ c.ignore }}" style="flex:1;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font:700 13px Manrope;color:var(--t3);cursor:pointer">E'tiborsiz</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.site }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column">
+          <div style="padding:6px 20px 14px;display:flex;align-items:center;gap:14px">
+            <div onClick="{{ go.menu }}" style="width:44px;height:44px;border-radius:14px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></div>
+            <div style="flex:1;font:600 21px Unbounded,sans-serif;color:var(--tx)">Mini-sayt</div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:0 20px 30px;display:flex;flex-direction:column;gap:14px">
+            <div style="border-radius:20px;background:var(--s2);padding:14px 16px;display:flex;align-items:center;gap:10px">
+              <div style="font:600 14px Manrope;color:var(--t2)">ustoz.uz/t/</div>
+              <div style="font:700 15px Manrope;color:var(--tx)">aziz</div>
+              <div style="flex:1"></div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.9" stroke-linecap="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"></path></svg>
+            </div>
+            <div style="border-radius:22px;background:var(--s1);border:1px solid var(--bd);padding:18px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:64px;height:64px;border-radius:20px;background:var(--s3);display:flex;align-items:center;justify-content:center;font:600 10px Manrope;color:var(--t3);text-align:center;flex:none">trener<br>surati</div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+                  <div style="font:600 18px Unbounded,sans-serif;color:var(--tx)">Aziz Karimov</div>
+                  <div style="font:500 13px Manrope;color:var(--t2)">Fitnes · 6 yil tajriba</div>
+                  <div style="font:500 12.5px Manrope;color:var(--t3)">Iron Gym · Chilonzor</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <div style="font:600 14px Manrope;color:var(--tx)">Ijtimoiy isbot</div>
+                  <div style="font:500 12px Manrope;color:var(--t2)">8 shogird · 74% davomat</div>
+                </div>
+                <div onClick="{{ site.toggle }}" style="width:52px;height:30px;border-radius:999px;background:{{ site.knobBg }};display:flex;align-items:center;padding:3px;cursor:pointer;justify-content:{{ site.knob }}">
+                  <div style="width:24px;height:24px;border-radius:50%;background:#fff"></div>
+                </div>
+              </div>
+            </div>
+            <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:10px">
+              <div style="font:600 13px Manrope;color:var(--t2)">«Yozilish» tugmasi</div>
+              <div style="height:48px;border-radius:15px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 15px Manrope;color:#fff">Yozilish</div>
+              <div style="font:500 12px/1.5 Manrope;color:var(--t3)">Lead botga tushadi → qabul qilsangiz shogird avtomatik yaratiladi.</div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <div onClick="{{ site.publish }}" style="flex:1;height:52px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 15px Manrope;color:#fff;cursor:pointer">Saqlash</div>
+              <div style="height:52px;padding:0 18px;border-radius:16px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;font:700 14px Manrope;color:var(--tx);cursor:pointer">QR-vizitka</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.menu }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;overflow-y:auto;padding:8px 20px 130px;display:flex;flex-direction:column;gap:14px">
+          <div style="font:600 24px Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">Menyu</div>
+          <div style="border-radius:22px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;align-items:center;gap:14px">
+            <div style="width:56px;height:56px;border-radius:50%;background:var(--av);display:flex;align-items:center;justify-content:center;font:600 18px Unbounded,sans-serif;color:var(--tx);flex:none">AK</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <div style="font:700 17px Manrope;color:var(--tx)">Aziz Karimov</div>
+              <div style="font:500 13px Manrope;color:var(--t2)">+998 90 123 45 67</div>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg>
+          </div>
+          <div onClick="{{ go.paywall }}" style="border-radius:22px;background:linear-gradient(135deg,rgba(229,72,77,.16),rgba(255,107,107,.08));border:1px solid rgba(229,72,77,.3);padding:18px;display:flex;align-items:center;gap:14px;cursor:pointer">
+            <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;flex:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.5 5.5L20 9.5l-4 4 1 6-5-2.8L7 19.5l1-6-4-4 5.5-1z"></path></svg></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <div style="font:700 16px Manrope;color:var(--tx)">USTOZ PRO</div>
+              <div style="font:500 12.5px Manrope;color:var(--t2)">{{ menu.proLabel }}</div>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--an2)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg>
+          </div>
+          <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);overflow:hidden">
+            <div onClick="{{ go.tariff }}" style="height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);cursor:pointer"><span style="flex:1;font:600 15px Manrope;color:var(--tx)">Tariflar konstruktori</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg></div>
+            <div onClick="{{ go.site }}" style="height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);cursor:pointer"><span style="flex:1;font:600 15px Manrope;color:var(--tx)">Mini-sayt</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg></div>
+            <div onClick="{{ go.stats }}" style="height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);cursor:pointer"><span style="flex:1;font:600 15px Manrope;color:var(--tx)">Statistika</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg></div>
+            <div style="height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);cursor:pointer"><span style="flex:1;font:600 15px Manrope;color:var(--tx)">Eslatma shablonlari</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"></path></svg></div>
+            <div style="height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;cursor:pointer"><span style="flex:1;font:600 15px Manrope;color:var(--tx)">Bot sozlamalari</span><span style="font:600 13px Manrope;color:var(--gr)">Ulangan</span></div>
+          </div>
+          <div style="border-radius:20px;background:var(--s1);border:1px solid var(--bd);overflow:hidden">
+            <div onClick="{{ menu.toggleTheme }}" style="height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);cursor:pointer"><span style="flex:1;font:600 15px Manrope;color:var(--tx)">Tema</span><span style="font:600 13.5px Manrope;color:var(--an2)">{{ menu.themeLabel }}</span></div>
+            <div onClick="{{ menu.toggleLang }}" style="height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--bd);cursor:pointer"><span style="flex:1;font:600 15px Manrope;color:var(--tx)">Til</span><span style="font:600 13.5px Manrope;color:var(--an2)">{{ menu.langLabel }}</span></div>
+            <div style="height:56px;padding:0 16px;display:flex;align-items:center;gap:12px;cursor:pointer"><span style="flex:1;font:600 15px Manrope;color:var(--tx)">Qurilmalar</span><span style="font:600 13px Manrope;color:var(--t2)">2 ta</span></div>
+          </div>
+          <div onClick="{{ menu.logout }}" style="height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font:700 14.5px Manrope;color:var(--rd);cursor:pointer">Chiqish</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ r.paywall }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;right:0;bottom:0;overflow-y:auto;padding:8px 20px 30px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;justify-content:flex-end">
+            <div onClick="{{ paywall.later }}" style="width:40px;height:40px;border-radius:13px;background:var(--s1);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--t2);cursor:pointer"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></div>
+          </div>
+          <sc-if value="{{ paywall.grace }}" hint-placeholder-val="{{ true }}">
+            <div style="border-radius:18px;background:var(--amb);border:1px solid var(--ambd);padding:14px;display:flex;gap:12px;align-items:flex-start">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--am)" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div style="font:700 14px Manrope;color:var(--tx)">6-shogird qo'shildi · 7 kun grace</div>
+                <div style="font:500 12.5px/1.45 Manrope;color:var(--t2)">Hech narsa bloklanmadi. Grace tugasa faqat yangi shogird qo'shish yopiladi — mavjudlari ishlayveradi.</div>
+              </div>
+            </div>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;padding:8px 0">
+            <div style="width:64px;height:64px;border-radius:22px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(229,72,77,.35)"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.5 5.5L20 9.5l-4 4 1 6-5-2.8L7 19.5l1-6-4-4 5.5-1z"></path></svg></div>
+            <div style="font:600 26px Unbounded,sans-serif;color:var(--tx);letter-spacing:-.01em">USTOZ PRO</div>
+            <div style="font:500 14.5px/1.55 Manrope;color:var(--t2);max-width:280px;text-wrap:pretty">Cheksiz shogird, avto-eslatmalar zanjiri va oylik hisobotlar.</div>
+          </div>
+          <div style="border-radius:22px;background:var(--s1);border:1px solid var(--bd);padding:18px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;gap:11px"><div style="width:22px;height:22px;border-radius:50%;background:var(--grb);display:flex;align-items:center;justify-content:center;flex:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></div><span style="font:600 14.5px Manrope;color:var(--tx)">Cheksiz shogird</span></div>
+            <div style="display:flex;align-items:center;gap:11px"><div style="width:22px;height:22px;border-radius:50%;background:var(--grb);display:flex;align-items:center;justify-content:center;flex:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></div><span style="font:600 14.5px Manrope;color:var(--tx)">Avto-eslatmalar (bot + SMS)</span></div>
+            <div style="display:flex;align-items:center;gap:11px"><div style="width:22px;height:22px;border-radius:50%;background:var(--grb);display:flex;align-items:center;justify-content:center;flex:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></div><span style="font:600 14.5px Manrope;color:var(--tx)">Oylik PDF hisobot</span></div>
+            <div style="display:flex;align-items:center;gap:11px"><div style="width:22px;height:22px;border-radius:50%;background:var(--grb);display:flex;align-items:center;justify-content:center;flex:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></div><span style="font:600 14.5px Manrope;color:var(--tx)">Churn radar digesti</span></div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;border-radius:20px;background:var(--s1);border:1.5px solid var(--an);padding:16px;display:flex;flex-direction:column;gap:5px">
+              <div style="font:600 12.5px Manrope;color:var(--t2)">Oylik</div>
+              <div style="font:600 22px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">99 000</div>
+              <div style="font:500 12px Manrope;color:var(--t3)">so'm / oy</div>
+            </div>
+            <div style="flex:1;border-radius:20px;background:var(--s1);border:1px solid var(--bd);padding:16px;display:flex;flex-direction:column;gap:5px">
+              <div style="font:600 12.5px Manrope;color:var(--t2)">Yillik · −20%</div>
+              <div style="font:600 22px Unbounded,sans-serif;color:var(--tx);font-variant-numeric:tabular-nums">950 000</div>
+              <div style="font:500 12px Manrope;color:var(--t3)">so'm / yil</div>
+            </div>
+          </div>
+          <div onClick="{{ paywall.buy }}" style="height:56px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 16px Manrope;color:#fff;cursor:pointer;box-shadow:0 12px 26px rgba(229,72,77,.3)">Payme orqali to'lash</div>
+          <div onClick="{{ paywall.later }}" style="height:48px;display:flex;align-items:center;justify-content:center;font:700 14px Manrope;color:var(--t2);cursor:pointer">Keyinroq</div>
+        </div>
+      </sc-if>
+
+      <div id="screens"></div>
+
+      <sc-if value="{{ showNav }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:14px;right:14px;bottom:16px;height:68px;border-radius:26px;background:var(--nav);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--bd);display:flex;align-items:center;padding:0 6px;box-shadow:var(--sh);z-index:15">
+          <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+            <div onClick="{{ t.go }}" style="flex:1;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:{{ t.fg }}">
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="{{ t.fill }}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="opacity:{{ t.op }}"><path d="{{ t.d1 }}"></path><path d="{{ t.d2 }}"></path></svg>
+              <span style="font:700 10px Manrope;letter-spacing:.01em">{{ t.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ fab.show }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ fab.press }}" style="position:absolute;right:20px;bottom:100px;height:56px;padding:0 20px;border-radius:20px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;gap:9px;font:700 15px Manrope;color:#fff;cursor:pointer;box-shadow:0 16px 32px rgba(229,72,77,.4);z-index:16">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>{{ fab.label }}
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ voiceOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ voice.close }}" style="position:absolute;inset:0;background:var(--ov);z-index:34"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;border-radius:28px 28px 0 0;background:var(--s1);border-top:1px solid var(--bd);padding:12px 20px 24px;display:flex;flex-direction:column;gap:16px;z-index:35;animation:sheetUp .24s cubic-bezier(.2,.8,.2,1)">
+          <div style="width:40px;height:4px;border-radius:999px;background:var(--s3);align-self:center"></div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="position:relative;width:46px;height:46px;flex:none">
+              <div style="position:absolute;inset:0;border-radius:50%;background:rgba(229,72,77,.2);animation:pulseRing 1.8s infinite ease-out"></div>
+              <div style="position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v4"></path></svg></div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+              <div style="font:600 19px Unbounded,sans-serif;color:var(--tx)">Ovozli kiritish</div>
+              <div style="font:500 13px Manrope;color:var(--t2)">«Aziz keldi, ellik ming berdi»</div>
+            </div>
+          </div>
+          <div style="border-radius:20px;background:var(--s2);padding:16px;display:flex;flex-direction:column;gap:12px">
+            <div style="font:600 12.5px Manrope;color:var(--t2)">Tizim tushundi</div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:42px;height:42px;border-radius:50%;background:var(--av);display:flex;align-items:center;justify-content:center;font:600 14px Unbounded,sans-serif;color:var(--tx);flex:none">AK</div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div style="font:700 15.5px Manrope;color:var(--tx)">Aziz Karimov</div>
+                <div style="font:600 13px Manrope;color:var(--gr)">Keldi · +50 000 so'm naqd</div>
+              </div>
+            </div>
+            <div style="font:500 12px/1.45 Manrope;color:var(--t3)">Ikkita «Aziz» topildi — familiya bo'yicha ajratildi. Noto'g'ri bo'lsa tahrirlang.</div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div onClick="{{ voice.confirm }}" style="flex:1;height:54px;border-radius:16px;background:linear-gradient(135deg,#E5484D,#FF6B6B);display:flex;align-items:center;justify-content:center;font:700 15.5px Manrope;color:#fff;cursor:pointer">To'g'ri, saqlash</div>
+            <div onClick="{{ voice.manual }}" style="height:54px;padding:0 18px;border-radius:16px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;font:700 14.5px Manrope;color:var(--tx);cursor:pointer">Tahrirlash</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ toast.show }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:16px;right:16px;bottom:96px;border-radius:18px;background:var(--s2);border:1px solid var(--bd);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);z-index:40;animation:fadeUp .22s ease">
+          <div style="width:26px;height:26px;border-radius:50%;background:{{ toast.iconBg }};display:flex;align-items:center;justify-content:center;flex:none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{ toast.iconFg }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+          </div>
+          <div style="flex:1;font:600 14px/1.4 Manrope;color:var(--tx)">{{ toast.text }}</div>
+          <sc-if value="{{ toast.undo }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ toast.undoPress }}" style="font:700 13px Manrope;color:var(--an2);cursor:pointer">Bekor</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:940}}">
+const DIRS = ["Fitnes", "Bodybuilding", "Kurash", "Suzish", "Boshqa"];
+const SCREENS = [
+  ["splash", "Splash"], ["lang", "Til"], ["phone", "Telefon"], ["otp", "OTP"], ["profile", "Profil"], ["bot", "Bot-taklif"],
+  ["today", "Bugun"], ["clients", "Shogirdlar"], ["client", "Shogird karta"], ["addClient", "Shogird qo'shish"],
+  ["attendance", "Davomat/QR"], ["schedule", "Jadval"], ["slot", "Slot yaratish"], ["builder", "Dastur builder"],
+  ["library", "Mashq kutubxonasi"], ["cash", "Kassa"], ["payment", "To'lov kiritish"], ["tariff", "Tarif konstruktor"],
+  ["freeze", "Muzlatish"], ["reports", "Hisobotlar"], ["recipe", "Retsept yozish"], ["stats", "Statistika"],
+  ["churn", "Churn radar"], ["site", "Mini-sayt"], ["menu", "Menyu"], ["paywall", "PRO paywall"]
+];
+const NETS = [["content", "Kontent"], ["loading", "Loading"], ["empty", "Empty"], ["error", "Error"], ["offline", "Offline"]];
+const DARK = {
+  "--bg": "#0E1116", "--s1": "#171B22", "--s2": "#1F242E", "--s3": "#262C37", "--bd": "rgba(255,255,255,.07)",
+  "--tx": "#EDEFF3", "--t2": "#98A1AE", "--t3": "#6A7280", "--an": "#E5484D", "--an2": "#FF6B6B",
+  "--gr": "#2FBF87", "--grb": "rgba(47,191,135,.13)", "--grbd": "rgba(47,191,135,.28)",
+  "--am": "#E3A64A", "--amb": "rgba(227,166,74,.13)", "--ambd": "rgba(227,166,74,.28)",
+  "--rd": "#E23E63", "--rdb": "rgba(226,62,99,.14)", "--rdbd": "rgba(226,62,99,.3)",
+  "--bl": "#7FB0E8", "--blb": "rgba(93,150,220,.14)", "--blbd": "rgba(93,150,220,.3)",
+  "--sh": "0 14px 34px rgba(0,0,0,.45)", "--sk1": "#1A1F27", "--sk2": "#242A35",
+  "--nav": "rgba(23,27,34,.74)", "--ov": "rgba(6,8,11,.62)", "--av": "#262C37"
+};
+const LIGHT = {
+  "--bg": "#F7F5F2", "--s1": "#FFFFFF", "--s2": "#EFEAE4", "--s3": "#E7E1D9", "--bd": "rgba(20,16,12,.09)",
+  "--tx": "#16181D", "--t2": "#62666F", "--t3": "#8E939C", "--an": "#E5484D", "--an2": "#E5484D",
+  "--gr": "#12855C", "--grb": "#E3F5EC", "--grbd": "rgba(23,153,106,.24)",
+  "--am": "#9C6712", "--amb": "#FAF0DC", "--ambd": "rgba(184,122,24,.24)",
+  "--rd": "#C6314F", "--rdb": "#FBE9ED", "--rdbd": "rgba(198,49,79,.24)",
+  "--bl": "#3466A8", "--blb": "#E7EEF8", "--blbd": "rgba(52,102,168,.24)",
+  "--sh": "0 12px 30px rgba(28,22,16,.10)", "--sk1": "#EFEAE4", "--sk2": "#F8F5F1",
+  "--nav": "rgba(255,255,255,.80)", "--ov": "rgba(28,22,16,.34)", "--av": "#F1ECE6"
+};
+const TABS = [
+  ["today", "Bugun", "m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z", "M9 22V12h6v10"],
+  ["clients", "Shogirdlar", "M2 21v-2a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v2", "M9 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8"],
+  ["schedule", "Jadval", "M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z", "M4 9h16M8 3v4M16 3v4"],
+  ["cash", "Kassa", "M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z", "M16 13h3"],
+  ["menu", "Menyu", "M4 7h16M4 12h16M4 17h16", "M4 7h16"]
+];
+const SEED_CLIENTS = [
+  { id: 1, name: "Aziz Karimov", ini: "AK", phone: "+998 90 123 45 67", tarif: "Oylik · 400 000", price: 400000, st: "gr", debt: 0, next: "12-avgust", prog: .68, streak: 14, tags: ["ertalabki", "individual"], last: "Bugun", visits: 42, pct: 92, bot: true },
+  { id: 2, name: "Sardor Toshpo'latov", ini: "ST", phone: "+998 93 555 12 04", tarif: "12 mashg'ulot", price: 600000, st: "am", debt: 100000, next: "29-iyul", prog: .83, streak: 3, tags: ["guruh-A"], last: "5 kun oldin", visits: 18, pct: 61, bot: true },
+  { id: 3, name: "Jasur Ergashev", ini: "JE", phone: "+998 97 701 88 21", tarif: "Oylik · 250 000", price: 250000, st: "rd", debt: 250000, next: "18-iyul", prog: .99, streak: 0, tags: ["kechki"], last: "12 kun oldin", visits: 27, pct: 44, bot: false },
+  { id: 4, name: "Dilnoza Rahimova", ini: "DR", phone: "+998 94 330 09 15", tarif: "Oylik · 400 000", price: 400000, st: "gr", debt: 0, next: "9-avgust", prog: .41, streak: 21, tags: ["ertalabki", "onlayn"], last: "Kecha", visits: 63, pct: 96, bot: true },
+  { id: 5, name: "Bekzod Yo'ldoshev", ini: "BY", phone: "+998 99 145 72 30", tarif: "Bir martalik", price: 80000, st: "am", debt: 0, next: "1-avgust", prog: .77, streak: 5, tags: ["individual"], last: "2 kun oldin", visits: 9, pct: 78, bot: false },
+  { id: 6, name: "Nodira Qodirova", ini: "NQ", phone: "+998 91 202 55 41", tarif: "Oylik · 250 000", price: 250000, st: "gr", debt: 0, next: "15-avgust", prog: .22, streak: 8, tags: ["guruh-A"], last: "Bugun", visits: 31, pct: 88, bot: true },
+  { id: 7, name: "Shoxrux Aliyev", ini: "SH", phone: "+998 88 404 11 90", tarif: "12 mashg'ulot", price: 600000, st: "rd", debt: 150000, next: "20-iyul", prog: 1, streak: 0, tags: ["kechki"], last: "16 kun oldin", visits: 22, pct: 39, bot: true },
+  { id: 8, name: "Kamola Usmonova", ini: "KU", phone: "+998 95 617 30 22", tarif: "Oylik · 400 000", price: 400000, st: "gr", debt: 0, next: "6-avgust", prog: .55, streak: 11, tags: ["onlayn"], last: "Bugun", visits: 47, pct: 91, bot: true }
+];
+
+const SEED_SESSIONS = [
+  { id: 1, time: "07:00", name: "Dilnoza Rahimova", ini: "DR", place: "Iron Gym · 2-zal", type: "Individual", st: "done" },
+  { id: 2, time: "08:30", name: "Aziz Karimov", ini: "AK", place: "Iron Gym · 1-zal", type: "Individual", st: "done" },
+  { id: 3, time: "10:00", name: "Guruh-A · 6 shogird", ini: "GA", place: "Iron Gym · katta zal", type: "Guruh", st: "none", conflict: true },
+  { id: 4, time: "10:00", name: "Nodira Qodirova", ini: "NQ", place: "Onlayn", type: "Individual", st: "none", conflict: true },
+  { id: 5, time: "18:00", name: "Sardor Toshpo'latov", ini: "ST", place: "Iron Gym · 1-zal", type: "Individual", st: "wait" },
+  { id: 6, time: "19:30", name: "Shoxrux Aliyev", ini: "SH", place: "Iron Gym · 2-zal", type: "Individual", st: "wait" }
+];
+const money = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+class Component extends DCLogic {
+  state = {
+    theme: "dark", net: "content", route: "splash", lang: "uz", phone: "901234567",
+    otp: "", otpErr: false, resend: 60, tgFallback: false, dir: "Fitnes",
+    toast: null, clientId: 1, ctab: "Umumiy", q: "", filter: "Hammasi",
+    clients: SEED_CLIENTS.map(c => ({ ...c })), sheet: null, day: 27,
+    amount: 0, payClient: 1, payMethod: "Naqd", payDup: false, partial: false,
+    week: 0, scanned: false, pro: false, grace: true,
+    sessions: SEED_SESSIONS.map(x => ({ ...x })), drag: null, checklist: [false, false, false]
+  };
+
+  mark(id, st) {
+    this.setState(s => ({ sessions: s.sessions.map(x => x.id === id ? { ...x, st } : x), drag: null }));
+    const n = this.state.sessions.find(x => x.id === id);
+    this.flash(n.name.split(" ")[0] + (st === "done" ? " — keldi belgilandi" : " — kelmadi belgilandi"), true);
+  }
+  dragStart(id, e) { this._x0 = e.clientX; this.setState({ drag: { id, dx: 0 } }); }
+  dragMove(id, e) {
+    if (!this.state.drag || this.state.drag.id !== id) return;
+    const dx = Math.max(-140, Math.min(140, e.clientX - this._x0));
+    this.setState({ drag: { id, dx } });
+  }
+  dragEnd(id) {
+    const d = this.state.drag;
+    if (!d || d.id !== id) return;
+    if (d.dx > 72) this.mark(id, "done");
+    else if (d.dx < -72) this.mark(id, "miss");
+    else this.setState({ drag: null });
+  }
+
+  componentDidMount() {
+    this._t = setTimeout(() => { if (this.state.route === "splash") this.setState({ route: "lang" }); }, 1700);
+    this._i = setInterval(() => {
+      if (this.state.route === "otp" && this.state.resend > 0) this.setState(s => ({ resend: s.resend - 1 }));
+    }, 1000);
+  }
+  componentWillUnmount() { clearTimeout(this._t); clearInterval(this._i); if (this._tt) clearTimeout(this._tt); }
+
+  nav(r) { this.setState({ route: r, sheet: null }); }
+  flash(text, undo) {
+    this.setState({ toast: { text, undo: !!undo } });
+    if (this._tt) clearTimeout(this._tt);
+    this._tt = setTimeout(() => this.setState({ toast: null }), 3200);
+  }
+  pressOtp(k) {
+    let o = this.state.otp;
+    if (k === "<") { this.setState({ otp: o.slice(0, -1), otpErr: false }); return; }
+    if (o.length >= 6) return;
+    o = o + k;
+    if (o.length === 6) {
+      if (o === "428193") { this.setState({ otp: o, otpErr: false }); setTimeout(() => this.nav("profile"), 320); }
+      else this.setState({ otp: o, otpErr: true, tgFallback: true });
+      return;
+    }
+    this.setState({ otp: o, otpErr: false });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const dark = s.theme === "dark";
+    const T = dark ? DARK : LIGHT;
+    const r = {}; SCREENS.forEach(([k]) => r[k] = s.route === k);
+    if (s.route === "payment") r.cash = true;
+    if (s.route === "addClient" || s.route === "freeze" || s.route === "recipe") r.clients = true;
+    if (s.route === "slot") r.schedule = true;
+    const mainRoutes = ["today", "clients", "client", "schedule", "cash", "menu", "stats", "churn", "reports"];
+    const fabMap = { today: "Davomat", clients: "Shogird", cash: "To'lov" };
+    const pick = (v, on) => ({ bg: v === on ? "rgba(229,72,77,.16)" : "#171B22", fg: v === on ? "#FF6B6B" : "#98A1AE" });
+
+    const digits = "1234567890".split("");
+    const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "<"].map(k => ({
+      label: k === "<" ? "⌫" : k, press: () => { }
+    }));
+    const otpKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"].map(k => ({
+      label: k, press: () => { if (k) this.pressOtp(k === "⌫" ? "<" : k); }
+    }));
+    const otpCells = [0, 1, 2, 3, 4, 5].map(i => {
+      const v = s.otp[i] || "";
+      return {
+        v, fg: "var(--tx)",
+        bd: s.otpErr ? "var(--rd)" : (i === s.otp.length ? "var(--an)" : "var(--bd)")
+      };
+    });
+    const ph = s.phone;
+    const phoneMask = ph.slice(0, 2) + " " + ph.slice(2, 5) + " " + ph.slice(5, 7) + " " + ph.slice(7, 9);
+
+    return {
+      themeVars: T,
+      r, isOffline: s.net === "offline",
+      showNav: mainRoutes.indexOf(s.route) >= 0,
+      netStates: NETS.map(([k, label]) => ({ label, ...pick(s.net, k), pick: () => this.setState({ net: k }) })),
+      screenList: SCREENS.map(([k, label]) => ({ label, ...pick(s.route, k), go: () => this.nav(k) })),
+      tabs: TABS.map(([k, label, d1, d2]) => {
+        const on = s.route === k || (k === "clients" && s.route === "client");
+        return { label, d1, d2, go: () => this.nav(k), fg: on ? "var(--an2)" : "var(--t3)", fill: on ? "rgba(229,72,77,.18)" : "none", op: on ? "1" : ".9" };
+      }),
+      fab: { show: !!fabMap[s.route], label: fabMap[s.route] || "", press: () => { if (s.route === "today") this.nav("attendance"); else if (s.route === "clients") this.nav("addClient"); else this.nav("payment"); } },
+      toast: {
+        show: !!s.toast, text: s.toast ? s.toast.text : "", undo: s.toast ? s.toast.undo : false,
+        iconBg: "var(--grb)", iconFg: "var(--gr)", undoPress: () => this.setState({ toast: null })
+      },
+      go: {
+        lang: () => this.nav("lang"), phone: () => this.nav("phone"), otp: () => this.nav("otp"),
+        profile: () => this.nav("profile"), bot: () => this.nav("bot"),
+        today: () => this.nav("today"),
+        todayToast: () => { this.nav("today"); this.flash("Telegram bot ulandi"); },
+        todayDemo: () => { this.nav("today"); this.flash("3 namunaviy shogird qo'shildi", true); },
+        cash: () => this.nav("cash"), stats: () => this.nav("stats"), clients: () => this.nav("clients"),
+        schedule: () => this.nav("schedule"), menu: () => this.nav("menu"), addClient: () => this.nav("addClient"),
+        attendance: () => this.nav("attendance"), churn: () => this.nav("churn"), reports: () => this.nav("reports"),
+        tariff: () => this.nav("tariff"), library: () => this.nav("library"), builder: () => this.nav("builder"),
+        recipe: () => this.nav("recipe"), site: () => this.nav("site"), paywall: () => this.nav("paywall"),
+        slot: () => this.nav("slot"), freeze: () => this.nav("freeze"), payment: () => this.nav("payment"),
+        back: () => this.nav(s.route === "client" ? "clients" : "today")
+      },
+      set: {
+        dark: () => this.setState({ theme: "dark" }), light: () => this.setState({ theme: "light" }),
+        uz: () => this.setState({ lang: "uz" }), ru: () => this.setState({ lang: "ru" }),
+        resend: () => { if (s.resend <= 0) { this.setState({ resend: 60, tgFallback: true }); this.flash("Kod qayta yuborildi"); } },
+        tgOtp: () => { this.setState({ otp: "428193", otpErr: false }); setTimeout(() => this.nav("profile"), 300); },
+        reset: () => this.setState({ clients: SEED_CLIENTS.map(c => ({ ...c })), route: "today", net: "content", otp: "", sheet: null })
+      },
+      ui: {
+        darkBg: dark ? "rgba(229,72,77,.18)" : "#171B22", darkFg: dark ? "#FF6B6B" : "#98A1AE",
+        lightBg: dark ? "#171B22" : "rgba(229,72,77,.18)", lightFg: dark ? "#98A1AE" : "#FF6B6B",
+        uzBd: s.lang === "uz" ? "var(--an)" : "var(--bd)", uzDot: s.lang === "uz" ? "var(--an)" : "transparent",
+        ruBd: s.lang === "ru" ? "var(--an)" : "var(--bd)", ruDot: s.lang === "ru" ? "var(--an)" : "transparent",
+        phoneBtnBg: "linear-gradient(135deg,#E5484D,#FF6B6B)", phoneBtnFg: "#fff",
+        resendFg: s.resend > 0 ? "var(--t3)" : "var(--an2)"
+      },
+      st: {
+        loading: s.net === "loading", empty: s.net === "empty", error: s.net === "error",
+        offline: s.net === "offline", content: s.net === "content" || s.net === "offline"
+      },
+      retry: () => { this.setState({ net: "loading" }); setTimeout(() => this.setState({ net: "content" }), 1100); },
+      counts: {
+        gr: s.clients.filter(c => c.st === "gr").length,
+        am: s.clients.filter(c => c.st === "am").length,
+        rd: s.clients.filter(c => c.st === "rd").length,
+        debt: money(s.clients.reduce((a, c) => a + c.debt, 0)),
+        done: s.sessions.filter(x => x.st === "done").length,
+        total: s.sessions.length
+      },
+      sessions: s.sessions.map(x => {
+        const d = s.drag && s.drag.id === x.id ? s.drag.dx : 0;
+        const stMap = {
+          done: { label: "Keldi", fg: "var(--gr)", bg: "var(--grb)", bd: "var(--grbd)" },
+          miss: { label: "Kelmadi", fg: "var(--rd)", bg: "var(--rdb)", bd: "var(--rdbd)" },
+          wait: { label: "Kutilmoqda", fg: "var(--t2)", bg: "var(--s2)", bd: "var(--bd)" },
+          none: { label: "Belgilanmagan", fg: "var(--am)", bg: "var(--amb)", bd: "var(--ambd)" }
+        }[x.st];
+        return {
+          ...x, ...stMap, dx: d,
+          conflict: !!x.conflict,
+          down: e => this.dragStart(x.id, e), move: e => this.dragMove(x.id, e),
+          up: () => this.dragEnd(x.id),
+          tapDone: () => this.mark(x.id, "done"), tapMiss: () => this.mark(x.id, "miss"),
+          leftOp: d > 12 ? "1" : "0", rightOp: d < -12 ? "1" : "0"
+        };
+      }),
+      checklist: [
+        { label: "Shogird qo'shing", done: s.clients.length > 0, go: () => this.nav("addClient") },
+        { label: "Jadval tuzing", done: false, go: () => this.nav("slot") },
+        { label: "Telegram botni ulang", done: false, go: () => this.nav("menu") }
+      ].map((c, i) => ({
+        ...c, n: String(i + 1),
+        bg: c.done ? "var(--grb)" : "var(--s2)", fg: c.done ? "var(--gr)" : "var(--t2)",
+        tick: c.done ? "1" : "0"
+      })),
+      churn: {
+        go: () => this.nav("churn"),
+        msg: () => this.flash("Sardorga bot orqali xabar yuborildi")
+      },
+      filters: ["Hammasi", "Qarzdor", "Ertalabki", "Guruh-A", "Arxiv"].map(f => ({
+        label: f, pick: () => this.setState({ filter: f }),
+        bg: s.filter === f ? "rgba(229,72,77,.14)" : "var(--s1)",
+        bd: s.filter === f ? "var(--an)" : "var(--bd)",
+        fg: s.filter === f ? "var(--an2)" : "var(--t2)"
+      })),
+      clientList: s.clients
+        .filter(c => s.filter === "Hammasi" ? true : s.filter === "Qarzdor" ? c.debt > 0 : s.filter === "Arxiv" ? false : c.tags.indexOf(s.filter.toLowerCase()) >= 0 || c.tags.indexOf(s.filter) >= 0)
+        .filter(c => !s.q || c.name.toLowerCase().indexOf(s.q.toLowerCase()) >= 0)
+        .map(c => {
+          const col = c.st === "gr" ? "var(--gr)" : c.st === "am" ? "var(--am)" : "var(--rd)";
+          return {
+            ...c, col, deg: Math.round(c.prog * 360) + "deg",
+            tagText: c.tags.join(" · "),
+            sub: c.debt > 0 ? "Qarz " + money(c.debt) + " so'm" : c.tarif,
+            subFg: c.debt > 0 ? "var(--rd)" : "var(--t2)",
+            open: () => this.setState({ route: "client", clientId: c.id, ctab: "Umumiy" })
+          };
+        }),
+      searchSet: e => this.setState({ q: e.target.value }),
+      q: s.q,
+      cl: (() => {
+        const c = s.clients.find(x => x.id === s.clientId) || s.clients[0];
+        const col = c.st === "gr" ? "var(--gr)" : c.st === "am" ? "var(--am)" : "var(--rd)";
+        return {
+          ...c, col, deg: Math.round(c.prog * 360) + "deg",
+          debtText: money(c.debt), priceText: money(c.price),
+          hasDebt: c.debt > 0, noBot: !c.bot,
+          statusText: c.st === "gr" ? "To'langan" : c.st === "am" ? "3 kun ichida to'lov" : "Muddati o'tgan",
+          pctText: c.pct + "%",
+          invite: () => this.flash("Taklif linki SMS orqali yuborildi"),
+          forgive: () => this.flash("Qarz kechirildi — jurnalda saqlandi", true)
+        };
+      })(),
+      ctabs: ["Umumiy", "Davomat", "To'lovlar", "Dastur", "Tavsiyalar", "Izohlar"].map(t => ({
+        label: t, pick: () => this.setState({ ctab: t }),
+        bg: s.ctab === t ? "var(--an)" : "transparent",
+        fg: s.ctab === t ? "#fff" : "var(--t2)"
+      })),
+      ct: {
+        umumiy: s.ctab === "Umumiy", davomat: s.ctab === "Davomat", tolov: s.ctab === "To'lovlar",
+        dastur: s.ctab === "Dastur", tavsiya: s.ctab === "Tavsiyalar", izoh: s.ctab === "Izohlar"
+      },
+      calDays: Array.from({ length: 31 }, (_, i) => {
+        const d = i + 1;
+        const kind = [3, 5, 10, 12, 17, 19, 24, 26].indexOf(d) >= 0 ? "done"
+          : [7, 14, 21].indexOf(d) >= 0 ? "miss"
+            : [8, 9].indexOf(d) >= 0 ? "freeze"
+              : d === 27 ? "today" : d > 27 ? "future" : "off";
+        const m = {
+          done: { bg: "var(--grb)", bd: "1px solid var(--grbd)", fg: "var(--gr)" },
+          miss: { bg: "var(--rdb)", bd: "1px solid var(--rdbd)", fg: "var(--rd)" },
+          freeze: { bg: "var(--blb)", bd: "1px solid var(--blbd)", fg: "var(--bl)" },
+          today: { bg: "transparent", bd: "1px dashed var(--an)", fg: "var(--an2)" },
+          future: { bg: "transparent", bd: "1px solid transparent", fg: "var(--t3)" },
+          off: { bg: "transparent", bd: "1px solid transparent", fg: "var(--t3)" }
+        }[kind];
+        return { d: String(d), ...m };
+      }),
+      payLog: [
+        { d: "12-iyul", a: "400 000", t: "Naqd", who: "Aziz K.", fg: "var(--gr)" },
+        { d: "12-iyun", a: "400 000", t: "Karta", who: "Aziz K.", fg: "var(--gr)" },
+        { d: "12-may", a: "200 000", t: "Qisman", who: "Aziz K.", fg: "var(--am)" },
+        { d: "3-may", a: "−200 000", t: "Storno", who: "Aziz K.", fg: "var(--rd)" }
+      ],
+      addForm: {
+        name: s.newName || "", phone: s.newPhone || "",
+        setName: e => this.setState({ newName: e.target.value }),
+        setPhone: e => {
+          const v = e.target.value;
+          const dup = s.clients.find(c => c.phone.replace(/\D/g, "").slice(-9) === v.replace(/\D/g, "").slice(-9) && v.replace(/\D/g, "").length >= 9);
+          this.setState({ newPhone: v, dupName: dup ? dup.name : null });
+        },
+        dup: !!s.dupName, dupName: s.dupName || "",
+        canSave: !!(s.newName && s.newName.length > 2),
+        saveBg: s.newName && s.newName.length > 2 ? "linear-gradient(135deg,#E5484D,#FF6B6B)" : "var(--s2)",
+        saveFg: s.newName && s.newName.length > 2 ? "#fff" : "var(--t3)",
+        save: () => {
+          if (!s.newName || s.newName.length < 3) return;
+          const ini = s.newName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+          const nc = { id: Date.now(), name: s.newName, ini, phone: s.newPhone || "+998 90 000 00 00", tarif: "Oylik · 400 000", price: 400000, st: "am", debt: 0, next: "27-avgust", prog: .05, streak: 0, tags: ["yangi"], last: "Hali kelmagan", visits: 0, pct: 0, bot: false };
+          this.setState(st2 => ({ clients: [nc, ...st2.clients], newName: "", newPhone: "", dupName: null, route: "clients" }));
+          this.flash(s.newName + " qo'shildi");
+        },
+        merge: () => { this.setState({ newName: "", newPhone: "", dupName: null, route: "clients" }); this.flash("Mavjud karta bilan birlashtirildi"); }
+      },
+      scan: {
+        done: s.scanned,
+        do: () => { this.setState({ scanned: true }); this.flash("Aziz Karimov — keldi · +10 XP"); setTimeout(() => this.setState({ scanned: false }), 2600); },
+        offline: s.net === "offline"
+      },
+      weekDays: [
+        { d: "Du", n: "27", cnt: 6, on: true }, { d: "Se", n: "28", cnt: 4, on: false },
+        { d: "Ch", n: "29", cnt: 7, on: false }, { d: "Pa", n: "30", cnt: 3, on: false },
+        { d: "Ju", n: "31", cnt: 6, on: false }, { d: "Sh", n: "1", cnt: 2, on: false },
+        { d: "Ya", n: "2", cnt: 0, on: false }
+      ].map(x => ({
+        ...x, bg: x.on ? "var(--an)" : "var(--s1)", fg: x.on ? "#fff" : "var(--tx)",
+        sub: x.on ? "rgba(255,255,255,.75)" : "var(--t3)", pick: () => { }
+      })),
+      slotForm: {
+        save: () => { this.nav("schedule"); this.flash("Slot yaratildi · Dush/Chor/Juma 18:00"); },
+        cancelAll: () => this.flash("Ommaviy bekor: 4 slot bekor qilindi", true)
+      },
+      cash: {
+        income: money(4250000), expected: money(1850000), debt: money(s.clients.reduce((a, c) => a + c.debt, 0)),
+        filters: [["Hammasi", "all"], ["To'langan", "gr"], ["Yaqin", "am"], ["Qarzdor", "rd"]].map(([label, k]) => ({
+          label, pick: () => this.setState({ cashF: k }),
+          bg: (s.cashF || "all") === k ? "rgba(229,72,77,.14)" : "var(--s1)",
+          bd: (s.cashF || "all") === k ? "var(--an)" : "var(--bd)",
+          fg: (s.cashF || "all") === k ? "var(--an2)" : "var(--t2)"
+        })),
+        rows: s.clients.filter(c => !s.cashF || s.cashF === "all" ? true : c.st === s.cashF).map(c => {
+          const col = c.st === "gr" ? "var(--gr)" : c.st === "am" ? "var(--am)" : "var(--rd)";
+          const bg = c.st === "gr" ? "var(--grb)" : c.st === "am" ? "var(--amb)" : "var(--rdb)";
+          return {
+            ...c, col, chipBg: bg, deg: Math.round(c.prog * 360) + "deg",
+            amount: c.debt > 0 ? money(c.debt) + " so'm qarz" : money(c.price) + " so'm",
+            when: c.st === "rd" ? "Muddati o'tgan · " + c.next : "To'lov " + c.next,
+            pay: () => this.setState({ route: "payment", payClient: c.id, amount: 0, payDup: false })
+          };
+        }),
+        voice: () => this.setState({ voiceOpen: true })
+      },
+      pay: (() => {
+        const c = s.clients.find(x => x.id === s.payClient) || s.clients[0];
+        const amt = s.amount || 0;
+        return {
+          name: c.name, ini: c.ini, price: money(c.price), priceRaw: c.price,
+          amountText: amt ? money(amt) : "0",
+          quick: [["To'liq", c.price], ["Yarim", Math.round(c.price / 2)], ["250 000", 250000], ["Boshqa", 0]].map(([label, v]) => ({
+            label, pick: () => this.setState({ amount: v, payDup: false }),
+            bg: amt === v && v ? "rgba(229,72,77,.14)" : "var(--s2)",
+            bd: amt === v && v ? "var(--an)" : "var(--bd)",
+            fg: amt === v && v ? "var(--an2)" : "var(--t2)"
+          })),
+          methods: ["Naqd", "Karta o'tkazma", "Payme havola"].map(m => ({
+            label: m, pick: () => this.setState({ payMethod: m }),
+            bg: s.payMethod === m ? "rgba(229,72,77,.14)" : "var(--s2)",
+            bd: s.payMethod === m ? "var(--an)" : "var(--bd)",
+            fg: s.payMethod === m ? "var(--an2)" : "var(--t2)"
+          })),
+          partial: amt > 0 && amt < c.price,
+          restText: money(Math.max(0, c.price - amt)),
+          dup: s.payDup,
+          canSave: amt > 0,
+          saveBg: amt > 0 ? "linear-gradient(135deg,#E5484D,#FF6B6B)" : "var(--s2)",
+          saveFg: amt > 0 ? "#fff" : "var(--t3)",
+          save: () => {
+            if (!amt) return;
+            if (amt === 400000 && !s.payDup) { this.setState({ payDup: true }); return; }
+            const rest = Math.max(0, c.price - amt);
+            this.setState(st2 => ({
+              clients: st2.clients.map(x => x.id === c.id ? { ...x, debt: rest, st: rest > 0 ? "am" : "gr" } : x),
+              route: "cash", payDup: false, amount: 0
+            }));
+            this.flash(money(amt) + " so'm qabul qilindi · kvitansiya botga ketdi", true);
+          },
+          confirmDup: () => {
+            const rest = Math.max(0, c.price - amt);
+            this.setState(st2 => ({
+              clients: st2.clients.map(x => x.id === c.id ? { ...x, debt: rest, st: rest > 0 ? "am" : "gr" } : x),
+              route: "cash", payDup: false, amount: 0
+            }));
+            this.flash("Yangi to'lov sifatida saqlandi");
+          },
+          cancelDup: () => this.setState({ payDup: false, route: "cash", amount: 0 })
+        };
+      })(),
+      tariffs: [
+        { name: "Oylik standart", price: "400 000", type: "Oylik · 30 kun", n: 12, on: true },
+        { name: "12 mashg'ulot paketi", price: "600 000", type: "Paket · 12 ta", n: 5, on: true },
+        { name: "Bir martalik", price: "80 000", type: "Bir martalik", n: 3, on: true },
+        { name: "Guruh oylik", price: "250 000", type: "Oylik · guruh", n: 6, on: false }
+      ].map(t => ({ ...t, fg: t.on ? "var(--gr)" : "var(--t3)", bg: t.on ? "var(--grb)" : "var(--s2)", label: t.on ? "Faol" : "Arxiv" })),
+      freeze: {
+        reasons: ["Kasallik", "Safar", "Boshqa"].map(r => ({
+          label: r, pick: () => this.setState({ frz: r }),
+          bg: (s.frz || "Kasallik") === r ? "rgba(229,72,77,.14)" : "var(--s2)",
+          bd: (s.frz || "Kasallik") === r ? "var(--an)" : "var(--bd)",
+          fg: (s.frz || "Kasallik") === r ? "var(--an2)" : "var(--t2)"
+        })),
+        days: s.frzDays || 7,
+        inc: () => this.setState(st2 => ({ frzDays: Math.min(30, (st2.frzDays || 7) + 1) })),
+        dec: () => this.setState(st2 => ({ frzDays: Math.max(1, (st2.frzDays || 7) - 1) })),
+        used: (s.frzDays || 7) + " / 30 kun ishlatiladi",
+        newDate: "19-avgust",
+        save: () => { this.nav("client"); this.flash("Muzlatildi · abonement 19-avgustgacha suriladi", true); }
+      },
+      builder: {
+        items: (s.prog || [
+          { n: "Jim ustida press", s: "4×8", w: "60 kg" },
+          { n: "Gantel yelka", s: "3×12", w: "16 kg" },
+          { n: "Trisepsga blok", s: "3×15", w: "" }
+        ]).map((x, i) => ({ ...x, i: String(i + 1), w: x.w || "—" })),
+        add: () => this.nav("library"),
+        save: () => { this.nav("client"); this.flash("Dastur saqlandi va Azizga biriktirildi"); }
+      },
+      library: {
+        list: [
+          { n: "Jim ustida press", g: "Ko'krak", ru: "Жим лёжа" },
+          { n: "Prisedaniye", g: "Oyoq", ru: "Присед" },
+          { n: "Stanovaya tortish", g: "Orqa", ru: "Становая" },
+          { n: "Turnikda tortilish", g: "Orqa", ru: "Подтягивания" },
+          { n: "Gantel yelka", g: "Yelka", ru: "Жим гантелей" },
+          { n: "Bitsepsga shtanga", g: "Qo'l", ru: "Бицепс штанга" },
+          { n: "Planka", g: "Kor", ru: "Планка" }
+        ].map(x => ({ ...x, add: () => { this.nav("builder"); this.flash(x.n + " dasturga qo'shildi"); } }))
+      },
+      reports: {
+        periods: ["Hafta", "Oy", "Chorak"].map(p => ({
+          label: p, pick: () => this.setState({ per: p }),
+          bg: (s.per || "Oy") === p ? "var(--an)" : "transparent",
+          fg: (s.per || "Oy") === p ? "#fff" : "var(--t2)"
+        })),
+        bars: [62, 78, 45, 92, 70, 100, 84].map((h, i) => ({ h: h + "%", label: ["1", "5", "9", "13", "17", "21", "25"][i] })),
+        rows: [
+          { k: "Tushum", v: "4 250 000", fg: "var(--tx)" },
+          { k: "Kutilayotgan", v: "1 850 000", fg: "var(--am)" },
+          { k: "Yig'ilmagan qarz", v: "400 000", fg: "var(--rd)" },
+          { k: "O'sish", v: "+18%", fg: "var(--gr)" }
+        ],
+        exp: () => this.flash("PDF tayyorlandi va botga yuborildi")
+      },
+      recipe: {
+        save: () => { this.nav("client"); this.flash("Retsept yuborildi · Azizning ilovasida ko'rinadi"); },
+        gone: true
+      },
+      stats: {
+        bars: [40, 55, 48, 72, 66, 84, 78, 92].map(h => ({ h: h + "%" })),
+        top: [
+          { n: "Dilnoza Rahimova", v: "96%", fg: "var(--gr)" },
+          { n: "Kamola Usmonova", v: "91%", fg: "var(--gr)" },
+          { n: "Shoxrux Aliyev", v: "39%", fg: "var(--rd)" }
+        ]
+      },
+      churnList: [
+        { n: "Sardor Toshpo'latov", ini: "ST", why: "2 haftada 1 marta (odatda 3)", lvl: "Yuqori", bg: "var(--rdb)", fg: "var(--rd)" },
+        { n: "Shoxrux Aliyev", ini: "SH", why: "Ketma-ket 2 marta kelmadi + qarz 7 kun", lvl: "Yuqori", bg: "var(--rdb)", fg: "var(--rd)" },
+        { n: "Bekzod Yo'ldoshev", ini: "BY", why: "Chastota 40% pasaygan", lvl: "O'rta", bg: "var(--amb)", fg: "var(--am)" }
+      ].map(x => ({
+        ...x,
+        msg: () => this.flash(x.n.split(" ")[0] + "ga «Sog'indik!» xabari ketdi"),
+        ignore: () => this.flash("E'tiborsiz qoldirildi — algoritm o'rganadi")
+      })),
+      menu: {
+        proLabel: s.pro ? "PRO faol" : "Bepul · 5 shogird",
+        toggleTheme: () => this.setState({ theme: s.theme === "dark" ? "light" : "dark" }),
+        themeLabel: s.theme === "dark" ? "Kechki zal" : "Gips",
+        langLabel: s.lang === "uz" ? "O'zbekcha" : "Русский",
+        toggleLang: () => this.setState({ lang: s.lang === "uz" ? "ru" : "uz" }),
+        logout: () => { this.setState({ route: "splash", otp: "" }); setTimeout(() => this.setState({ route: "lang" }), 1500); }
+      },
+      paywall: {
+        grace: s.grace,
+        buy: () => { this.setState({ pro: true, grace: false, route: "menu" }); this.flash("PRO faollashtirildi · 12-avgustgacha"); },
+        later: () => this.nav("menu")
+      },
+      site: {
+        toggle: () => this.setState({ siteProof: !s.siteProof }),
+        proofOn: !!s.siteProof,
+        knob: s.siteProof ? "auto" : "0", knobBg: s.siteProof ? "var(--gr)" : "var(--s3)",
+        publish: () => this.flash("ustoz.uz/t/aziz yangilandi")
+      },
+      voiceOpen: !!s.voiceOpen,
+      voice: {
+        close: () => this.setState({ voiceOpen: false }),
+        confirm: () => {
+          this.setState(st2 => ({
+            voiceOpen: false,
+            clients: st2.clients.map(x => x.id === 1 ? { ...x, debt: 0, st: "gr" } : x)
+          }));
+          this.flash("Davomat + 50 000 so'm saqlandi", true);
+        },
+        manual: () => this.setState({ voiceOpen: false, route: "payment", payClient: 1, amount: 50000 })
+      },
+      keys, otpKeys, otpCells, phoneMask, otpErr: s.otpErr,
+      resendLabel: s.resend > 0 ? "Qayta yuborish · " + s.resend + " s" : "Kodni qayta yuborish",
+      showTgFallback: s.tgFallback,
+      dirs: DIRS.map(d => ({
+        label: d, pick: () => this.setState({ dir: d }),
+        bg: s.dir === d ? "rgba(229,72,77,.14)" : "var(--s1)",
+        bd: s.dir === d ? "var(--an)" : "var(--bd)",
+        fg: s.dir === d ? "var(--an2)" : "var(--t2)"
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

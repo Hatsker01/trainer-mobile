@@ -35,7 +35,30 @@ import 'support/fakes.dart';
 
 const double kStatusBar = 44;
 
+/// Material ikona shriftini yuklaydi.
+///
+/// `flutter test` da ikona shrifti bundle'ga kirmaydi — natijada barcha
+/// ikona KVADRAT bo'lib chiqadi va skrinshot yaroqsiz bo'ladi. Shriftni
+/// Flutter SDK keshidan olamiz. Topilmasa test yiqilmaydi (ikonalar
+/// kvadrat qoladi) — bu diagnostika vositasi, sifat darvozasi emas.
+Future<void> _loadIconFont() async {
+  final String? root = Platform.environment['FLUTTER_ROOT'];
+  if (root == null) {
+    return;
+  }
+  final File f = File(
+    '$root/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+  );
+  if (!f.existsSync()) {
+    return;
+  }
+  final FontLoader loader = FontLoader('MaterialIcons')
+    ..addFont(Future<ByteData>.value(f.readAsBytesSync().buffer.asByteData()));
+  await loader.load();
+}
+
 Future<void> _loadFonts() async {
+  await _loadIconFont();
   for (final (String family, String path) in <(String, String)>[
     ('Unbounded', 'assets/fonts/Unbounded-Variable.ttf'),
     ('Manrope', 'assets/fonts/Manrope-Variable.ttf'),
@@ -64,7 +87,11 @@ Future<void> _capture(WidgetTester tester, String name) async {
 /// Ekranni 44px status-bar insetli MediaQuery + chegara chizig'i bilan o'raydi.
 /// [shell] — AppShell kabi SafeArea(top) qo'shadi (AppBar'siz ekranlar uchun).
 Widget _framed(Widget child, {required bool shell}) {
-  const AppColors c = AppColors.light;
+  // P4: ramka foni DEFAULT tema bilan bir xil bo'lishi SHART. Ilgari bu
+  // yerda `AppColors.light` qattiq yozilgan edi — natijada skrinshotda
+  // "och fon + to'q kartalar" chiqib, ilova buzuq ko'rinardi (aslida
+  // ilova to'g'ri edi, ramka noto'g'ri).
+  const AppColors c = AppColors.dark;
   // Shell ekranlar (AppShell'da Scaffold ostida) — TextField uchun Material
   // ajdodi + SafeArea (H1) kerak.
   final Widget body = shell
@@ -99,7 +126,7 @@ Widget _framed(Widget child, {required bool shell}) {
             height: 1,
             child: ColoredBox(color: Color(0xFFE5484D)),
           ),
-          const Positioned(
+          Positioned(
             top: 12,
             left: 16,
             child: Text(
@@ -108,7 +135,7 @@ Widget _framed(Widget child, {required bool shell}) {
                 fontFamily: 'Manrope',
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF222222),
+                color: c.ink,
               ),
             ),
           ),
@@ -123,7 +150,9 @@ Widget _app(Widget framed, List<Override> overrides) => ProviderScope(
   child: AppStringsScope(
     strings: const AppStrings(Lang.uz),
     child: MaterialApp(
-      theme: AppTheme.light,
+      // P4: skrinshotlar DEFAULT temada (dark "Kechki zal") olinadi —
+      // foydalanuvchi ilovani aynan shunday ko'radi.
+      theme: AppTheme.dark,
       debugShowCheckedModeBanner: false,
       home: framed,
     ),

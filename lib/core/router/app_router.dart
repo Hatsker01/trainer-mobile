@@ -10,6 +10,7 @@ import 'package:ustoz_trainer/features/auth/ui/otp_screen.dart';
 import 'package:ustoz_trainer/features/auth/ui/phone_screen.dart';
 import 'package:ustoz_trainer/features/auth/ui/profile_setup_screen.dart';
 import 'package:ustoz_trainer/features/calendar/ui/calendar_screen.dart';
+import 'package:ustoz_trainer/features/cash/ui/cash_screen.dart';
 import 'package:ustoz_trainer/features/dashboard/ui/dashboard_screen.dart';
 import 'package:ustoz_trainer/features/notifications/ui/notifications_screen.dart';
 import 'package:ustoz_trainer/features/settings/ui/settings_screen.dart';
@@ -30,6 +31,7 @@ abstract final class Routes {
   static const String dashboard = '/dashboard';
   static const String students = '/students';
   static const String studentNew = '/students/new';
+  static const String cash = '/cash';
   static const String stats = '/stats';
   static const String calendar = '/calendar';
   static const String notifications = '/notifications';
@@ -144,6 +146,10 @@ final Provider<GoRouter> routerProvider = Provider<GoRouter>((Ref ref) {
             path: Routes.calendar,
             builder: (BuildContext _, GoRouterState _) =>
                 const CalendarScreen(),
+          ),
+          GoRoute(
+            path: Routes.cash,
+            builder: (BuildContext _, GoRouterState _) => const CashScreen(),
           ),
           GoRoute(
             path: Routes.stats,

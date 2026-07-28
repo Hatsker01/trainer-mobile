@@ -169,8 +169,33 @@ class AppStrings {
   String get viewProfile => _p("Profilni ko'rish", 'Открыть профиль');
 
   // ------------------------------------------------------- REDESIGN (navigatsiya)
-  String get navHome => _p('Bosh sahifa', 'Главная');
+  /// TZ §3.0: bottom bar "Bugun" deydi — "Bosh sahifa" emas.
+  /// Trener ertalab ochadi va AYNAN bugunni ko'radi.
+  String get navHome => _p('Bugun', 'Сегодня');
   String get navSettings => _p('Sozlamalar', 'Настройки');
+
+  /// Bottom bar: Bugun · Shogirdlar · Jadval · Kassa · Menyu (TZ §3.0).
+  String get navSchedule => _p('Jadval', 'Расписание');
+  String get navCash => _p('Kassa', 'Касса');
+  String get navMenu => _p('Menyu', 'Меню');
+
+  // ── Kassa (TZ §3.6) ──
+  String get cashPaid => _p("To'langan", 'Оплачено');
+  String get cashDueSoon => _p('Yaqin', 'Скоро');
+  String get cashOverdue => _p('Qarzdor', 'Долг');
+  String get cashDebtTotal => _p('Jami qarz', 'Общий долг');
+  String get cashEmptyTitle => _p("Kassa bo'sh", 'Касса пуста');
+  String get cashEmptyMessage => _p(
+    "Shogird qo'shsangiz to'lov holati shu yerda ko'rinadi.",
+    'Добавьте ученика — статус оплат появится здесь.',
+  );
+  String get cashNoMatchTitle =>
+      _p('Bu holatda shogird yo\'q', 'Нет учеников с этим статусом');
+  String get cashNoMatchMessage => _p(
+    'Boshqa filtrni tanlang yoki hammasini ko\'ring.',
+    'Выберите другой фильтр или посмотрите всех.',
+  );
+  String get showAll => _p('Hammasini ko\'rsatish', 'Показать всех');
 
   // ------------------------------------------------------ REDESIGN (tavsiyalar)
   String get recommendationsTab => _p('Tavsiyalar', 'Рекомендации');

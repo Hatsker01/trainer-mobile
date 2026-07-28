@@ -38,86 +38,79 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.avatarTo,
   });
 
-  /// Dizayndagi yagona mavjud tema.
+  /// **Kechki zal** — dark, mahsulotning default temasi (P4 redesign).
+  ///
+  /// Qiymatlar `packages/ustoz_ui` dan (`UstozColors.dark`) — prototipdan
+  /// 1:1 olingan. Bu yerda faqat **nom ko'prigi**: mavjud 15k satr UI
+  /// `context.colors.bg0` deb yozadi, `ustoz_ui` esa `bg` deydi.
+  /// Shu ko'prik tufayli barcha ekran bitta fayl orqali yangi dizaynga
+  /// o'tdi — har biriga alohida tegilmadi (P1.6).
+  ///
+  /// Yangi kod TO'G'RIDAN-TO'G'RI `context.uColors` ishlatadi.
   static const AppColors dark = AppColors(
-    // --bg0: chuqur temir. Ekran foni, ring markazidagi "plita teshigi".
-    bg0: Color(0xFF0C0D10),
-    // --bg1: ikkilamchi sirt. Tabbar shu rangning 72% shaffofi.
-    bg1: Color(0xFF131519),
-    // --glass / --glass-hi: shisha sirtlar.
-    glass: Color.fromRGBO(255, 255, 255, 0.055),
-    glassHi: Color.fromRGBO(255, 255, 255, 0.09),
-    // --ink: mel (chalk). Asosiy matn.
-    ink: Color(0xFFF4F2EC),
-    soft: Color(0xFF9C9FA8),
-    dim: Color(0xFF5E626C),
-    // --anor: anor. Brend rangi, tugma gradienti boshlanishi.
-    anor: Color(0xFFFF5340),
-    anor2: Color(0xFFE2264B),
-    anorGlow: Color.fromRGBO(255, 83, 64, 0.35),
-    // Ring gradienti tugma gradientidan FARQ QILADI (D104) — dizaynda shunday.
-    ringStart: Color(0xFFFF6A3D),
-    ringEnd: Color(0xFFE2264B),
-    ok: Color(0xFF3DD68C),
-    okSoft: Color.fromRGBO(61, 214, 140, 0.14),
-    warn: Color(0xFFFFC24D),
-    warnSoft: Color.fromRGBO(255, 194, 77, 0.14),
-    // Qarz rangi dizaynda o'zgaruvchi emas edi — token sifatida rasmiylashtirildi (D103).
-    debt: Color(0xFFFF7A6B),
-    debtSoft: Color.fromRGBO(255, 83, 64, 0.14),
-    line: Color.fromRGBO(255, 255, 255, 0.08),
-    sheet: Color(0xFF17191E),
-    toast: Color(0xFF1E2126),
-    scrim: Color.fromRGBO(0, 0, 0, 0.55),
-    tabBar: Color.fromRGBO(19, 21, 25, 0.72),
-    avatarFrom: Color(0xFF23262D),
-    avatarTo: Color(0xFF17191E),
+    bg0: Color(0xFF0E1116),
+    bg1: Color(0xFF171B22),
+    // Eski "glass" yarim shaffof oq edi; yangi tizimda sirtlar qattiq.
+    glass: Color(0xFF171B22),
+    glassHi: Color(0xFF1F242E),
+    ink: Color(0xFFEDEFF3),
+    soft: Color(0xFF98A1AE),
+    // Kontrast AA ga ko'tarilgan (prototip #6A7280 = 3.9:1).
+    dim: Color(0xFF7B8390),
+    anor: Color(0xFFE5484D),
+    anor2: Color(0xFFFF6B6B),
+    anorGlow: Color(0x4DE5484D),
+    // Ring gradienti endi brend gradienti bilan BIR XIL (eski D104 bekor:
+    // ikkita turli qizil gradient brendni bo'lardi).
+    ringStart: Color(0xFFE5484D),
+    ringEnd: Color(0xFFFF6B6B),
+    ok: Color(0xFF2FBF87),
+    okSoft: Color(0x212FBF87),
+    warn: Color(0xFFE3A64A),
+    warnSoft: Color(0x21E3A64A),
+    debt: Color(0xFFE23E63),
+    debtSoft: Color(0x24E23E63),
+    line: Color(0x12FFFFFF),
+    sheet: Color(0xFF171B22),
+    toast: Color(0xFF1F242E),
+    scrim: Color(0x9E06080B),
+    tabBar: Color(0xBD171B22),
+    avatarFrom: Color(0xFF262C37),
+    avatarTo: Color(0xFF262C37),
   );
 
-  /// REDESIGN (2026-07-21, D208) — "USTOZ light" · navy #1A3D7C birlamchi +
-  /// emerald #2ECC71 ikkilamchi. Qiymatlar yangi dizayn frame'laridan
-  /// pikseldan namuna olingan. Maydon nomlari `dark` bilan bir xil — barcha
-  /// widget `context.colors` orqali avtomatik yangi rangga o'tadi.
+  /// **Gips** — light tema (P4 redesign). Issiq qog'oz foni.
+  ///
+  /// Eski D208 navy/emerald palitrasi BEKOR: prototip anor aksentini
+  /// talab qiladi va brend ikkala temada bir xil bo'lishi kerak.
   static const AppColors light = AppColors(
-    // Ekran foni — deyarli oq (frame'lardan #FDFDFD).
-    bg0: Color(0xFFFDFDFD),
-    // Ikkilamchi sirt / frosted tabbar bazasi.
+    bg0: Color(0xFFF7F5F2),
     bg1: Color(0xFFFFFFFF),
-    // "glass" endi qattiq oq karta (light rejimda shaffoflik kerak emas).
     glass: Color(0xFFFFFFFF),
-    glassHi: Color(0xFFF4F6F8),
-    // Asosiy matn — to'q kulrang (sof qora emas).
-    ink: Color(0xFF222222),
-    soft: Color(0xFF6B7179),
-    dim: Color(0xFF9AA0A6),
-    // Brend gradienti: navy hi → navy (tugma/chip/FAB).
-    anor: Color(0xFF244C8E),
-    anor2: Color(0xFF1A3D7C),
-    anorGlow: Color.fromRGBO(26, 61, 124, 0.28),
-    // Ring — navy ohanglar (motiv ixtiyoriy, D208).
-    ringStart: Color(0xFF2E63B0),
-    ringEnd: Color(0xFF1A3D7C),
-    // Muvaffaqiyat — emerald.
-    ok: Color(0xFF2ECC71),
-    okSoft: Color.fromRGBO(46, 204, 113, 0.14),
-    // Ogohlantirish / qisman — amber (matn uchun to'qroq; fon tint ochiq).
-    warn: Color(0xFFB8860B),
-    warnSoft: Color.fromRGBO(228, 170, 37, 0.16),
-    // Qarz — o'qiladigan qizil (kichik matn AA, R1-F3: #D63C2C 4.62:1).
-    debt: Color(0xFFD63C2C),
-    debtSoft: Color.fromRGBO(231, 76, 60, 0.12),
-    // Chegara / chiziq — ochiq kulrang.
-    line: Color(0xFFE7EAEE),
+    glassHi: Color(0xFFEFEAE4),
+    ink: Color(0xFF16181D),
+    soft: Color(0xFF62666F),
+    // Kontrast AA ga ko'tarilgan (prototip #8E939C = 2.7:1).
+    dim: Color(0xFF6B7079),
+    anor: Color(0xFFE5484D),
+    anor2: Color(0xFFE5484D),
+    anorGlow: Color(0x33E5484D),
+    ringStart: Color(0xFFE5484D),
+    ringEnd: Color(0xFFFF6B6B),
+    ok: Color(0xFF12855C),
+    okSoft: Color(0xFFE3F5EC),
+    warn: Color(0xFF9C6712),
+    warnSoft: Color(0xFFFAF0DC),
+    debt: Color(0xFFC6314F),
+    debtSoft: Color(0xFFFBE9ED),
+    line: Color(0x1714100C),
     sheet: Color(0xFFFFFFFF),
-    // Toast — to'q "pill" (matn oq, app_toast forsirlaydi) — light'da ham to'q.
-    toast: Color(0xFF222A35),
-    // Scrim — light uchun yumshoqroq.
-    scrim: Color.fromRGBO(17, 24, 39, 0.45),
-    // Frosted oq tabbar (blur yoqilgan).
-    tabBar: Color.fromRGBO(255, 255, 255, 0.82),
-    // Avatar fallback foni — navy-tint ochiq gradient.
-    avatarFrom: Color(0xFFE9EDF3),
-    avatarTo: Color(0xFFDCE3EC),
+    // Toast light'da ham to'q — kontrast uchun.
+    toast: Color(0xFF1F242E),
+    scrim: Color(0x571C1610),
+    tabBar: Color(0xCCFFFFFF),
+    avatarFrom: Color(0xFFF1ECE6),
+    avatarTo: Color(0xFFF1ECE6),
   );
 
   final Color bg0;
@@ -146,13 +139,14 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color avatarFrom;
   final Color avatarTo;
 
-  /// Tugma / chip / FAB gradienti: `linear-gradient(135deg, #FF5340, #E2264B)`.
+  /// Tugma / chip / FAB gradienti: `linear-gradient(135deg, #E5484D, #FF6B6B)`.
+  /// Ikkala temada BIR XIL — brend rangi tema bilan o'zgarmaydi.
   ///
   /// CSS `135deg` = yuqori-chapdan pastki-o'ngga.
-  LinearGradient get anorGradient => LinearGradient(
+  LinearGradient get anorGradient => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: <Color>[anor, anor2],
+    colors: <Color>[Color(0xFFE5484D), Color(0xFFFF6B6B)],
   );
 
   /// Ring yoyi gradienti: SVG `linearGradient#ag` (x1,y1=0,0 → x2,y2=1,1).
@@ -265,5 +259,5 @@ class AppColors extends ThemeExtension<AppColors> {
 /// yozmaslik uchun.
 extension AppColorsX on BuildContext {
   AppColors get colors =>
-      Theme.of(this).extension<AppColors>() ?? AppColors.light;
+      Theme.of(this).extension<AppColors>() ?? AppColors.dark;
 }

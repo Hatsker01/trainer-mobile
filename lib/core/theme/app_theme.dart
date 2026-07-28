@@ -3,8 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:ustoz_trainer/core/theme/app_colors.dart';
 import 'package:ustoz_trainer/core/theme/app_text.dart';
 
-/// Ilova temasi. REDESIGN (D208): `light` — yangi navy/emerald tizim (aktiv).
-/// `dark` — eski "KECHKI ZAL" (saqlanadi, keyin qaytishi mumkin).
+/// Ilova temasi (P4 redesign).
+///
+/// Rang qiymatlari `packages/ustoz_ui` dan keladi — `AppColors` faqat
+/// **nom ko'prigi** (eski maydon nomlari saqlanadi, qiymatlar yangi).
+/// Default tema — **dark "Kechki zal"** (TZ §3: "dark-first").
+///
+/// Yangi ekranlar `UstozTheme` + `context.uColors` bilan yoziladi;
+/// bu fayl mavjud ekranlar migratsiya qilinguncha turadi.
 abstract final class AppTheme {
   /// REDESIGN — aktiv tema. Barcha token `AppColors.light` dan.
   static ThemeData get light {
@@ -19,13 +25,13 @@ abstract final class AppTheme {
       extensions: const <ThemeExtension<dynamic>>[c],
 
       colorScheme: const ColorScheme.light(
-        primary: Color(0xFF1A3D7C),
+        primary: Color(0xFFE5484D),
         onPrimary: Colors.white,
-        secondary: Color(0xFF2ECC71),
+        secondary: Color(0xFFFF6B6B),
         onSecondary: Colors.white,
         surface: Color(0xFFFFFFFF),
-        onSurface: Color(0xFF222222),
-        error: Color(0xFFD63C2C),
+        onSurface: Color(0xFF16181D),
+        error: Color(0xFFC6314F),
         onError: Colors.white,
       ),
 
@@ -47,9 +53,9 @@ abstract final class AppTheme {
 
       // Kursor / tanlash — navy.
       textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: Color(0xFF1A3D7C),
-        selectionColor: Color(0x331A3D7C),
-        selectionHandleColor: Color(0xFF1A3D7C),
+        cursorColor: Color(0xFFE5484D),
+        selectionColor: Color(0x33E5484D),
+        selectionHandleColor: Color(0xFFE5484D),
       ),
 
       // Light rejim: status bar ikonlari QORA (yorug' fon ustida).
@@ -61,7 +67,7 @@ abstract final class AppTheme {
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.dark,
           statusBarBrightness: Brightness.light,
-          systemNavigationBarColor: Color(0xFFFFFFFF),
+          systemNavigationBarColor: Color(0xFFF7F5F2),
           systemNavigationBarIconBrightness: Brightness.dark,
         ),
       ),
@@ -80,13 +86,13 @@ abstract final class AppTheme {
       extensions: const <ThemeExtension<dynamic>>[c],
 
       colorScheme: const ColorScheme.dark(
-        primary: Color(0xFFFF5340),
+        primary: Color(0xFFE5484D),
         onPrimary: Colors.white,
-        secondary: Color(0xFFE2264B),
+        secondary: Color(0xFFFF6B6B),
         onSecondary: Colors.white,
-        surface: Color(0xFF17191E),
-        onSurface: Color(0xFFF4F2EC),
-        error: Color(0xFFFF7A6B),
+        surface: Color(0xFF171B22),
+        onSurface: Color(0xFFEDEFF3),
+        error: Color(0xFFE23E63),
         onError: Colors.white,
       ),
 
@@ -109,9 +115,9 @@ abstract final class AppTheme {
 
       // Kursor / tanlash — anor.
       textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: Color(0xFFFF5340),
-        selectionColor: Color(0x40FF5340),
-        selectionHandleColor: Color(0xFFFF5340),
+        cursorColor: Color(0xFFE5484D),
+        selectionColor: Color(0x40E5484D),
+        selectionHandleColor: Color(0xFFE5484D),
       ),
 
       // Ekran ostidagi tizim panellari shaffof — dizayn "to'liq ekran".
