@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ustoz_trainer/core/api/dto/dashboard_dto.dart';
 import 'package:ustoz_trainer/core/api/dto/enums.dart';
 import 'package:ustoz_trainer/core/api/dto/student_dto.dart';
 import 'package:ustoz_trainer/core/i18n/strings.dart';
@@ -17,6 +18,7 @@ import 'package:ustoz_trainer/core/widgets/plita_ring.dart';
 import 'package:ustoz_trainer/core/widgets/press_scale.dart';
 import 'package:ustoz_trainer/core/widgets/skeleton.dart';
 import 'package:ustoz_trainer/features/payments/ui/payment_sheet.dart';
+import 'package:ustoz_trainer/features/stats/ui/stats_screen.dart';
 import 'package:ustoz_trainer/features/students/providers/students_provider.dart';
 
 /// **Kassa** — to'lovlar moduli (TZ §3.6, "mahsulot yuragi").
@@ -70,6 +72,7 @@ class _CashScreenState extends ConsumerState<CashScreen> {
           data: (StudentsState st) => _Content(
             students: st.items,
             filter: _filter,
+            stats: ref.watch(statsProvider).value,
             onFilter: (PaymentState? f) =>
                 setState(() => _filter = _filter == f ? null : f),
           ),
@@ -84,11 +87,13 @@ class _Content extends StatelessWidget {
     required this.students,
     required this.filter,
     required this.onFilter,
+    this.stats,
   });
 
   final List<Student> students;
   final PaymentState? filter;
   final ValueChanged<PaymentState?> onFilter;
+  final StatsResponse? stats;
 
   /// Svetofor guruhlari (TZ §3.6.3).
   ///
@@ -118,6 +123,14 @@ class _Content extends StatelessWidget {
         .where(_isRed)
         .fold<int>(0, (int sum, Student x) => sum + x.tariffPrice);
 
+    // Hero (prototip v3): tushum (real, statsdan) + kutilmoqda (yaqin
+    // to'lovlar summasi) + qarz + o'sish %.
+    final int income = stats?.monthRevenue ?? 0;
+    final int expected = active
+        .where(_isAmber)
+        .fold<int>(0, (int sum, Student x) => sum + x.tariffPrice);
+    final double? growth = stats?.changePercent;
+
     final List<Student> visible = switch (filter) {
       null => active,
       PaymentState.paid => active.where(_isGreen).toList(),
@@ -136,6 +149,44 @@ class _Content extends StatelessWidget {
       children: <Widget>[
         Text(s.navCash, style: AppText.display24.copyWith(color: c.ink)),
         const SizedBox(height: AppSpacing.lg),
+
+        // ── Hero: tushum + kutilmoqda / qarz / o'sish ──
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.x3l),
+          decoration: BoxDecoration(
+            color: c.glass,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: c.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                s.kpiMonthRevenue,
+                style: AppText.caption125.copyWith(color: c.soft),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              MoneyText(income, style: AppText.money40, color: c.ink),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: <Widget>[
+                  _HeroStat(label: s.cashExpected, value: Money.compact(expected), color: c.warn),
+                  const SizedBox(width: AppSpacing.xl),
+                  _HeroStat(label: s.cashDebtWord, value: Money.compact(debt), color: c.debt),
+                  if (growth != null) ...<Widget>[
+                    const SizedBox(width: AppSpacing.xl),
+                    _HeroStat(
+                      label: s.cashGrowth,
+                      value: '${growth >= 0 ? '+' : ''}${growth.toStringAsFixed(0)}%',
+                      color: growth >= 0 ? c.ok : c.debt,
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
 
         // ── Svetofor uchligi ──
         Row(
@@ -178,40 +229,6 @@ class _Content extends StatelessWidget {
           ],
         ),
 
-        // ── Qarz summasi ──
-        if (debt > 0) ...<Widget>[
-          const SizedBox(height: AppSpacing.md),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: c.debtSoft,
-              borderRadius: BorderRadius.circular(AppRadius.card),
-              border: Border.all(color: c.debt.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        s.cashDebtTotal,
-                        style: AppText.caption12.copyWith(color: c.debt),
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      MoneyText(
-                        debt,
-                        style: AppText.display24.copyWith(color: c.debt),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.trending_down_rounded, color: c.debt, size: 28),
-              ],
-            ),
-          ),
-        ],
-
         const SizedBox(height: AppSpacing.lg),
 
         if (visible.isEmpty)
@@ -235,6 +252,33 @@ class _Content extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: _CashRow(student: x),
             ),
+      ],
+    );
+  }
+}
+
+/// Hero mini-stat: yorliq + rangli qiymat (Kutilmoqda / Qarz / O'sish).
+class _HeroStat extends StatelessWidget {
+  const _HeroStat({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(label, style: AppText.label115.copyWith(color: c.dim)),
+        const SizedBox(height: 2),
+        Text(value, style: AppText.body14Bold.copyWith(color: color)),
       ],
     );
   }

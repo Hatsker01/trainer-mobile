@@ -333,6 +333,10 @@ class AppStrings {
   String get sessionsTotalLabel =>
       _p("Mashg'ulotlar soni", 'Количество занятий');
   String get statPrevMonth => _p("O'TGAN OY", 'ПРОШЛЫЙ МЕСЯЦ');
+  String get cashIncome => _p('tushum', 'поступления');
+  String get cashExpected => _p('Kutilmoqda', 'Ожидается');
+  String get cashDebtWord => _p('Qarz', 'Долг');
+  String get cashGrowth => _p("O'sish", 'Рост');
 
   // ----------------------------------------------------------- shogirdlar
   String get students => _p('Shogirdlar', 'Ученики');
