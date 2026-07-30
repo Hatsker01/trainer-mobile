@@ -30,7 +30,12 @@ import 'package:ustoz_trainer/features/recommendations/ui/recommendations_view.d
 import 'package:ustoz_trainer/features/students/providers/students_provider.dart';
 import 'package:ustoz_trainer/features/students/ui/student_form_screen.dart';
 
-/// S6 — Shogird profili (REDESIGN, root-1-17).
+/// S6 — Shogird profili (prototip v3): hero (avatar · status pill · telefon) ·
+/// real stat kartalar · joriy balans · davomat / to'lov tarixi / tavsiyalar.
+///
+/// Prototipdagi "Streak", "Jami mashg'ulot" (umrbod sessiyalar soni) va
+/// "Davomat %" backendda hali yo'q (PROTO-V3-MAP.md — ma'lumot-gap). Soxta
+/// raqam ishlatilmaydi — bu bo'laklar qo'shilmadi.
 class StudentProfileScreen extends ConsumerWidget {
   const StudentProfileScreen({required this.id, super.key});
 
@@ -94,22 +99,45 @@ class StudentProfileScreen extends ConsumerWidget {
   }
 }
 
-BoxDecoration _card(AppColors c, {double radius = 18}) => BoxDecoration(
-  color: c.glass,
-  borderRadius: BorderRadius.circular(radius),
-  border: Border.all(color: c.line),
-  boxShadow: const <BoxShadow>[
-    BoxShadow(
-      color: Color.fromRGBO(17, 24, 39, 0.05),
-      blurRadius: 18,
-      offset: Offset(0, 6),
-    ),
-  ],
+/// Prototip karta: `--s1` sirt, `--bd` chegara, radius 20.
+BoxDecoration _card(AppColors c, {double radius = AppRadius.card}) =>
+    BoxDecoration(
+      color: c.glass,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: c.line),
+      boxShadow: const <BoxShadow>[
+        BoxShadow(
+          color: Color.fromRGBO(17, 24, 39, 0.05),
+          blurRadius: 18,
+          offset: Offset(0, 6),
+        ),
+      ],
+    );
+
+/// Katta Unbounded raqam (stat qiymatlari) — prototip 19–28px, tabular-nums.
+TextStyle _numStyle(double size) => TextStyle(
+  fontFamily: AppText.displayFamily,
+  fontWeight: FontWeight.w600,
+  fontSize: size,
+  height: 1,
+  letterSpacing: -0.02 * size / 32,
+  fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
 );
 
 String _dmy(DateTime d) {
   String two(int n) => n.toString().padLeft(2, '0');
   return '${two(d.day)}.${two(d.month)}.${d.year}';
+}
+
+/// `+998901234567` → `+998 90 123 45 67`. Format tanilmasa — asl ko'rinishda.
+String _prettyPhone(String raw) {
+  final String digits = raw.replaceAll(RegExp(r'\D'), '');
+  if (digits.length == 12 && digits.startsWith('998')) {
+    final String r = digits.substring(3);
+    return '+998 ${r.substring(0, 2)} ${r.substring(2, 5)} '
+        '${r.substring(5, 7)} ${r.substring(7, 9)}';
+  }
+  return raw;
 }
 
 class _Body extends ConsumerStatefulWidget {
@@ -122,7 +150,7 @@ class _Body extends ConsumerStatefulWidget {
 }
 
 class _BodyState extends ConsumerState<_Body> {
-  int _tab = 0; // 0 = to'lovlar, 1 = davomad (H2), 2 = tavsiyalar
+  int _tab = 0; // 0 = to'lovlar, 1 = davomat, 2 = tavsiyalar
 
   Future<void> _pay() async {
     final Student student = widget.student;
@@ -153,25 +181,25 @@ class _BodyState extends ConsumerState<_Body> {
     }
   }
 
-  Widget _profileTab(AppColors c, String label, int idx) {
+  /// Prototipdagi tab chip qatori — faqat backend-wire bo'lgan 3 tab.
+  Widget _tabChip(AppColors c, String label, int idx) {
     final bool sel = _tab == idx;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => setState(() => _tab = idx),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            label,
-            style: AppText.body15Bold.copyWith(color: sel ? c.anor2 : c.dim),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            height: 2,
-            width: 28,
-            color: sel ? c.anor2 : Colors.transparent,
-          ),
-        ],
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: sel ? c.anor2 : c.glass,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: sel ? c.anor2 : c.line),
+        ),
+        child: Text(
+          label,
+          style: AppText.body13Bold.copyWith(color: sel ? Colors.white : c.dim),
+        ),
       ),
     );
   }
@@ -186,6 +214,38 @@ class _BodyState extends ConsumerState<_Body> {
     final int balance = student.balance ?? (debtor ? -student.tariffPrice : 0);
     final int totalPaid = student.totalPaid ?? 0;
 
+    // Faqat DTO da bor bo'lgan stat kartalar (streak/visits/pct — gap).
+    final List<Widget> stats = <Widget>[
+      if (student.tariffType == TariffType.monthly)
+        _StatCell(
+          label: s.nextPaymentLabel,
+          value: student.nextDueDate == null
+              ? '—'
+              : _dmy(student.nextDueDate!),
+          sub: Money.withUnit(student.tariffPrice),
+          subColor: debtor ? c.debt : c.anor2,
+        ),
+      if (student.tariffType == TariffType.package &&
+          student.sessionsLeft != null)
+        _StatCell(
+          label: s.sessionsTotalLabel,
+          value: '${student.sessionsLeft}',
+          numeric: true,
+          sub: s.sessionsOf(student.sessionsTotal ?? 0),
+          subColor: c.dim,
+        ),
+      _StatCell(
+        label: s.totalPaidLabel,
+        value: Money.compact(totalPaid),
+        valueColor: c.ok,
+      ),
+      if (student.lastPaymentAt != null)
+        _StatCell(
+          label: s.lastPaymentLabel,
+          value: _dmy(student.lastPaymentAt!),
+        ),
+    ];
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenH,
@@ -194,7 +254,7 @@ class _BodyState extends ConsumerState<_Body> {
         AppSpacing.x7l,
       ),
       children: <Widget>[
-        // ── Profil kartasi ──
+        // ── Hero: avatar · ism · status pill · telefon ──
         Container(
           decoration: _card(c),
           padding: const EdgeInsets.all(AppSpacing.x4l),
@@ -204,7 +264,7 @@ class _BodyState extends ConsumerState<_Body> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Avatar(student.name, size: 88, url: student.avatarUrl),
+                  Avatar(student.name, size: 88, url: student.avatarUrl, debt: debtor),
                   const SizedBox(width: AppSpacing.x3l),
                   Expanded(
                     child: Column(
@@ -217,11 +277,19 @@ class _BodyState extends ConsumerState<_Body> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.sm),
+                        _StatusPill(
+                          label: debtor ? s.badgeDebt : s.badgePaid,
+                          color: debtor ? c.debt : c.ok,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
                         Text(
-                          debtor ? s.badgeDebt : s.badgePaid,
-                          style: AppText.body13Bold.copyWith(
-                            color: debtor ? c.debt : c.ok,
+                          _prettyPhone(student.phone),
+                          style: AppText.caption125.copyWith(
+                            color: c.soft,
+                            fontFeatures: const <FontFeature>[
+                              FontFeature.tabularFigures(),
+                            ],
                           ),
                         ),
                       ],
@@ -229,27 +297,14 @@ class _BodyState extends ConsumerState<_Body> {
                   ),
                 ],
               ),
+
               const SizedBox(height: AppSpacing.x4l),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: _MiniStat(
-                      label: s.monthlyFeeLabel,
-                      value: Money.withUnit(student.tariffPrice),
-                      color: c.anor2,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: _MiniStat(
-                      label: s.totalPaidLabel,
-                      value: Money.withUnit(totalPaid),
-                      color: c.ok,
-                    ),
-                  ),
-                ],
-              ),
+
+              // ── Real stat kartalar (2 ustun) ──
+              _StatGrid(cells: stats),
+
               const SizedBox(height: AppSpacing.lg),
+
               // ── Joriy balans (navy karta) ──
               Container(
                 width: double.infinity,
@@ -271,11 +326,10 @@ class _BodyState extends ConsumerState<_Body> {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       Money.withUnit(balance),
-                      style: AppText.money24.copyWith(
+                      style: _numStyle(28).copyWith(
                         color: balance < 0
                             ? const Color(0xFFFF8A78)
                             : Colors.white,
-                        fontSize: 28,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -283,7 +337,10 @@ class _BodyState extends ConsumerState<_Body> {
                   ],
                 ),
               ),
+
               const SizedBox(height: AppSpacing.lg),
+
+              // ── Amallar ──
               Row(
                 children: <Widget>[
                   Expanded(
@@ -304,80 +361,149 @@ class _BodyState extends ConsumerState<_Body> {
 
         const SizedBox(height: AppSpacing.xl),
 
-        // ── To'lovlar tarixi / Tavsiyalar (F2) ──
-        Container(
-          decoration: _card(c),
-          padding: const EdgeInsets.all(AppSpacing.x4l),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  _profileTab(c, s.paymentHistory, 0),
-                  const SizedBox(width: AppSpacing.md),
-                  _profileTab(c, s.attendance, 1),
-                  const SizedBox(width: AppSpacing.md),
-                  _profileTab(c, s.recommendationsTab, 2),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              switch (_tab) {
-                0 => _PaymentsHistory(
-                  studentId: student.id,
-                  tariffPrice: student.tariffPrice,
-                ),
-                1 => _AttendanceTab(studentId: student.id),
-                _ => RecommendationsTab(
-                  studentId: student.id,
-                  studentName: student.name,
-                ),
-              },
-            ],
-          ),
+        // ── Tab chiplari ──
+        Row(
+          children: <Widget>[
+            _tabChip(c, s.paymentHistory, 0),
+            const SizedBox(width: AppSpacing.xs),
+            _tabChip(c, s.attendance, 1),
+            const SizedBox(width: AppSpacing.xs),
+            _tabChip(c, s.recommendationsTab, 2),
+          ],
         ),
+
+        const SizedBox(height: AppSpacing.xl),
+
+        switch (_tab) {
+          0 => _PaymentsHistory(
+            studentId: student.id,
+            tariffPrice: student.tariffPrice,
+          ),
+          1 => _AttendanceTab(studentId: student.id),
+          _ => RecommendationsTab(
+            studentId: student.id,
+            studentName: student.name,
+          ),
+        },
       ],
     );
   }
 }
 
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
+/// Status pill — glassHi fon, to'liq yumaloq, rangli matn (prototip).
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label, required this.color});
 
   final String label;
-  final String value;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
     final AppColors c = context.colors;
-
     return Container(
+      height: 28,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: c.glassHi,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(999),
       ),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Text(label, style: AppText.body13Bold.copyWith(color: color)),
+    );
+  }
+}
+
+/// Real stat kartalarni 2 ustunli gridga joylaydi.
+class _StatGrid extends StatelessWidget {
+  const _StatGrid({required this.cells});
+
+  final List<Widget> cells;
+
+  @override
+  Widget build(BuildContext context) {
+    if (cells.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final List<Widget> rows = <Widget>[];
+    for (int i = 0; i < cells.length; i += 2) {
+      final bool hasSecond = i + 1 < cells.length;
+      rows.add(
+        Padding(
+          padding: EdgeInsets.only(top: i == 0 ? 0 : AppSpacing.lg),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Expanded(child: cells[i]),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: hasSecond ? cells[i + 1] : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: rows,
+    );
+  }
+}
+
+/// Prototip stat karta: glass sirt, radius 20, `label · qiymat · subtext`.
+class _StatCell extends StatelessWidget {
+  const _StatCell({
+    required this.label,
+    required this.value,
+    this.sub,
+    this.valueColor,
+    this.subColor,
+    this.numeric = false,
+  });
+
+  final String label;
+  final String value;
+  final String? sub;
+  final Color? valueColor;
+  final Color? subColor;
+
+  /// Sanoq qiymati uchun Unbounded raqamli shrift (pul/sana uchun `false`).
+  final bool numeric;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    return Container(
+      decoration: _card(c),
+      padding: const EdgeInsets.all(AppSpacing.cardPad),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Text(
             label,
-            style: AppText.body13.copyWith(color: c.soft),
+            style: AppText.caption125.copyWith(color: c.soft),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             value,
-            style: AppText.body15Bold.copyWith(color: color),
+            style: numeric
+                ? _numStyle(28).copyWith(color: valueColor ?? c.ink)
+                : AppText.h19.copyWith(color: valueColor ?? c.ink),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+          if (sub != null) ...<Widget>[
+            const SizedBox(height: 5),
+            Text(
+              sub!,
+              style: AppText.caption125.copyWith(color: subColor ?? c.soft),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
       ),
     );
@@ -399,7 +525,7 @@ class _PaymentsHistory extends ConsumerWidget {
       future: ref.read(studentRepositoryProvider).payments(studentId),
       builder: (BuildContext context, AsyncSnapshot<PagedPayments> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const Skeleton(height: 140, radius: 12);
+          return const Skeleton(height: 140, radius: AppRadius.card);
         }
         if (snap.hasError) {
           return EmptyState(
@@ -416,17 +542,23 @@ class _PaymentsHistory extends ConsumerWidget {
           return EmptyState(emoji: '🧾', title: s.noPayments, compact: true);
         }
 
-        return Column(
-          children: <Widget>[
-            for (final Payment p in items)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: Container(
+        // Prototip: bitta kartada bo'linadigan qatorlar.
+        return Container(
+          decoration: _card(c),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: <Widget>[
+              for (int i = 0; i < items.length; i++)
+                Container(
                   decoration: BoxDecoration(
-                    color: c.glassHi,
-                    borderRadius: BorderRadius.circular(12),
+                    border: i == items.length - 1
+                        ? null
+                        : Border(bottom: BorderSide(color: c.line)),
                   ),
-                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.cardPad,
+                    vertical: AppSpacing.lg,
+                  ),
                   child: Row(
                     children: <Widget>[
                       Expanded(
@@ -435,37 +567,37 @@ class _PaymentsHistory extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             Text(
-                              Money.withUnit(p.amount),
+                              Money.withUnit(items[i].amount),
                               style: AppText.body15Bold.copyWith(color: c.ink),
                             ),
                             const SizedBox(height: AppSpacing.xxs),
                             Text(
-                              _dmy(p.paidAt),
-                              style: AppText.body13.copyWith(color: c.soft),
+                              _dmy(items[i].paidAt),
+                              style: AppText.caption12.copyWith(color: c.dim),
                             ),
                           ],
                         ),
                       ),
                       StatusBadge(
-                        p.amount >= tariffPrice
+                        items[i].amount >= tariffPrice
                             ? s.paymentPaid
                             : s.paymentPartial,
-                        tone: p.amount >= tariffPrice
+                        tone: items[i].amount >= tariffPrice
                             ? BadgeTone.ok
                             : BadgeTone.warn,
                       ),
                     ],
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         );
       },
     );
   }
 }
 
-/// Davomad tabi (H2) — `/students/{id}/attendance` → heatmap.
+/// Davomat tabi (H2) — `/students/{id}/attendance` → heatmap.
 class _AttendanceTab extends ConsumerWidget {
   const _AttendanceTab({required this.studentId});
 
@@ -480,7 +612,7 @@ class _AttendanceTab extends ConsumerWidget {
       future: ref.read(studentRepositoryProvider).attendance(studentId),
       builder: (BuildContext context, AsyncSnapshot<AttendanceList> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const Skeleton(height: 160, radius: 12);
+          return const Skeleton(height: 160, radius: AppRadius.card);
         }
         if (snap.hasError) {
           return EmptyState(
@@ -496,25 +628,29 @@ class _AttendanceTab extends ConsumerWidget {
         if (list.items.isEmpty) {
           return EmptyState(emoji: '📅', title: s.noAttendance, compact: true);
         }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Text(s.lastWeeks, style: AppText.body13.copyWith(color: c.soft)),
-            const SizedBox(height: AppSpacing.lg),
-            Heatmap(
-              levels: Heatmap.fromDays(
-                attended: list.days,
-                end: DateTime.now(),
+        return Container(
+          decoration: _card(c),
+          padding: const EdgeInsets.all(AppSpacing.cardPad),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(s.lastWeeks, style: AppText.caption125.copyWith(color: c.soft)),
+              const SizedBox(height: AppSpacing.lg),
+              Heatmap(
+                levels: Heatmap.fromDays(
+                  attended: list.days,
+                  end: DateTime.now(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
   }
 }
 
-/// Amallar menyusi: tahrirlash · taklif · arxivlash.
+/// Amallar menyusi: taklif · arxivlash.
 class _MenuButton extends ConsumerWidget {
   const _MenuButton({required this.student});
 
@@ -621,11 +757,18 @@ class _ProfileSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.screenH),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH,
+        AppSpacing.xl,
+        AppSpacing.screenH,
+        AppSpacing.x7l,
+      ),
       children: const <Widget>[
-        Skeleton(height: 280, radius: 18),
+        Skeleton(height: 320, radius: AppRadius.card),
         SizedBox(height: AppSpacing.xl),
-        Skeleton(height: 200, radius: 18),
+        Skeleton(height: 36, width: 220, radius: 999),
+        SizedBox(height: AppSpacing.xl),
+        Skeleton(height: 140, radius: AppRadius.card),
       ],
     );
   }

@@ -338,6 +338,19 @@ class AppStrings {
   String get cashDebtWord => _p('Qarz', 'Долг');
   String get cashGrowth => _p("O'sish", 'Рост');
 
+  // Menyu / Sozlamalar (prototip v3).
+  String get menu => _p('Menyu', 'Меню');
+  String get proTitle => _p('USTOZ PRO', 'USTOZ PRO');
+  String get subscriptionActive => _p('Obuna faol', 'Подписка активна');
+  String get menuProUpsell =>
+      _p('Cheksiz shogird va hisobotlar', 'Безлимит учеников и отчёты');
+  String get botSettings => _p('Bot sozlamalari', 'Настройки бота');
+  String get connected => _p('Ulangan', 'Подключён');
+  String get notConnected => _p('Ulanmagan', 'Не подключён');
+  String get theme => _p('Tema', 'Тема');
+  String get themeDark => _p('Qora', 'Тёмная');
+  String get themeLight => _p('Oq', 'Светлая');
+
   // ----------------------------------------------------------- shogirdlar
   String get students => _p('Shogirdlar', 'Ученики');
   String activeCount(int n) => _p('$n aktiv', '$n активных');

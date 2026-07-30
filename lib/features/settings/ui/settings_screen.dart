@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:ustoz_trainer/core/api/app_exception.dart';
 import 'package:ustoz_trainer/core/api/dto/auth_dto.dart';
@@ -8,9 +9,11 @@ import 'package:ustoz_trainer/core/api/dto/payment_dto.dart';
 import 'package:ustoz_trainer/core/i18n/lang_provider.dart';
 import 'package:ustoz_trainer/core/i18n/strings.dart';
 import 'package:ustoz_trainer/core/providers.dart';
+import 'package:ustoz_trainer/core/router/app_router.dart';
 import 'package:ustoz_trainer/core/theme/app_colors.dart';
 import 'package:ustoz_trainer/core/theme/app_spacing.dart';
 import 'package:ustoz_trainer/core/theme/app_text.dart';
+import 'package:ustoz_trainer/core/theme/theme_mode_provider.dart';
 import 'package:ustoz_trainer/core/utils/money.dart';
 import 'package:ustoz_trainer/core/widgets/app_button.dart';
 import 'package:ustoz_trainer/core/widgets/app_chip.dart';
@@ -19,12 +22,17 @@ import 'package:ustoz_trainer/core/widgets/avatar.dart';
 import 'package:ustoz_trainer/core/widgets/empty_state.dart';
 import 'package:ustoz_trainer/core/widgets/glass_card.dart';
 import 'package:ustoz_trainer/core/widgets/list_row.dart';
+import 'package:ustoz_trainer/core/widgets/press_scale.dart';
 import 'package:ustoz_trainer/core/widgets/section_header.dart';
-import 'package:ustoz_trainer/core/widgets/status_badge.dart';
 import 'package:ustoz_trainer/features/auth/providers/session_provider.dart';
 import 'package:ustoz_trainer/features/students/providers/students_provider.dart';
 
-/// S11 — sozlamalar / profil.
+/// S11 — Menyu / sozlamalar (prototip v3): profil kartasi · USTOZ PRO havolasi ·
+/// menyu guruhlari (tarif shablonlari · statistika · eslatma vaqti · bot) ·
+/// tema/til toggle · chiqish.
+///
+/// Prototipdagi "Mini-sayt", "Qurilmalar" va "Eslatma shablonlari" bo'limlari
+/// backendda yo'q (data-gap) — soxta ma'lumot ishlatilmaydi, ular qo'shilmadi.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -39,201 +47,105 @@ class SettingsScreen extends ConsumerWidget {
     }
     final Me me = session.me;
 
+    final ThemeMode mode = ref.watch(themeModeProvider);
+    final bool isDark =
+        mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenEdge,
-        AppSpacing.x4l,
+        AppSpacing.sm,
         AppSpacing.screenEdge,
         AppSpacing.screenBottom,
       ),
       children: <Widget>[
-        // Header + chiqish.
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                s.settings,
-                style: AppText.display24.copyWith(color: c.anor2),
-              ),
+        Text(s.menu, style: AppText.display24.copyWith(color: c.ink)),
+        const SizedBox(height: AppSpacing.xl),
+
+        // Profil kartasi — bosilganda tahrirlash.
+        _ProfileCard(me: me, onTap: () => _editProfile(context, ref, me)),
+        const SizedBox(height: AppSpacing.xl),
+
+        // USTOZ PRO — obuna tanlash sahifasi (paywall route hali yo'q →
+        // mavjud tarif tanlash sheet'ini ochamiz).
+        _ProCard(me: me, onTap: () => _showPlanPicker(context, me)),
+        const SizedBox(height: AppSpacing.xl),
+
+        // 1-guruh: funksiyalar.
+        _MenuGroup(
+          rows: <Widget>[
+            _MenuRow(
+              label: s.tariffTemplates,
+              onTap: () => _showTariffs(context),
             ),
-            GestureDetector(
-              onTap: () => _signOut(context, ref),
-              child: Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: c.debtSoft,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.logout, size: 20, color: c.debt),
+            _MenuRow(
+              label: s.stats,
+              onTap: () => context.go(Routes.stats),
+            ),
+            _MenuRow(
+              label: s.remindTime,
+              value: me.remindTime ?? '09:00',
+              valueColor: c.soft,
+              chevron: false,
+              onTap: () => _pickTime(context, ref, me),
+            ),
+            _MenuRow(
+              label: s.botSettings,
+              value: me.tgConnected ? s.connected : s.notConnected,
+              valueColor: me.tgConnected ? c.ok : c.soft,
+              chevron: false,
+              onTap: () => _shareTgLink(context, ref),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xl),
+
+        // 2-guruh: ko'rinish.
+        _MenuGroup(
+          rows: <Widget>[
+            _MenuRow(
+              label: s.theme,
+              value: isDark ? s.themeDark : s.themeLight,
+              valueColor: c.anor2,
+              chevron: false,
+              onTap: () => ref.read(themeModeProvider.notifier).toggle(),
+            ),
+            _MenuRow(
+              label: s.language,
+              value: me.lang == Lang.uz ? s.langUz : s.langRu,
+              valueColor: c.anor2,
+              chevron: false,
+              onTap: () => _setLang(
+                context,
+                ref,
+                me,
+                me.lang == Lang.uz ? Lang.ru : Lang.uz,
               ),
             ),
           ],
         ),
-
-        // Profil.
-        const SizedBox(height: AppSpacing.x3l),
-        Container(
-          decoration: settingsCard(c),
-          padding: const EdgeInsets.all(AppSpacing.xxl),
-          child: Row(
-            children: <Widget>[
-              Avatar(me.name, size: 56),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      me.name,
-                      style: AppText.h18.copyWith(color: c.ink),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      me.gymName ?? s.trainerRole,
-                      style: AppText.body13.copyWith(color: c.soft),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () => _editProfile(context, ref, me),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: c.anor2,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.edit, size: 18, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Til sozlamalari.
-        const SizedBox(height: AppSpacing.xl),
-        Container(
-          decoration: settingsCard(c),
-          padding: const EdgeInsets.all(AppSpacing.xxl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                s.languageSettings,
-                style: AppText.h20.copyWith(color: c.anor2),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                children: <Widget>[
-                  Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: c.glassHi,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.language, size: 20, color: c.anor2),
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: Text(
-                      s.language,
-                      style: AppText.body15Bold.copyWith(color: c.ink),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => _setLang(
-                      context,
-                      ref,
-                      me,
-                      me.lang == Lang.uz ? Lang.ru : Lang.uz,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.x4l,
-                        vertical: AppSpacing.md,
-                      ),
-                      decoration: BoxDecoration(
-                        color: c.anor2,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Text(
-                        me.lang == Lang.uz ? s.langUz : s.langRu,
-                        style: AppText.body14Bold.copyWith(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // Obuna.
-        const SizedBox(height: AppSpacing.xl),
-        _ObunaCard(me: me),
-
-        // Eslatma vaqti.
-        const SizedBox(height: AppSpacing.sectionGap),
-        SectionHeader(s.remindTime),
-        GlassCard(
-          child: ListRowGroup(
-            rows: <ListRow>[
-              ListRow(
-                title: s.remindTime,
-                subtitle: me.remindTime ?? '09:00',
-                trailing: Icon(Icons.schedule, size: 18, color: c.soft),
-                onTap: () => _pickTime(context, ref, me),
-                last: true,
-              ),
-            ],
-          ),
-        ),
-
-        // Telegram.
-        const SizedBox(height: AppSpacing.sectionGap),
-        SectionHeader(s.telegram),
-        GlassCard(
-          child: ListRowGroup(
-            rows: <ListRow>[
-              ListRow(
-                title: me.tgConnected ? s.tgConnected : s.connectTg,
-                subtitle: me.tgConnected ? null : s.connectTg,
-                trailing: StatusBadge(
-                  me.tgConnected ? '✓' : '—',
-                  tone: me.tgConnected ? BadgeTone.ok : BadgeTone.neutral,
-                ),
-                onTap: () => _shareTgLink(context, ref),
-                last: true,
-              ),
-            ],
-          ),
-        ),
-
-        // Tarif shablonlari.
-        const SizedBox(height: AppSpacing.sectionGap),
-        const _TariffTemplates(),
+        const SizedBox(height: AppSpacing.x5l),
 
         // Chiqish.
-        const SizedBox(height: AppSpacing.x7l),
-        GhostButton(
-          label: s.signOut,
-          color: c.debt,
-          onPressed: () => _signOut(context, ref),
+        PressScale(
+          onTap: () => _signOut(context, ref),
+          child: SizedBox(
+            height: 52,
+            child: Center(
+              child: Text(
+                s.signOut,
+                style: AppText.body14Bold.copyWith(color: c.debt),
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
+
+  // ------------------------------------------------------------- aksiyalar
 
   Future<void> _setLang(
     BuildContext context,
@@ -417,169 +329,21 @@ class SettingsScreen extends ConsumerWidget {
     name.dispose();
     gym.dispose();
   }
-}
 
-BoxDecoration settingsCard(AppColors c) => BoxDecoration(
-  color: c.glass,
-  borderRadius: BorderRadius.circular(18),
-  border: Border.all(color: c.line),
-  boxShadow: const <BoxShadow>[
-    BoxShadow(
-      color: Color.fromRGBO(17, 24, 39, 0.05),
-      blurRadius: 18,
-      offset: Offset(0, 6),
-    ),
-  ],
-);
-
-/// Obuna kartasi (root-1-26) — S12 paywall UI (D202: flag ortida ishlaydi).
-class _ObunaCard extends ConsumerWidget {
-  const _ObunaCard({required this.me});
-
-  final Me me;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void _showTariffs(BuildContext context) {
     final AppColors c = context.colors;
-    final AppStrings s = context.s;
-
-    final bool pro = me.plan == Plan.pro;
-    final int? daysLeft = me.planUntil?.difference(DateTime.now()).inDays;
-
-    return Container(
-      decoration: settingsCard(c),
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(
-            s.subscriptionTitle,
-            style: AppText.h20.copyWith(color: c.anor2),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            decoration: BoxDecoration(
-              gradient: c.anorGradient,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: const EdgeInsets.all(AppSpacing.xxl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text(
-                        s.currentPlanLabel,
-                        style: AppText.body13.copyWith(
-                          color: Colors.white.withValues(alpha: 0.75),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: c.ok,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        s.badgePaid,
-                        style: AppText.badge11.copyWith(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  pro ? s.planPremium : s.planFree,
-                  style: AppText.h20.copyWith(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                _navyRow(
-                  s.nextPaymentLabel,
-                  me.planUntil == null ? '—' : s.fullDate(me.planUntil!),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                _navyRow(
-                  s.daysLeftLabel,
-                  daysLeft == null ? '—' : s.streakDays(daysLeft),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          GradientButton(
-            label: s.changePlan,
-            onPressed: () => _showPlanPicker(context),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          GhostButton(
-            label: s.paymentHistory,
-            onPressed: () => _showBilling(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _navyRow(String label, String value) {
-    return Builder(
-      builder: (BuildContext context) {
-        return Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                label,
-                style: AppText.body13.copyWith(
-                  color: Colors.white.withValues(alpha: 0.75),
-                ),
-              ),
-            ),
-            Text(
-              value,
-              style: AppText.body14Bold.copyWith(color: Colors.white),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showBilling(BuildContext context) {
-    final AppColors c = context.colors;
-    final AppStrings s = context.s;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: c.sheet,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
       ),
-      builder: (BuildContext _) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(s.paymentHistory, style: AppText.h18.copyWith(color: c.anor2)),
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              s.noBillingHistory,
-              style: AppText.body14.copyWith(color: c.soft),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-          ],
-        ),
-      ),
+      builder: (BuildContext _) => const _TariffSheet(),
     );
   }
 
-  void _showPlanPicker(BuildContext context) {
+  void _showPlanPicker(BuildContext context, Me me) {
     final AppColors c = context.colors;
     final AppStrings s = context.s;
     showModalBottomSheet<void>(
@@ -587,7 +351,7 @@ class _ObunaCard extends ConsumerWidget {
       backgroundColor: c.sheet,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
       ),
       builder: (BuildContext sheetContext) => Padding(
         padding: const EdgeInsets.all(AppSpacing.xxl),
@@ -595,10 +359,7 @@ class _ObunaCard extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text(
-              s.choosePlanTitle,
-              style: AppText.h18.copyWith(color: c.anor2),
-            ),
+            Text(s.choosePlanTitle, style: AppText.h18.copyWith(color: c.anor2)),
             const SizedBox(height: AppSpacing.xl),
             _PlanOption(
               name: s.planFree,
@@ -625,6 +386,302 @@ class _ObunaCard extends ConsumerWidget {
     );
   }
 }
+
+// ------------------------------------------------------------- profil kartasi
+
+class _ProfileCard extends StatelessWidget {
+  const _ProfileCard({required this.me, required this.onTap});
+
+  final Me me;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+
+    return PressScale(
+      onTap: onTap,
+      child: Container(
+        decoration: _menuCardDecoration(c),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
+        child: Row(
+          children: <Widget>[
+            Avatar(me.name, size: 56),
+            const SizedBox(width: AppSpacing.xl),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    me.name,
+                    style: AppText.body15Bold.copyWith(color: c.ink),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    _prettyPhone(me.phone),
+                    style: AppText.body13.copyWith(color: c.soft),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, size: 20, color: c.dim),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// `+998901234567` → `+998 90 123 45 67`.
+  static String _prettyPhone(String raw) {
+    final String p = raw.replaceAll(RegExp(r'\s+'), '');
+    if (p.length != 13 || !p.startsWith('+998')) {
+      return raw;
+    }
+    final String d = p.substring(4);
+    return '+998 ${d.substring(0, 2)} ${d.substring(2, 5)} '
+        '${d.substring(5, 7)} ${d.substring(7, 9)}';
+  }
+}
+
+// ------------------------------------------------------------- USTOZ PRO karta
+
+class _ProCard extends StatelessWidget {
+  const _ProCard({required this.me, required this.onTap});
+
+  final Me me;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+    final bool pro = me.plan == Plan.pro;
+
+    return PressScale(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: c.anor.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: c.anor.withValues(alpha: 0.3)),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.x3l),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: c.anorGradient,
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+              ),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                size: 22,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xl),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(s.proTitle, style: AppText.body16.copyWith(color: c.ink)),
+                  const SizedBox(height: 3),
+                  Text(
+                    pro ? s.subscriptionActive : s.menuProUpsell,
+                    style: AppText.caption125.copyWith(color: c.soft),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, size: 20, color: c.anor2),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// -------------------------------------------------------------- menyu guruhi
+
+class _MenuGroup extends StatelessWidget {
+  const _MenuGroup({required this.rows});
+
+  final List<Widget> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    final List<Widget> children = <Widget>[];
+    for (int i = 0; i < rows.length; i++) {
+      children.add(rows[i]);
+      if (i != rows.length - 1) {
+        children.add(Divider(height: 1, thickness: 1, color: c.line));
+      }
+    }
+    return Container(
+      decoration: _menuCardDecoration(c),
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: children),
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({
+    required this.label,
+    required this.onTap,
+    this.value,
+    this.valueColor,
+    this.chevron = true,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final String? value;
+  final Color? valueColor;
+  final bool chevron;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        height: 56,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  label,
+                  style: AppText.body15Bold.copyWith(color: c.ink),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (value != null)
+                Text(
+                  value!,
+                  style: AppText.body13Bold.copyWith(
+                    color: valueColor ?? c.soft,
+                  ),
+                ),
+              if (chevron) ...<Widget>[
+                const SizedBox(width: AppSpacing.sm),
+                Icon(Icons.chevron_right_rounded, size: 18, color: c.dim),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Menyu kartasi sirti (prototip: `--s1` sirt, `--bd` chegara, radius 20).
+BoxDecoration _menuCardDecoration(AppColors c) => BoxDecoration(
+  color: c.glass,
+  borderRadius: BorderRadius.circular(AppRadius.card),
+  border: Border.all(color: c.line),
+  boxShadow: const <BoxShadow>[
+    BoxShadow(
+      color: Color.fromRGBO(17, 24, 39, 0.05),
+      blurRadius: 14,
+      offset: Offset(0, 5),
+    ),
+  ],
+);
+
+// --------------------------------------------------------- tarif shablonlari
+
+/// Tarif shablonlari CRUD sheet (T7) — tugmadan ochiladi.
+class _TariffSheet extends ConsumerWidget {
+  const _TariffSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+    final AsyncValue<List<TariffTemplate>> async = ref.watch(tariffsProvider);
+
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          SectionHeader(
+            s.tariffTemplates,
+            trailing: '+ ${s.tariffNew}',
+            onTrailingTap: () => _showEditor(context, ref),
+          ),
+          async.when(
+            loading: () => const SizedBox(height: 60),
+            error: (Object _, StackTrace _) => GlassCard(
+              child: EmptyState(emoji: '😕', title: s.errGeneric, compact: true),
+            ),
+            data: (List<TariffTemplate> items) => items.isEmpty
+                ? GlassCard(
+                    child: EmptyState(
+                      emoji: '🏷',
+                      title: s.tariffTemplates,
+                      actionLabel: s.tariffNew,
+                      compact: true,
+                      onAction: () => _showEditor(context, ref),
+                    ),
+                  )
+                : GlassCard(
+                    child: ListRowGroup(
+                      rows: <ListRow>[
+                        for (final TariffTemplate t in items)
+                          ListRow(
+                            title: t.name,
+                            subtitle:
+                                '${s.tariffName(t.type)}'
+                                '${t.sessionsCount == null ? '' : ' · ${t.sessionsCount}'}',
+                            trailing: Text(
+                              Money.format(t.price),
+                              style: AppText.money14.copyWith(color: c.ink),
+                            ),
+                            onTap: () => _showEditor(context, ref, existing: t),
+                          ),
+                      ],
+                    ),
+                  ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showEditor(
+    BuildContext context,
+    WidgetRef ref, {
+    TariffTemplate? existing,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext _) => _TariffDialog(existing: existing),
+    );
+  }
+}
+
+// ------------------------------------------------------------------ tarif reja
 
 class _PlanOption extends StatelessWidget {
   const _PlanOption({
@@ -683,74 +740,6 @@ class _PlanOption extends StatelessWidget {
             ),
         ],
       ),
-    );
-  }
-}
-
-/// Tarif shablonlari CRUD (T7).
-class _TariffTemplates extends ConsumerWidget {
-  const _TariffTemplates();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final AppColors c = context.colors;
-    final AppStrings s = context.s;
-    final AsyncValue<List<TariffTemplate>> async = ref.watch(tariffsProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        SectionHeader(
-          s.tariffTemplates,
-          trailing: '+ ${s.tariffNew}',
-          onTrailingTap: () => _showEditor(context, ref),
-        ),
-        async.when(
-          loading: () => const SizedBox(height: 60),
-          error: (Object _, StackTrace _) => GlassCard(
-            child: EmptyState(emoji: '😕', title: s.errGeneric, compact: true),
-          ),
-          data: (List<TariffTemplate> items) => items.isEmpty
-              ? GlassCard(
-                  child: EmptyState(
-                    emoji: '🏷',
-                    title: s.tariffTemplates,
-                    actionLabel: s.tariffNew,
-                    compact: true,
-                    onAction: () => _showEditor(context, ref),
-                  ),
-                )
-              : GlassCard(
-                  child: ListRowGroup(
-                    rows: <ListRow>[
-                      for (final TariffTemplate t in items)
-                        ListRow(
-                          title: t.name,
-                          subtitle:
-                              '${s.tariffName(t.type)}'
-                              '${t.sessionsCount == null ? '' : ' · ${t.sessionsCount}'}',
-                          trailing: Text(
-                            Money.format(t.price),
-                            style: AppText.money14.copyWith(color: c.ink),
-                          ),
-                          onTap: () => _showEditor(context, ref, existing: t),
-                        ),
-                    ],
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _showEditor(
-    BuildContext context,
-    WidgetRef ref, {
-    TariffTemplate? existing,
-  }) async {
-    await showDialog<void>(
-      context: context,
-      builder: (BuildContext _) => _TariffDialog(existing: existing),
     );
   }
 }
