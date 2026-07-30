@@ -193,36 +193,50 @@ class _StudentRow extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onToggle,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        child: Row(
-          children: <Widget>[
-            _CheckBox(checked: checked),
-            const SizedBox(width: AppSpacing.lg),
-            Avatar.small(student.name),
-            const SizedBox(width: AppSpacing.lg),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    student.name,
-                    style: AppText.body14Bold.copyWith(color: c.ink),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  // Paketlilarga "N qoldi".
-                  if (left != null)
-                    Text(
-                      s.sessionsLeft(left),
-                      style: AppText.caption12.copyWith(
-                        color: left <= 2 ? c.warn : c.dim,
-                      ),
-                    ),
-                ],
-              ),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+        child: AnimatedContainer(
+          duration: AppDuration.fast,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: checked ? c.glassHi : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            border: Border.all(
+              color: checked ? c.line : Colors.transparent,
             ),
-          ],
+          ),
+          child: Row(
+            children: <Widget>[
+              _CheckBox(checked: checked),
+              const SizedBox(width: AppSpacing.lg),
+              Avatar.small(student.name),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      student.name,
+                      style: AppText.body14Bold.copyWith(color: c.ink),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    // Paketlilarga "N qoldi".
+                    if (left != null)
+                      Text(
+                        s.sessionsLeft(left),
+                        style: AppText.caption12.copyWith(
+                          color: left <= 2 ? c.warn : c.dim,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

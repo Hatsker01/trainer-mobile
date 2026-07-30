@@ -14,7 +14,6 @@ import 'package:ustoz_trainer/core/widgets/list_row.dart';
 import 'package:ustoz_trainer/core/widgets/mini_bar_chart.dart';
 import 'package:ustoz_trainer/core/widgets/section_header.dart';
 import 'package:ustoz_trainer/core/widgets/skeleton.dart';
-import 'package:ustoz_trainer/core/widgets/status_badge.dart';
 
 final AsyncNotifierProvider<StatsNotifier, StatsResponse> statsProvider =
     AsyncNotifierProvider<StatsNotifier, StatsResponse>(StatsNotifier.new);
@@ -30,7 +29,23 @@ class StatsNotifier extends AsyncNotifier<StatsResponse> {
   }
 }
 
-/// S10 — statistika.
+/// Katta Unbounded raqam (KPI kartalar) — prototip 30px, tabular-nums.
+TextStyle _numStyle(double size) => TextStyle(
+  fontFamily: AppText.displayFamily,
+  fontWeight: FontWeight.w600,
+  fontSize: size,
+  height: 1,
+  letterSpacing: -0.02 * size / 32,
+  fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+);
+
+/// S10 — statistika (prototip v3): 2×2 KPI grid · daromad dinamikasi grafigi ·
+/// tariflar kesimi.
+///
+/// Prototipdagi "O'rtacha davomat %", "Davomat dinamikasi (hafta)", top
+/// shogirdlar ro'yxati va "Churn radar" bo'limlari backendda hali yo'q
+/// (PROTO-V3-MAP.md — ma'lumot-gap). Soxta ma'lumot ishlatilmaydi, shu
+/// bo'laklar qo'shilmadi.
 class StatsScreen extends ConsumerStatefulWidget {
   const StatsScreen({super.key});
 
@@ -51,22 +66,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     return RefreshIndicator(
       onRefresh: () => ref.read(statsProvider.notifier).refresh(),
       backgroundColor: c.sheet,
-      color: c.anor,
+      color: c.anor2,
       child: async.when(
         skipLoadingOnRefresh: true,
-        loading: () => ListView(
-          padding: const EdgeInsets.all(AppSpacing.screenEdge),
-          children: const <Widget>[
-            SizedBox(height: AppSpacing.x4l),
-            Skeleton(height: 28, width: 160),
-            SizedBox(height: AppSpacing.x3l),
-            Skeleton(height: 96, radius: AppRadius.card),
-            SizedBox(height: AppSpacing.cardGap),
-            Skeleton(height: 96, radius: AppRadius.card),
-            SizedBox(height: AppSpacing.sectionGap),
-            Skeleton(height: 190, radius: AppRadius.card),
-          ],
-        ),
+        loading: () => const _StatsSkeleton(),
         error: (Object e, StackTrace _) => ListView(
           padding: const EdgeInsets.only(top: 120),
           children: <Widget>[
@@ -116,48 +119,52 @@ class _Body extends StatelessWidget {
       children: <Widget>[
         Text(s.stats, style: AppText.display24.copyWith(color: c.ink)),
 
-        // 2×2 KPI.
+        // 2×2 KPI grid (prototip: 1fr 1fr, gap 12).
         const SizedBox(height: AppSpacing.x3l),
         Row(
-          spacing: AppSpacing.md,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: AppSpacing.lg,
           children: <Widget>[
+            _Kpi(
+              label: s.statActive,
+              value: '${stats.activeStudents}',
+              displayFont: true,
+            ),
             _Kpi(
               label: s.statRevenue,
               value: Money.compact(stats.monthRevenue),
-              badge: change == null
+              delta: change == null
                   ? null
-                  : StatusBadge(
-                      '${change >= 0 ? '▲' : '▼'} '
-                      '${change.abs().toStringAsFixed(0)}%',
-                      tone: change >= 0 ? BadgeTone.ok : BadgeTone.debt,
-                    ),
+                  : '${change >= 0 ? '▲' : '▼'} '
+                        '${change.abs().toStringAsFixed(0)}%',
+              deltaColor: change == null
+                  ? null
+                  : (change >= 0 ? c.ok : c.debt),
             ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: AppSpacing.lg,
+          children: <Widget>[
             _Kpi(
               label: s.statDebt,
               value: Money.compact(stats.debtTotal),
               valueColor: stats.debtTotal > 0 ? c.debt : null,
-              badge: stats.debtorsCount == null
+              delta: stats.debtorsCount == null || stats.debtorsCount == 0
                   ? null
-                  : StatusBadge(
-                      s.debtorsCount(stats.debtorsCount!),
-                      tone: BadgeTone.debt,
-                    ),
+                  : s.debtorsCount(stats.debtorsCount!),
+              deltaColor: c.debt,
             ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.cardGap),
-        Row(
-          spacing: AppSpacing.md,
-          children: <Widget>[
-            _Kpi(label: s.statActive, value: '${stats.activeStudents}'),
             _Kpi(
-              label: s.monthIncome(''),
+              label: s.statPrevMonth,
               value: Money.compact(stats.prevMonthRevenue),
             ),
           ],
         ),
 
-        // Grafik.
+        // Daromad dinamikasi grafigi (real: series, oxirgi 6 oy).
         const SizedBox(height: AppSpacing.sectionGap),
         SectionHeader(
           s.revenueDynamics,
@@ -165,7 +172,7 @@ class _Body extends StatelessWidget {
               ? s.sixMonths
               : Money.withUnit(stats.series[selectedMonth!].revenue),
         ),
-        GlassCard(
+        GlassCard.hero(
           child: stats.series.isEmpty
               ? EmptyState(emoji: '📊', title: s.noStats, compact: true)
               : MiniBarChart(
@@ -184,7 +191,7 @@ class _Body extends StatelessWidget {
                 ),
         ),
 
-        // Tariflar kesimi.
+        // Tariflar kesimi (real: by_tariff).
         if (stats.byTariff != null && stats.byTariff!.isNotEmpty) ...<Widget>[
           const SizedBox(height: AppSpacing.sectionGap),
           SectionHeader(s.byTariff),
@@ -216,18 +223,27 @@ class _Body extends StatelessWidget {
   }
 }
 
+/// Prototip KPI karta: radius 20, glass sirt, `label · katta raqam · delta`.
 class _Kpi extends StatelessWidget {
   const _Kpi({
     required this.label,
     required this.value,
-    this.badge,
+    this.delta,
+    this.deltaColor,
     this.valueColor,
+    this.displayFont = false,
   });
 
   final String label;
   final String value;
-  final Widget? badge;
+
+  /// Kichik rangli delta qatori ("▲ 12%", "3 shogird") — bor bo'lsa.
+  final String? delta;
+  final Color? deltaColor;
   final Color? valueColor;
+
+  /// Sanoq qiymatlari uchun Unbounded (raqamli) shrift; pul uchun mono.
+  final bool displayFont;
 
   @override
   Widget build(BuildContext context) {
@@ -243,21 +259,68 @@ class _Kpi extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppText.label115.copyWith(color: c.dim),
+              style: AppText.caption125.copyWith(color: c.soft),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               value,
               maxLines: 1,
-              style: AppText.money21.copyWith(color: valueColor ?? c.ink),
+              style: displayFont
+                  ? _numStyle(28).copyWith(color: valueColor ?? c.ink)
+                  : AppText.money21.copyWith(color: valueColor ?? c.ink),
             ),
-            if (badge != null) ...<Widget>[
-              const SizedBox(height: AppSpacing.sm),
-              Align(alignment: Alignment.centerLeft, child: badge!),
-            ],
+            SizedBox(height: delta == null ? 3 : AppSpacing.xs),
+            Text(
+              delta ?? '',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.caption12.copyWith(
+                color: deltaColor ?? c.soft,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StatsSkeleton extends StatelessWidget {
+  const _StatsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenEdge,
+        AppSpacing.x4l,
+        AppSpacing.screenEdge,
+        AppSpacing.screenBottom,
+      ),
+      children: const <Widget>[
+        Skeleton(height: 28, width: 160),
+        SizedBox(height: AppSpacing.x3l),
+        Row(
+          children: <Widget>[
+            Expanded(child: Skeleton(height: 92, radius: AppRadius.card)),
+            SizedBox(width: AppSpacing.lg),
+            Expanded(child: Skeleton(height: 92, radius: AppRadius.card)),
+          ],
+        ),
+        SizedBox(height: AppSpacing.lg),
+        Row(
+          children: <Widget>[
+            Expanded(child: Skeleton(height: 92, radius: AppRadius.card)),
+            SizedBox(width: AppSpacing.lg),
+            Expanded(child: Skeleton(height: 92, radius: AppRadius.card)),
+          ],
+        ),
+        SizedBox(height: AppSpacing.sectionGap),
+        Skeleton(height: 20, width: 140),
+        SizedBox(height: AppSpacing.sectionHeaderGap),
+        Skeleton(height: 190, radius: AppRadius.card),
+      ],
     );
   }
 }

@@ -323,6 +323,17 @@ class AppStrings {
       _p('Qizillar: $amount qarz', 'Красные: долг $amount');
   String get cameToday => _p('Bugun keldi', 'Пришли сегодня');
 
+  // Prototip v3 ekranlari (students/form/stats).
+  String get archivedHint => _p(
+    "Arxivlangan shogirdlar qidiruvda kulrang ko'rinadi · 1 tap bilan qayta faollashtiriladi",
+    'Архивные ученики отображаются серым в поиске · повторная активация в 1 касание',
+  );
+  String get studentFullName => _p('Ism-familiya', 'Имя и фамилия');
+  String get phoneLabel => _p('Telefon', 'Телефон');
+  String get sessionsTotalLabel =>
+      _p("Mashg'ulotlar soni", 'Количество занятий');
+  String get statPrevMonth => _p("O'TGAN OY", 'ПРОШЛЫЙ МЕСЯЦ');
+
   // ----------------------------------------------------------- shogirdlar
   String get students => _p('Shogirdlar', 'Ученики');
   String activeCount(int n) => _p('$n aktiv', '$n активных');

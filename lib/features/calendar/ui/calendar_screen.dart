@@ -16,8 +16,14 @@ import 'package:ustoz_trainer/features/stats/ui/stats_screen.dart';
 
 enum CalFilter { all, paid, partial, unpaid }
 
-/// Kalendar (G3): oy grid + rang-kodli kun kataklari (to'lov holatlari) +
-/// filtr + kun sheeti (shogird qoldiqlari, qoldiq-prefill to'lov) + oy xulosasi.
+/// Kalendar (prototip v3 kompozitsiyasi): oy grid + rang-kodli kun kataklari
+/// (to'lov holatlari) · filtr segmenti · oy xulosasi · legenda · kun sheeti
+/// (shogird qoldiqlari, qoldiq-prefill to'lov).
+///
+/// Prototipdagi "Jadval" (sessiya taymlayni, Hafta/Kun toggle, slot yaratish,
+/// takrorlanish, ta'til bekor qilish, konflikt belgisi) sessiya/slot backend
+/// endpointlarini talab qiladi — hozir faqat to'lov kalendari (`GET /calendar`)
+/// mavjud. Soxta ma'lumot ishlatilmaydi (ma'lumot-gap sifatida qaytarildi).
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
 
@@ -36,8 +42,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     setState(() => _month = DateTime(_month.year, _month.month + delta));
   }
 
-  /// Kun rangi (G3): to'lamagan → QIZIL; qisman → SARIQ; hammasi to'lagan →
-  /// YASHIL; kelasi due → neytral-ko'k "kutilmoqda"; due yo'q → neytral.
+  /// Kun rangi: to'lamagan → QIZIL; qisman → SARIQ; hammasi to'lagan →
+  /// YASHIL; kelasi due → anor "kutilmoqda"; due yo'q → neytral.
   Color? _statusColor(AppColors c, CalStatus st) => switch (st) {
     CalStatus.unpaid => c.debt,
     CalStatus.partial => c.warn,
@@ -69,7 +75,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         AppSpacing.screenBottom,
       ),
       children: <Widget>[
-        // Header.
+        // Sarlavha qatori — til almashtirgich (prototip v3 pill).
         Row(
           children: <Widget>[
             Expanded(
@@ -78,17 +84,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 style: AppText.h20.copyWith(color: c.anor2),
               ),
             ),
-            GestureDetector(
+            PressScale(
               onTap: () => ref
                   .read(langProvider.notifier)
                   .set(lang == Lang.uz ? Lang.ru : Lang.uz),
               child: Container(
-                width: 44,
+                width: 46,
                 height: 36,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: c.glassHi,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(AppRadius.button),
+                  border: Border.all(color: c.line),
                 ),
                 child: Text(
                   lang == Lang.uz ? 'UZ' : 'RU',
@@ -98,31 +105,24 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.xl),
 
-        // Filtr tablari.
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: <Widget>[
-              _tab(c, s.all, CalFilter.all),
-              _tab(c, s.paymentPaid, CalFilter.paid),
-              _tab(c, s.paymentPartial, CalFilter.partial),
-              _tab(c, s.legendUnpaid, CalFilter.unpaid),
-            ],
-          ),
+        // Filtr segmenti (prototip pill-track).
+        _FilterBar(
+          value: _filter,
+          onChanged: (CalFilter f) => setState(() => _filter = f),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.xl),
 
         // Oy kartasi.
         Container(
-          decoration: _card(c),
+          decoration: _cardDecoration(c),
           padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  _chevron(c, Icons.chevron_left, () => _shift(-1)),
+                  _chevron(c, Icons.chevron_left_rounded, () => _shift(-1)),
                   Expanded(
                     child: Text(
                       s.monthYear(_month),
@@ -130,7 +130,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       style: AppText.body15Bold.copyWith(color: c.anor2),
                     ),
                   ),
-                  _chevron(c, Icons.chevron_right, () => _shift(1)),
+                  _chevron(c, Icons.chevron_right_rounded, () => _shift(1)),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -153,9 +153,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ),
         const SizedBox(height: AppSpacing.lg),
 
-        // Oy xulosasi (G3).
+        // Oy xulosasi.
         Container(
-          decoration: _card(c),
+          decoration: _cardDecoration(c),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xxl,
             vertical: AppSpacing.xl,
@@ -182,7 +182,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
         // Legenda.
         Container(
-          decoration: _card(c),
+          decoration: _cardDecoration(c),
           padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,36 +206,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  Widget _tab(AppColors c, String label, CalFilter f) {
-    final bool sel = _filter == f;
-    return Padding(
-      padding: const EdgeInsets.only(right: AppSpacing.sm),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => setState(() => _filter = f),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.x3l,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            color: sel ? c.anor2 : c.glassHi,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            label,
-            style: AppText.body13Bold.copyWith(
-              color: sel ? Colors.white : c.soft,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _chevron(AppColors c, IconData icon, VoidCallback onTap) {
-    return GestureDetector(
+    return PressScale(
       onTap: onTap,
       child: Container(
         width: 36,
@@ -269,59 +241,66 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       crossAxisCount: 7,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 4,
-      crossAxisSpacing: 2,
+      mainAxisSpacing: 5,
+      crossAxisSpacing: 5,
       childAspectRatio: 1,
       children: cells,
     );
   }
 
+  /// Kun katagi — prototip rounded-rect uslubi: status tini fon + chegara,
+  /// bugun to'liq anor gradient.
   Widget _dayCell(AppColors c, AppStrings s, int day, CalDay d, bool today) {
     final bool active = d.status != CalStatus.none && _passesFilter(d.status);
     final Color? statusColor = active ? _statusColor(c, d.status) : null;
 
-    // Rang tini — kun fonini yumshoq bo'yaydi; bugun — to'liq navy doira.
-    final BoxDecoration deco = today
-        ? BoxDecoration(color: c.anor2, shape: BoxShape.circle)
-        : (statusColor == null
-              ? const BoxDecoration()
-              : BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.14),
-                  shape: BoxShape.circle,
-                ));
-
-    final Color textColor = today ? Colors.white : (statusColor ?? c.ink);
+    final BoxDecoration deco;
+    final Color textColor;
+    if (today) {
+      deco = BoxDecoration(
+        gradient: c.anorGradient,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      );
+      textColor = Colors.white;
+    } else if (statusColor != null) {
+      deco = BoxDecoration(
+        color: statusColor.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: statusColor.withValues(alpha: 0.28)),
+      );
+      textColor = statusColor;
+    } else {
+      deco = BoxDecoration(
+        color: c.glassHi,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      );
+      textColor = c.soft;
+    }
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: d.isEmpty ? null : () => _showDay(c, s, day, d),
-      child: Center(
-        child: Container(
-          width: 34,
-          height: 34,
-          alignment: Alignment.center,
-          decoration: deco,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                '$day',
-                style: AppText.body13Bold.copyWith(color: textColor),
-              ),
-              if (!today && statusColor != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: Container(
-                    width: 4,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      shape: BoxShape.circle,
-                    ),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: deco,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text('$day', style: AppText.body13Bold.copyWith(color: textColor)),
+            if (!today && statusColor != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Container(
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -334,7 +313,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       backgroundColor: c.sheet,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
       ),
       builder: (BuildContext _) =>
           _DaySheet(day: date, calDay: d, monthKey: _key),
@@ -363,9 +342,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 }
 
-BoxDecoration _card(AppColors c, {double radius = 16}) => BoxDecoration(
+/// Prototip karta: `--s1` sirt, `--bd` chegara, radius 20 (AppRadius.card).
+BoxDecoration _cardDecoration(AppColors c) => BoxDecoration(
   color: c.glass,
-  borderRadius: BorderRadius.circular(radius),
+  borderRadius: BorderRadius.circular(AppRadius.card),
   border: Border.all(color: c.line),
   boxShadow: const <BoxShadow>[
     BoxShadow(
@@ -375,6 +355,69 @@ BoxDecoration _card(AppColors c, {double radius = 16}) => BoxDecoration(
     ),
   ],
 );
+
+// ---------------------------------------------------------------- filtr segmenti
+
+/// Prototip pill-track: `background:var(--s2)` konteyner ichida segment pilllar,
+/// tanlangan = anor gradient / oq matn, boshqalar = shaffof / soft matn.
+class _FilterBar extends StatelessWidget {
+  const _FilterBar({required this.value, required this.onChanged});
+
+  final CalFilter value;
+  final ValueChanged<CalFilter> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+
+    final List<(CalFilter, String)> items = <(CalFilter, String)>[
+      (CalFilter.all, s.all),
+      (CalFilter.paid, s.paymentPaid),
+      (CalFilter.partial, s.paymentPartial),
+      (CalFilter.unpaid, s.legendUnpaid),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xxs),
+      decoration: BoxDecoration(
+        color: c.glassHi,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: c.line),
+      ),
+      child: Row(
+        children: <Widget>[
+          for (final (CalFilter f, String label) in items)
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onChanged(f),
+                child: AnimatedContainer(
+                  duration: AppDuration.fast,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: value == f ? c.anorGradient : null,
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
+                  ),
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.caption125.copyWith(
+                      color: value == f ? Colors.white : c.soft,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ------------------------------------------------------------------- kun sheeti
 
 /// Kun sheeti — shogirdlar ro'yxati (ism, "300 000 / 550 000", status badge,
 /// qoldiq-prefill "To'lov qo'shish").
@@ -421,15 +464,27 @@ class _DaySheet extends ConsumerWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xxl,
-          AppSpacing.xxl,
-          AppSpacing.xxl,
-          AppSpacing.md,
+          AppSpacing.x4l,
+          AppSpacing.lg,
+          AppSpacing.x4l,
+          AppSpacing.x4l,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            // Sheet handle.
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: c.soft.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(AppRadius.xxs),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               '${s.dayPaymentsTitle} · ${s.fullDate(day)}',
               style: AppText.h18.copyWith(color: c.anor2),
@@ -457,7 +512,6 @@ class _DaySheet extends ConsumerWidget {
                       _entryRow(context, ref, s, c, calDay.entries[i]),
                 ),
               ),
-            const SizedBox(height: AppSpacing.sm),
           ],
         ),
       ),
@@ -477,9 +531,10 @@ class _DaySheet extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.glassHi,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: c.line),
       ),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Row(
         children: <Widget>[
           Expanded(

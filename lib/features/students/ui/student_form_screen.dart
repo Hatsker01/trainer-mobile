@@ -21,7 +21,15 @@ import 'package:ustoz_trainer/core/widgets/app_toast.dart';
 import 'package:ustoz_trainer/features/auth/ui/phone_field.dart';
 import 'package:ustoz_trainer/features/students/providers/students_provider.dart';
 
-/// S7 — shogird qo'shish / tahrirlash.
+/// S7 — shogird qo'shish / tahrirlash (prototip v3).
+///
+/// Kompozitsiya prototipdan (proto §"Shogird qo'shish"): ekran ustidagi
+/// sarlavha + yopish (X) tugmasi · yorliqli maydonlar (Ism-familiya · Telefon)
+/// · "Tarif" bo'limi (shablon + tur chiplari · narx) · pastda katta CTA.
+///
+/// Prototipdagi "dublikat aniqlash / birlashtirish" bloki QO'SHILMADI —
+/// backend telefon dublikatini tekshirish va karta birlashtirish endpointini
+/// hali bermaydi (ma'lumot-gap). Soxta ma'lumot ishlatilmaydi.
 class StudentFormScreen extends ConsumerStatefulWidget {
   const StudentFormScreen({this.existing, super.key});
 
@@ -237,121 +245,175 @@ class _StudentFormScreenState extends ConsumerState<StudentFormScreen> {
     final AsyncValue<List<TariffTemplate>> tariffs = ref.watch(tariffsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 18, color: c.ink),
-          onPressed: context.pop,
-        ),
-        title: Text(
-          _isEdit ? s.edit : s.addStudent,
-          style: AppText.h17.copyWith(color: c.ink),
-        ),
-      ),
+      backgroundColor: c.bg0,
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenH,
-            AppSpacing.sm,
-            AppSpacing.screenH,
-            AppSpacing.x7l,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            AppField(
-              controller: _name,
-              label: s.fieldName,
-              errorText: _errors['name'],
-              enabled: !_busy,
-              autofocus: !_isEdit,
-              textCapitalization: TextCapitalization.words,
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-            AppField(
-              controller: _phone,
-              label: 'Telefon',
-              errorText: _errors['phone'],
-              enabled: !_busy,
-              keyboardType: TextInputType.phone,
-              inputFormatters: const <TextInputFormatter>[
-                PhoneInputFormatter(),
-              ],
-              hintText: '90 123 45 67',
-              prefix: Text(
-                '+998',
-                style: AppText.body145.copyWith(color: c.soft),
+            // Ekran ustidagi sarlavha + yopish tugmasi (proto header).
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screenEdge,
+                AppSpacing.md,
+                AppSpacing.screenEdge,
+                AppSpacing.xl,
               ),
-            ),
-
-            // Tarif shablonlari — bosilganda maydonlarni to'ldiradi.
-            const SizedBox(height: AppSpacing.x6l),
-            Text(s.tariff, style: AppText.section15.copyWith(color: c.ink)),
-            const SizedBox(height: AppSpacing.lg),
-            tariffs.maybeWhen(
-              data: (List<TariffTemplate> items) => items.isEmpty
-                  ? const SizedBox.shrink()
-                  : Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                      child: AppChipRow(
-                        children: <Widget>[
-                          for (final TariffTemplate t in items)
-                            AppChip(
-                              label: '${t.name} · ${Money.compact(t.price)}',
-                              selected: false,
-                              onTap: _busy ? null : () => _applyTemplate(t),
-                            ),
-                        ],
-                      ),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      _isEdit ? s.edit : s.addStudent,
+                      style: AppText.display24.copyWith(color: c.ink),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-              orElse: () => const SizedBox.shrink(),
-            ),
-
-            // Tarif turi.
-            Row(
-              spacing: AppSpacing.sm,
-              children: <Widget>[
-                for (final TariffType t in TariffType.values)
-                  AppChip(
-                    label: s.tariffName(t),
-                    selected: _type == t,
-                    expand: true,
-                    onTap: _busy ? null : () => setState(() => _type = t),
                   ),
-              ],
-            ),
-
-            const SizedBox(height: AppSpacing.xxl),
-            AppField(
-              controller: _price,
-              label: s.price,
-              errorText: _errors['tariff_price'],
-              enabled: !_busy,
-              keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly,
-                _MoneyFormatter(),
-              ],
-              suffix: Text(
-                s.sum,
-                style: AppText.caption125.copyWith(color: c.dim),
-              ),
-            ),
-
-            // Paket tarifda — mashg'ulotlar soni.
-            if (_type == TariffType.package) ...<Widget>[
-              const SizedBox(height: AppSpacing.xxl),
-              AppField(
-                controller: _sessions,
-                label: s.sessionsOf(0).replaceAll('0 ', ''),
-                errorText: _errors['sessions_total'],
-                enabled: !_busy,
-                keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly,
+                  const SizedBox(width: AppSpacing.lg),
+                  GhostIconButton(
+                    size: 36,
+                    radius: AppRadius.lg,
+                    onPressed: context.pop,
+                    child: Icon(Icons.close_rounded, size: 18, color: c.soft),
+                  ),
                 ],
               ),
-            ],
+            ),
 
-            const SizedBox(height: AppSpacing.x7l),
-            GradientButton(label: s.save, loading: _busy, onPressed: _save),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenEdge,
+                  0,
+                  AppSpacing.screenEdge,
+                  AppSpacing.x7l,
+                ),
+                children: <Widget>[
+                  // Ism-familiya.
+                  AppField(
+                    controller: _name,
+                    label: s.studentFullName,
+                    errorText: _errors['name'],
+                    enabled: !_busy,
+                    autofocus: !_isEdit,
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  // Telefon (+998 doimiy prefiks).
+                  AppField(
+                    controller: _phone,
+                    label: s.phoneLabel,
+                    errorText: _errors['phone'],
+                    enabled: !_busy,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: const <TextInputFormatter>[
+                      PhoneInputFormatter(),
+                    ],
+                    hintText: '90 123 45 67',
+                    prefix: Text(
+                      '+998',
+                      style: AppText.body145.copyWith(color: c.soft),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppSpacing.x6l),
+
+                  // Tarif — yorliq (maydon yorliqlari uslubida).
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: AppSpacing.lg,
+                      left: AppSpacing.xxs,
+                    ),
+                    child: Text(
+                      s.tariff,
+                      style: AppText.caption125.copyWith(color: c.soft),
+                    ),
+                  ),
+
+                  // Tarif shablonlari — bosilganda maydonlarni to'ldiradi.
+                  tariffs.maybeWhen(
+                    data: (List<TariffTemplate> items) => items.isEmpty
+                        ? const SizedBox.shrink()
+                        : Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.lg,
+                            ),
+                            child: AppChipRow(
+                              children: <Widget>[
+                                for (final TariffTemplate t in items)
+                                  AppChip(
+                                    label:
+                                        '${t.name} · ${Money.compact(t.price)}',
+                                    selected: false,
+                                    onTap: _busy
+                                        ? null
+                                        : () => _applyTemplate(t),
+                                  ),
+                              ],
+                            ),
+                          ),
+                    orElse: () => const SizedBox.shrink(),
+                  ),
+
+                  // Tarif turi — pill chiplar (proto: Oylik / Paket / Bir marta).
+                  Row(
+                    spacing: AppSpacing.sm,
+                    children: <Widget>[
+                      for (final TariffType t in TariffType.values)
+                        AppChip(
+                          label: s.tariffName(t),
+                          selected: _type == t,
+                          expand: true,
+                          onTap: _busy
+                              ? null
+                              : () => setState(() => _type = t),
+                        ),
+                    ],
+                  ),
+
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  // Narx.
+                  AppField(
+                    controller: _price,
+                    label: s.price,
+                    errorText: _errors['tariff_price'],
+                    enabled: !_busy,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly,
+                      _MoneyFormatter(),
+                    ],
+                    suffix: Text(
+                      s.sum,
+                      style: AppText.caption125.copyWith(color: c.dim),
+                    ),
+                  ),
+
+                  // Paket tarifda — mashg'ulotlar soni.
+                  if (_type == TariffType.package) ...<Widget>[
+                    const SizedBox(height: AppSpacing.xxl),
+                    AppField(
+                      controller: _sessions,
+                      label: s.sessionsTotalLabel,
+                      errorText: _errors['sessions_total'],
+                      enabled: !_busy,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: AppSpacing.x7l),
+                  GradientButton(
+                    label: s.save,
+                    loading: _busy,
+                    onPressed: _save,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

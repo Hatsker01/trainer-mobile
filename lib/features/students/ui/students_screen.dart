@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:ustoz_trainer/core/api/app_exception.dart';
 import 'package:ustoz_trainer/core/api/dto/enums.dart';
 import 'package:ustoz_trainer/core/api/dto/student_dto.dart';
-import 'package:ustoz_trainer/core/i18n/lang_provider.dart';
 import 'package:ustoz_trainer/core/i18n/strings.dart';
 import 'package:ustoz_trainer/core/router/app_router.dart';
 import 'package:ustoz_trainer/core/theme/app_colors.dart';
@@ -15,12 +14,17 @@ import 'package:ustoz_trainer/core/theme/app_text.dart';
 import 'package:ustoz_trainer/core/utils/money.dart';
 import 'package:ustoz_trainer/core/widgets/avatar.dart';
 import 'package:ustoz_trainer/core/widgets/empty_state.dart';
+import 'package:ustoz_trainer/core/widgets/press_scale.dart';
 import 'package:ustoz_trainer/core/widgets/skeleton.dart';
-import 'package:ustoz_trainer/features/payments/ui/payment_sheet.dart';
 import 'package:ustoz_trainer/features/students/providers/students_provider.dart';
 
-/// S5 — Shogirdlar ro'yxati (REDESIGN, root-1-11): boy kartalar (avatar,
-/// balans, jami to'langan, To'lov qo'shish) + segment filtrlar.
+/// S5 — Shogirdlar ro'yxati (prototip v3 kompozitsiyasi): sarlavha + son pilli ·
+/// pill-shaklidagi qidiruv · gorizontal filtr chiplari · status-ring avatarli
+/// qatorlar (ism + status qatori + tarif·narx meta + status nuqta).
+///
+/// Prototip qatoridagi avatar-ring PROGRESSI (davomat foizi) backendda hali
+/// yo'q — shuning uchun ring FAQAT status rangini ko'rsatadi, foiz emas
+/// (ma'lumot-gap, PROTO-V3-MAP.md). Soxta ma'lumot ishlatilmaydi.
 class StudentsScreen extends ConsumerStatefulWidget {
   const StudentsScreen({super.key});
 
@@ -58,6 +62,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     final AppColors c = context.colors;
     final AppStrings s = context.s;
     final AsyncValue<StudentsState> async = ref.watch(studentsProvider);
+    final int count = async.value?.total ?? async.value?.items.length ?? 0;
 
     return RefreshIndicator(
       onRefresh: () => ref.read(studentsProvider.notifier).refresh(),
@@ -69,24 +74,24 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.screenEdge,
-              AppSpacing.x4l,
+              AppSpacing.sm,
               AppSpacing.screenEdge,
               0,
             ),
             sliver: SliverList.list(
               children: <Widget>[
-                _Header(students: s.students),
-                const SizedBox(height: AppSpacing.xxl),
+                _Header(count: count),
+                const SizedBox(height: AppSpacing.xl),
                 _SearchBar(
                   controller: _search,
                   onChanged: ref.read(studentsProvider.notifier).search,
                 ),
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.lg),
                 _Filters(
                   current: async.value?.filter ?? StudentFilter.all,
                   onSelect: ref.read(studentsProvider.notifier).setFilter,
                 ),
-                const SizedBox(height: AppSpacing.x3l),
+                const SizedBox(height: AppSpacing.xl),
               ],
             ),
           ),
@@ -137,14 +142,28 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
           AppSpacing.screenBottom,
         ),
         sliver: SliverList.separated(
-          itemCount: data.items.length + (data.loadingMore ? 1 : 0),
+          itemCount: data.items.length + 1 + (data.loadingMore ? 1 : 0),
           separatorBuilder: (BuildContext _, int _) =>
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.md),
           itemBuilder: (BuildContext context, int i) {
-            if (i >= data.items.length) {
-              return const Skeleton(height: 68, radius: 18);
+            if (i < data.items.length) {
+              return _StudentCard(student: data.items[i]);
             }
-            return _StudentCard(student: data.items[i]);
+            if (data.loadingMore && i == data.items.length) {
+              return const Skeleton(height: 76, radius: AppRadius.card);
+            }
+            // Oxirgi element — arxiv izohi.
+            return Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
+              child: Text(
+                context.s.archivedHint,
+                textAlign: TextAlign.center,
+                style: AppText.caption12.copyWith(
+                  color: context.colors.dim,
+                  height: 1.5,
+                ),
+              ),
+            );
           },
         ),
       ),
@@ -152,66 +171,69 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   }
 }
 
-BoxDecoration cardDecoration(AppColors c, {double radius = 18}) {
+/// Prototip karta: `--s1` sirt, `--bd` chegara, radius 20 (AppRadius.card).
+BoxDecoration _cardDecoration(AppColors c) {
   return BoxDecoration(
     color: c.glass,
-    borderRadius: BorderRadius.circular(radius),
+    borderRadius: BorderRadius.circular(AppRadius.card),
     border: Border.all(color: c.line),
     boxShadow: const <BoxShadow>[
       BoxShadow(
         color: Color.fromRGBO(17, 24, 39, 0.05),
-        blurRadius: 18,
-        offset: Offset(0, 6),
+        blurRadius: 14,
+        offset: Offset(0, 5),
       ),
     ],
   );
 }
 
-class _Header extends ConsumerWidget {
-  const _Header({required this.students});
+// -------------------------------------------------------------------- sarlavha
 
-  final String students;
+class _Header extends StatelessWidget {
+  const _Header({required this.count});
+
+  final int count;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final AppColors c = context.colors;
-    final Lang lang = ref.watch(langProvider);
+    final AppStrings s = context.s;
 
     return Row(
       children: <Widget>[
         Expanded(
-          child: Text(
-            students,
-            style: AppText.display24.copyWith(color: c.anor2),
-          ),
+          child: Text(s.students, style: AppText.display24.copyWith(color: c.ink)),
         ),
-        GestureDetector(
-          onTap: () => ref
-              .read(langProvider.notifier)
-              .set(lang == Lang.uz ? Lang.ru : Lang.uz),
-          child: Container(
-            width: 48,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: c.glassHi,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              lang == Lang.uz ? 'UZ' : 'RU',
-              style: AppText.body13Bold.copyWith(color: c.anor2),
+        // Son pilli (prototip: "N / 5 bepul"). Bepul-limit backendda yo'q —
+        // shuning uchun faqat jami son ko'rsatiladi (ma'lumot-gap).
+        Container(
+          height: 34,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: c.glassHi,
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: Text(
+            s.studentsCount(count),
+            style: AppText.body13Bold.copyWith(
+              color: c.soft,
+              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
             ),
           ),
         ),
         const SizedBox(width: AppSpacing.md),
-        GestureDetector(
+        PressScale(
           onTap: () => context.push(Routes.studentNew),
           child: Container(
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             alignment: Alignment.center,
-            decoration: BoxDecoration(color: c.anor2, shape: BoxShape.circle),
-            child: const Icon(Icons.add, size: 24, color: Colors.white),
+            decoration: BoxDecoration(
+              gradient: c.anorGradient,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.add_rounded, size: 24, color: Colors.white),
           ),
         ),
       ],
@@ -219,121 +241,7 @@ class _Header extends ConsumerWidget {
   }
 }
 
-class _StudentCard extends ConsumerWidget {
-  const _StudentCard({required this.student});
-
-  final Student student;
-
-  Future<void> _pay(BuildContext context, WidgetRef ref) async {
-    final bool? saved = await showPaymentSheet(
-      context,
-      studentId: student.id,
-      studentName: student.name,
-      amount: student.tariffPrice,
-    );
-    if (saved ?? false) {
-      await ref.read(studentsProvider.notifier).refresh();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final AppColors c = context.colors;
-    final AppStrings s = context.s;
-
-    // F3: bitta semantik signal — holat nuqtasi + bitta ikkilamchi qator.
-    final (
-      Color dot,
-      String? sub,
-      Color subColor,
-      bool showPay,
-    ) = switch (student.paymentState) {
-      PaymentState.overdue => (
-        c.debt,
-        '${s.daysLate(student.daysOverdue ?? 0)} · '
-            '${Money.compact(student.balance?.abs() ?? student.tariffPrice)}',
-        c.debt,
-        true,
-      ),
-      PaymentState.dueToday => (c.warn, s.today, c.warn, true),
-      PaymentState.dueSoon => (
-        c.warn,
-        student.nextDueDate == null ? null : s.dayMonth(student.nextDueDate!),
-        c.soft,
-        false,
-      ),
-      PaymentState.paid || PaymentState.none => (c.ok, null, c.soft, false),
-    };
-
-    return GestureDetector(
-      onTap: () => context.push(Routes.student(student.id)),
-      child: Container(
-        decoration: cardDecoration(c),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        child: Row(
-          children: <Widget>[
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Avatar.small(student.name, url: student.avatarUrl),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    student.name,
-                    style: AppText.body15Bold.copyWith(color: c.ink),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (sub != null) ...<Widget>[
-                    const SizedBox(height: 2),
-                    Text(
-                      sub,
-                      style: AppText.body13.copyWith(color: subColor),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            if (showPay)
-              GestureDetector(
-                onTap: () => _pay(context, ref),
-                child: Container(
-                  height: 34,
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                  ),
-                  decoration: BoxDecoration(
-                    color: c.anor2,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    s.payment,
-                    style: AppText.body13Bold.copyWith(color: Colors.white),
-                  ),
-                ),
-              )
-            else
-              Icon(Icons.chevron_right, size: 22, color: c.dim),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// -------------------------------------------------------------------- qidiruv
 
 class _SearchBar extends StatelessWidget {
   const _SearchBar({required this.controller, required this.onChanged});
@@ -346,18 +254,16 @@ class _SearchBar extends StatelessWidget {
     final AppColors c = context.colors;
 
     return Container(
+      height: 48,
       decoration: BoxDecoration(
         color: c.glass,
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(100),
         border: Border.all(color: c.line),
       ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xxl,
-        vertical: AppSpacing.xl,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
       child: Row(
         children: <Widget>[
-          Icon(Icons.search, size: 18, color: c.dim),
+          Icon(Icons.search_rounded, size: 19, color: c.dim),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: TextField(
@@ -381,6 +287,8 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
+// --------------------------------------------------------------------- filtrlar
+
 class _Filters extends StatelessWidget {
   const _Filters({required this.current, required this.onSelect});
 
@@ -401,12 +309,13 @@ class _Filters extends StatelessWidget {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.only(bottom: 2),
       child: Row(
         children: <Widget>[
           for (final (StudentFilter f, String label) in filters)
             Padding(
               padding: const EdgeInsets.only(right: AppSpacing.sm),
-              child: _FilterTab(
+              child: _FilterChip(
                 label: label,
                 selected: current == f,
                 onTap: () => onSelect(f),
@@ -418,8 +327,8 @@ class _Filters extends StatelessWidget {
   }
 }
 
-class _FilterTab extends StatelessWidget {
-  const _FilterTab({
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
     required this.label,
     required this.selected,
     required this.onTap,
@@ -437,18 +346,18 @@ class _FilterTab extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.x4l,
-          vertical: AppSpacing.md,
-        ),
+        duration: AppDuration.fast,
+        height: 36,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
         decoration: BoxDecoration(
-          color: selected ? c.anor2 : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
+          color: selected ? c.anor2 : c.glass,
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: selected ? c.anor2 : c.line),
         ),
         child: Text(
           label,
-          style: AppText.body14Bold.copyWith(
+          style: AppText.body13Bold.copyWith(
             color: selected ? Colors.white : c.soft,
           ),
         ),
@@ -456,6 +365,144 @@ class _FilterTab extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------- shogird qatori
+
+class _StudentCard extends StatelessWidget {
+  const _StudentCard({required this.student});
+
+  final Student student;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+    final bool archived = student.isArchived;
+
+    // Bitta semantik signal: status rangi (ring + nuqta) + status qatori.
+    final (Color statusColor, String? statusLine) = archived
+        ? (c.dim, s.archived)
+        : switch (student.paymentState) {
+            PaymentState.overdue => (
+              c.debt,
+              '${s.daysLate(student.daysOverdue ?? 0)} · '
+                  '${Money.compact((student.balance ?? student.tariffPrice).abs())}',
+            ),
+            PaymentState.dueToday => (c.warn, s.today),
+            PaymentState.dueSoon => (
+              c.warn,
+              student.nextDueDate == null
+                  ? null
+                  : s.dayMonth(student.nextDueDate!),
+            ),
+            PaymentState.paid || PaymentState.none => (c.ok, null),
+          };
+
+    final String meta =
+        '${s.tariffName(student.tariffType)} · ${Money.compact(student.tariffPrice)}';
+
+    return PressScale(
+      onTap: () => context.push(Routes.student(student.id)),
+      child: Opacity(
+        opacity: archived ? 0.6 : 1,
+        child: Container(
+          decoration: _cardDecoration(c),
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Row(
+            children: <Widget>[
+              _StatusRingAvatar(
+                name: student.name,
+                url: student.avatarUrl,
+                ringColor: statusColor,
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      student.name,
+                      style: AppText.body15Bold.copyWith(color: c.ink),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (statusLine != null) ...<Widget>[
+                      const SizedBox(height: 3),
+                      Text(
+                        statusLine,
+                        style: AppText.caption125.copyWith(color: statusColor),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 2),
+                    Text(
+                      meta,
+                      style: AppText.caption12.copyWith(color: c.dim),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Icon(Icons.chevron_right_rounded, size: 18, color: c.dim),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Prototip 54px "plita" avatari — status rangidagi halqa + ichida initsiallar.
+/// Progress (davomat foizi) backendda yo'q, shuning uchun halqa to'liq va
+/// FAQAT status rangini bildiradi (ma'lumot-gap).
+class _StatusRingAvatar extends StatelessWidget {
+  const _StatusRingAvatar({
+    required this.name,
+    required this.ringColor,
+    this.url,
+  });
+
+  final String name;
+  final Color ringColor;
+  final String? url;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    return Container(
+      width: 54,
+      height: 54,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: ringColor.withValues(alpha: 0.9), width: 2.5),
+        color: c.glass,
+      ),
+      child: Avatar(name, size: 42, url: url),
+    );
+  }
+}
+
+// -------------------------------------------------------------------- skeleton
 
 class _ListSkeleton extends StatelessWidget {
   const _ListSkeleton();
@@ -465,11 +512,11 @@ class _ListSkeleton extends StatelessWidget {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenEdge),
       sliver: SliverList.separated(
-        itemCount: 4,
+        itemCount: 5,
         separatorBuilder: (BuildContext _, int _) =>
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.md),
         itemBuilder: (BuildContext _, int _) =>
-            const Skeleton(height: 68, radius: 18),
+            const Skeleton(height: 76, radius: AppRadius.card),
       ),
     );
   }
