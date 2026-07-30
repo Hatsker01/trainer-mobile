@@ -33,31 +33,37 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Future<void> _boot() async {
     setState(() => _error = null);
 
-    // Onboarding hali ko'rilmagan bo'lsa — avval u.
-    final Map<String, dynamic>? onboarding = await ref
-        .read(localStoreProvider)
-        .readJson(OnboardingScreen.storeKey);
-
-    final bool seen = onboarding?[OnboardingScreen.seenField] == true;
-
     try {
+      // Onboarding hali ko'rilmagan bo'lsa — avval u.
+      final Map<String, dynamic>? onboarding = await ref
+          .read(localStoreProvider)
+          .readJson(OnboardingScreen.storeKey);
+
+      final bool seen = onboarding?[OnboardingScreen.seenField] == true;
+
       await ref.read(sessionProvider.notifier).restore();
+
+      if (!mounted) {
+        return;
+      }
+      // Kirilmagan va onboarding ko'rilmagan → onboarding.
+      if (!seen && ref.read(sessionProvider) is SessionSignedOut) {
+        context.go(Routes.onboarding);
+      }
+      // Qolgan hollarda router `redirect` o'z ishini qiladi.
     } on AppException catch (e) {
-      // Tarmoq yo'q — sessiya `unknown` qoladi, qayta urinish tugmasi.
+      // Tarmoq/server xatosi — sessiya `unknown` qoladi, qayta urinish tugmasi.
       if (mounted) {
         setState(() => _error = e.message);
       }
-      return;
+    } catch (_) {
+      // Kutilmagan xato (JSON parse, secure-storage, platform xatosi va h.k.).
+      // MUHIM: splashda JIMGINA qotib qolmasin — aks holda foydalanuvchi
+      // abadiy loading ko'radi. Xato + qayta urinish ko'rsatamiz.
+      if (mounted) {
+        setState(() => _error = context.s.errGeneric);
+      }
     }
-
-    if (!mounted) {
-      return;
-    }
-    // Kirilmagan va onboarding ko'rilmagan → onboarding.
-    if (!seen && ref.read(sessionProvider) is SessionSignedOut) {
-      context.go(Routes.onboarding);
-    }
-    // Qolgan hollarda router `redirect` o'z ishini qiladi.
   }
 
   @override
