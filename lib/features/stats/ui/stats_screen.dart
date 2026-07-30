@@ -211,6 +211,50 @@ class _Body extends StatelessWidget {
             ),
           ),
         ],
+
+        // Churn radar (real: churn[]).
+        const SizedBox(height: AppSpacing.sectionGap),
+        SectionHeader(s.churnSectionTitle),
+        if (stats.churn == null || stats.churn!.isEmpty)
+          GlassCard(
+            child: EmptyState(emoji: '👍', title: s.churnEmpty, compact: true),
+          )
+        else
+          for (final ChurnCard ch in stats.churn!)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: c.debtSoft,
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  border: Border.all(color: c.debt.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Icon(Icons.gps_fixed_rounded, size: 18, color: c.debt),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            ch.name,
+                            style: AppText.body14Bold.copyWith(color: c.ink),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            s.churnReason(ch.reason),
+                            style: AppText.caption12.copyWith(color: c.soft),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
       ],
     );
   }

@@ -125,6 +125,18 @@ const _$TariffTypeEnumMap = {
   TariffType.single: 'single',
 };
 
+ChurnCard _$ChurnCardFromJson(Map<String, dynamic> json) => ChurnCard(
+  studentId: json['student_id'] as String,
+  name: json['name'] as String,
+  reason: json['reason'] as String,
+);
+
+Map<String, dynamic> _$ChurnCardToJson(ChurnCard instance) => <String, dynamic>{
+  'student_id': instance.studentId,
+  'name': instance.name,
+  'reason': instance.reason,
+};
+
 StatsResponse _$StatsResponseFromJson(Map<String, dynamic> json) =>
     StatsResponse(
       monthRevenue: (json['month_revenue'] as num).toInt(),
@@ -139,6 +151,9 @@ StatsResponse _$StatsResponseFromJson(Map<String, dynamic> json) =>
       byTariff: (json['by_tariff'] as List<dynamic>?)
           ?.map((e) => StatsByTariff.fromJson(e as Map<String, dynamic>))
           .toList(),
+      churn: (json['churn'] as List<dynamic>?)
+          ?.map((e) => ChurnCard.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$StatsResponseToJson(StatsResponse instance) =>
@@ -151,6 +166,7 @@ Map<String, dynamic> _$StatsResponseToJson(StatsResponse instance) =>
       'debt_total': instance.debtTotal,
       'series': instance.series,
       'by_tariff': instance.byTariff,
+      'churn': instance.churn,
     };
 
 Map<String, dynamic> _$AttendanceBulkRequestToJson(

@@ -170,6 +170,30 @@ class StatsByTariff {
   final int revenue;
 }
 
+/// Churn radar kartasi (§3.9) — ketish riskidagi shogird.
+@JsonSerializable()
+class ChurnCard {
+  const ChurnCard({
+    required this.studentId,
+    required this.name,
+    required this.reason,
+  });
+
+  factory ChurnCard.fromJson(Map<String, dynamic> json) =>
+      _$ChurnCardFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChurnCardToJson(this);
+
+  @JsonKey(name: 'student_id')
+  final String studentId;
+
+  final String name;
+
+  /// `debt_overdue` | `consecutive_miss` | `attendance_drop`.
+  /// String — noma'lum qiymat parse'ni buzmasin (ilova uz/ru ga o'giradi).
+  final String reason;
+}
+
 /// `GET /stats` javobi. Parametrlari YO'Q.
 @JsonSerializable()
 class StatsResponse {
@@ -182,6 +206,7 @@ class StatsResponse {
     this.changePercent,
     this.debtorsCount,
     this.byTariff,
+    this.churn,
   });
 
   factory StatsResponse.fromJson(Map<String, dynamic> json) =>
@@ -214,6 +239,9 @@ class StatsResponse {
 
   @JsonKey(name: 'by_tariff')
   final List<StatsByTariff>? byTariff;
+
+  /// Churn radar — riskdagi shogirdlar (shoshilinch avval). Bo'sh bo'lishi mumkin.
+  final List<ChurnCard>? churn;
 }
 
 /// `POST /attendance/bulk` tanasi.

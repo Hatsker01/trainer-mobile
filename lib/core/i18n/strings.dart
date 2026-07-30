@@ -351,6 +351,27 @@ class AppStrings {
   String get themeDark => _p('Qora', 'Тёмная');
   String get themeLight => _p('Oq', 'Светлая');
 
+  // Churn radar (§3.9).
+  String get churnSectionTitle => _p('Churn radar', 'Churn-радар');
+  String churnRiskTitle(String name) =>
+      _p('Ketish riski · $name', 'Риск ухода · $name');
+  String get churnReasonDebt =>
+      _p("To'lov muddati o'tgan — bog'laning", 'Просрочена оплата — свяжитесь');
+  String get churnReasonMiss =>
+      _p('2 haftadan beri kelmayapti', 'Не приходит 2 недели');
+  String get churnReasonDrop =>
+      _p('Kelish chastotasi tushib ketdi', 'Частота посещений упала');
+  String get churnSendMessage => _p('Xabar yuborish', 'Написать');
+  String get churnRadar => _p('Radar', 'Радар');
+  String get churnEmpty =>
+      _p('Hozircha riskda shogird yo\'q 👍', 'Пока нет учеников в зоне риска 👍');
+  String churnReason(String reason) => switch (reason) {
+    'debt_overdue' => churnReasonDebt,
+    'consecutive_miss' => churnReasonMiss,
+    'attendance_drop' => churnReasonDrop,
+    _ => churnReasonMiss,
+  };
+
   // ----------------------------------------------------------- shogirdlar
   String get students => _p('Shogirdlar', 'Ученики');
   String activeCount(int n) => _p('$n aktiv', '$n активных');

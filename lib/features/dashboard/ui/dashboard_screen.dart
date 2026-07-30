@@ -91,6 +91,7 @@ class _DashboardBody extends ConsumerWidget {
     final StatsResponse? stats = ref.watch(statsProvider).value;
     final int debtTotal = stats?.debtTotal ?? d.totals?.overdueAmount ?? 0;
     final int active = stats?.activeStudents ?? 0;
+    final List<ChurnCard> churn = stats?.churn ?? const <ChurnCard>[];
 
     // Kassa svetofori countlari (real).
     final int soon = d.dueSoon.length;
@@ -151,6 +152,12 @@ class _DashboardBody extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.sectionGapDense),
+
+        // Churn radar — eng shoshilinch risk kartasi (bor bo'lsa).
+        if (churn.isNotEmpty) ...<Widget>[
+          _ChurnCardView(card: churn.first),
+          const SizedBox(height: AppSpacing.sectionGapDense),
+        ],
 
         // BUGUN.
         Text(s.todaySection, style: _sectionStyle(context)),
@@ -639,6 +646,114 @@ class _QuickAction extends StatelessWidget {
             Text(label, style: AppText.caption125.copyWith(color: c.ink)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------- churn radar
+
+/// "Ketish riski" kartasi — riskdagi shogird + tez amallar (prototip v3).
+class _ChurnCardView extends StatelessWidget {
+  const _ChurnCardView({required this.card});
+
+  final ChurnCard card;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    final AppStrings s = context.s;
+    return Container(
+      decoration: BoxDecoration(
+        color: c.debtSoft,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: c.debt.withValues(alpha: 0.35)),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                width: 34,
+                height: 34,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: c.debt,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: const Icon(
+                  Icons.gps_fixed_rounded,
+                  size: 18,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      s.churnRiskTitle(card.name),
+                      style: AppText.body14Bold.copyWith(color: c.ink),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      s.churnReason(card.reason),
+                      style: AppText.body13.copyWith(color: c.soft),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: PressScale(
+                  onTap: () => context.push(Routes.student(card.studentId)),
+                  child: Container(
+                    height: 42,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: c.debt,
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
+                    child: Text(
+                      s.churnSendMessage,
+                      style: AppText.body13Bold.copyWith(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              PressScale(
+                onTap: () => context.go(Routes.stats),
+                child: Container(
+                  height: 42,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                  ),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: c.glass,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    border: Border.all(color: c.line),
+                  ),
+                  child: Text(
+                    s.churnRadar,
+                    style: AppText.body13Bold.copyWith(color: c.ink),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
