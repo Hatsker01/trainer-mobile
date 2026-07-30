@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ustoz_trainer/core/api/app_exception.dart';
 import 'package:ustoz_trainer/core/api/dto/dashboard_dto.dart';
+import 'package:ustoz_trainer/core/api/dto/session_dto.dart';
 import 'package:ustoz_trainer/core/i18n/strings.dart';
 import 'package:ustoz_trainer/core/router/app_router.dart';
 import 'package:ustoz_trainer/core/theme/app_colors.dart';
@@ -14,6 +15,7 @@ import 'package:ustoz_trainer/core/widgets/press_scale.dart';
 import 'package:ustoz_trainer/core/widgets/skeleton.dart';
 import 'package:ustoz_trainer/features/attendance/ui/attendance_sheet.dart';
 import 'package:ustoz_trainer/features/dashboard/providers/dashboard_provider.dart';
+import 'package:ustoz_trainer/features/dashboard/providers/sessions_provider.dart';
 import 'package:ustoz_trainer/features/payments/ui/payment_sheet.dart';
 import 'package:ustoz_trainer/features/stats/ui/stats_screen.dart';
 
@@ -92,6 +94,12 @@ class _DashboardBody extends ConsumerWidget {
     final int debtTotal = stats?.debtTotal ?? d.totals?.overdueAmount ?? 0;
     final int active = stats?.activeStudents ?? 0;
     final List<ChurnCard> churn = stats?.churn ?? const <ChurnCard>[];
+    final List<SessionDto> sessions = ref
+        .watch(todaySessionsProvider)
+        .maybeWhen(
+          data: (List<SessionDto> x) => x,
+          orElse: () => const <SessionDto>[],
+        );
 
     // Kassa svetofori countlari (real).
     final int soon = d.dueSoon.length;
@@ -160,6 +168,18 @@ class _DashboardBody extends ConsumerWidget {
         // Churn radar — eng shoshilinch risk kartasi (bor bo'lsa).
         if (churn.isNotEmpty) ...<Widget>[
           _ChurnCardView(card: churn.first),
+          const SizedBox(height: AppSpacing.sectionGapDense),
+        ],
+
+        // Bugungi lenta — bugungi mashg'ulot slotlari (real /sessions).
+        if (sessions.isNotEmpty) ...<Widget>[
+          Text(s.todayFeed, style: _sectionStyle(context)),
+          const SizedBox(height: AppSpacing.md),
+          for (final SessionDto sess in sessions)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: _SessionRow(session: sess),
+            ),
           const SizedBox(height: AppSpacing.sectionGapDense),
         ],
 
@@ -800,6 +820,74 @@ class _ChurnCardView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ------------------------------------------------------------- bugungi lenta
+
+/// "Bugungi lenta" qatori — vaqt + shogird/guruh + konflikt belgisi (real slot).
+class _SessionRow extends StatelessWidget {
+  const _SessionRow({required this.session});
+
+  final SessionDto session;
+
+  /// Asia/Tashkent (UTC+5) devor-soati "HH:mm".
+  String get _hhmm {
+    final DateTime t = session.startsAt.toUtc().add(const Duration(hours: 5));
+    return '${t.hour.toString().padLeft(2, '0')}:'
+        '${t.minute.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    final bool done = session.status == 'done';
+
+    final Widget row = Container(
+      decoration: _cardDecoration(c),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.cardPadDense,
+        vertical: AppSpacing.md,
+      ),
+      child: Row(
+        children: <Widget>[
+          Text(_hhmm, style: _numStyle(16).copyWith(color: c.ink)),
+          const SizedBox(width: AppSpacing.md),
+          Container(width: 1, height: 30, color: c.line),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Row(
+              children: <Widget>[
+                Flexible(
+                  child: Text(
+                    session.displayName,
+                    style: AppText.body14Bold.copyWith(color: c.ink),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (session.conflict) ...<Widget>[
+                  const SizedBox(width: AppSpacing.xs),
+                  Icon(Icons.warning_amber_rounded, size: 15, color: c.warn),
+                ],
+              ],
+            ),
+          ),
+          if (done)
+            Icon(Icons.check_circle_rounded, size: 18, color: c.ok)
+          else
+            Icon(Icons.chevron_right_rounded, size: 18, color: c.dim),
+        ],
+      ),
+    );
+
+    if (session.studentId == null) {
+      return row;
+    }
+    return GestureDetector(
+      onTap: () => context.push(Routes.student(session.studentId!)),
+      child: row,
     );
   }
 }

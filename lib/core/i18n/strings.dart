@@ -364,6 +364,9 @@ class AppStrings {
   String get churnSendMessage => _p('Xabar yuborish', 'Написать');
   String get churnRadar => _p('Radar', 'Радар');
   String streakLabel(int n) => _p('$n kun', '$n дн.');
+  String get todayFeed => _p('Bugungi lenta', 'Сегодняшняя лента');
+  String get sessionConflict =>
+      _p('Vaqt to\'qnashuvi', 'Конфликт времени');
   String get churnEmpty =>
       _p('Hozircha riskda shogird yo\'q 👍', 'Пока нет учеников в зоне риска 👍');
   String churnReason(String reason) => switch (reason) {
