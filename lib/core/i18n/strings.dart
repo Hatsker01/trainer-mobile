@@ -314,6 +314,15 @@ class AppStrings {
       _p("Bugun to'lov kutilmayapti", 'Сегодня оплат не ожидается');
   String get noSchedule => _p("Bugun mashg'ulot yo'q", 'Сегодня занятий нет');
 
+  // Kassa svetofori (dashboard) — prototip v3.
+  String get kassaTrafficLight => _p('Kassa svetofori', 'Касса-светофор');
+  String get tlPaid => _p("to'langan", 'оплатили');
+  String get tlSoon => _p('yaqin', 'скоро');
+  String get tlDebt => _p('qarzdor', 'должники');
+  String redsDebt(String amount) =>
+      _p('Qizillar: $amount qarz', 'Красные: долг $amount');
+  String get cameToday => _p('Bugun keldi', 'Пришли сегодня');
+
   // ----------------------------------------------------------- shogirdlar
   String get students => _p('Shogirdlar', 'Ученики');
   String activeCount(int n) => _p('$n aktiv', '$n активных');

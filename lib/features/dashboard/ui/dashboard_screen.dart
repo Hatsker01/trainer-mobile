@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ustoz_trainer/core/api/app_exception.dart';
 import 'package:ustoz_trainer/core/api/dto/dashboard_dto.dart';
-import 'package:ustoz_trainer/core/api/dto/enums.dart';
 import 'package:ustoz_trainer/core/i18n/strings.dart';
 import 'package:ustoz_trainer/core/router/app_router.dart';
 import 'package:ustoz_trainer/core/theme/app_colors.dart';
@@ -11,21 +10,20 @@ import 'package:ustoz_trainer/core/theme/app_spacing.dart';
 import 'package:ustoz_trainer/core/theme/app_text.dart';
 import 'package:ustoz_trainer/core/utils/money.dart';
 import 'package:ustoz_trainer/core/widgets/empty_state.dart';
-import 'package:ustoz_trainer/core/widgets/money_text.dart';
-import 'package:ustoz_trainer/core/widgets/plita_ring.dart';
 import 'package:ustoz_trainer/core/widgets/press_scale.dart';
 import 'package:ustoz_trainer/core/widgets/skeleton.dart';
-import 'package:ustoz_trainer/core/widgets/status_badge.dart';
 import 'package:ustoz_trainer/features/attendance/ui/attendance_sheet.dart';
-import 'package:ustoz_trainer/features/auth/providers/session_provider.dart';
 import 'package:ustoz_trainer/features/dashboard/providers/dashboard_provider.dart';
-import 'package:ustoz_trainer/features/dashboard/ui/goal_sheet.dart';
 import 'package:ustoz_trainer/features/payments/ui/payment_sheet.dart';
 import 'package:ustoz_trainer/features/stats/ui/stats_screen.dart';
 
-/// S4 — Bosh sahifa (G2 ZICHLIK qayta kompozitsiya): kompakt salom + yig'ma
-/// hero (daromad + maqsad ringi + mini qarz/faol) + BUGUN bo'limi + tezkor
-/// amallar + so'nggi faoliyat. Zich moliyaviy ilova standarti.
+/// S4 — Bosh sahifa (prototip v3 kompozitsiyasi): salom qatori · Kassa svetofori
+/// (to'langan/yaqin/qarzdor) · stat kartalar (Bugun keldi · Faol shogird) ·
+/// BUGUN ro'yxati · tezkor amallar.
+///
+/// Churn radar, streak va "Bugungi lenta" (sessiyalar) backend endpointlari
+/// tayyor bo'lgach qo'shiladi (PROTO-V3-MAP.md — ma'lumot-gap). Soxta ma'lumot
+/// ishlatilmaydi.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -54,8 +52,8 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-/// Zich oq karta — yumshoq soya + ochiq chegara.
-BoxDecoration _cardDecoration(AppColors c, {double radius = 16}) {
+/// Prototip karta: `--s1` sirt, `--bd` chegara, radius 20 (AppRadius.card).
+BoxDecoration _cardDecoration(AppColors c, {double radius = AppRadius.card}) {
   return BoxDecoration(
     color: c.glass,
     borderRadius: BorderRadius.circular(radius),
@@ -70,6 +68,16 @@ BoxDecoration _cardDecoration(AppColors c, {double radius = 16}) {
   );
 }
 
+/// Katta Unbounded raqam (stat kartalar / svetofor) — prototip 24–32px.
+TextStyle _numStyle(double size) => TextStyle(
+  fontFamily: AppText.displayFamily,
+  fontWeight: FontWeight.w600,
+  fontSize: size,
+  height: 1,
+  letterSpacing: -0.02 * size / 32,
+  fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+);
+
 class _DashboardBody extends ConsumerWidget {
   const _DashboardBody({required this.data});
 
@@ -81,24 +89,16 @@ class _DashboardBody extends ConsumerWidget {
     final DashboardResponse d = data.value;
 
     final StatsResponse? stats = ref.watch(statsProvider).value;
-    final int monthRevenue = stats?.monthRevenue ?? 0;
-    final int debtTotal = stats?.debtTotal ?? 0;
-    final int debtors = stats?.debtorsCount ?? d.overdue.length;
+    final int debtTotal = stats?.debtTotal ?? d.totals?.overdueAmount ?? 0;
     final int active = stats?.activeStudents ?? 0;
 
-    // Yig'im % (G4): backend `collected/expected_this_month` (D060) bo'lsa
-    // o'shandan; bo'lmasa proksi: yig'ilgan / (yig'ilgan + qarz) (D209).
-    final int collected = d.collectedThisMonth ?? monthRevenue;
-    final int expected = d.expectedThisMonth ?? (monthRevenue + debtTotal);
-    final int collectedPct = expected == 0
-        ? 0
-        : ((collected * 100) / expected).round().clamp(0, 100);
-
-    // Oylik maqsad (G4) — sessiyadan (faqat goal int'iga bog'lanamiz).
-    final int? goal = ref.watch(
-      sessionProvider.select(
-        (SessionState s) => s is SessionActive ? s.me.monthlyGoal : null,
-      ),
+    // Kassa svetofori countlari (real).
+    final int soon = d.dueSoon.length;
+    final int debt = d.overdue.length;
+    // "to'langan" = faol shogirdlardan yaqin/qarzdor/bugun-to'lovlarni ayirib.
+    final int paid = (active - soon - debt - d.dueToday.length).clamp(
+      0,
+      active <= 0 ? 0 : active,
     );
 
     // BUGUN — kechikkanlar avval, keyin bugun to'lashi kerak. Maksimal 3.
@@ -106,13 +106,6 @@ class _DashboardBody extends ConsumerWidget {
       ...d.overdue,
       ...d.dueToday,
     ];
-
-    // So'nggi faoliyat — e'tibor ro'yxatidan (5 ta, zich).
-    final List<DashboardStudent> activity = <DashboardStudent>[
-      ...d.overdue,
-      ...d.dueToday,
-      ...d.dueSoon,
-    ].take(5).toList();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -122,25 +115,44 @@ class _DashboardBody extends ConsumerWidget {
         AppSpacing.screenBottom,
       ),
       children: <Widget>[
-        // 1) Kompakt salom qatori.
-        _GreetingRow(
-          name: d.greetingName,
-          notif: d.overdue.length,
-          collectedPct: collectedPct,
-        ),
+        _GreetingRow(name: d.greetingName, notif: d.overdue.length),
         const SizedBox(height: AppSpacing.xl),
 
-        // 2) Yig'ma hero: daromad + maqsad ringi + mini qarz/faol.
-        _GoalHero(
-          monthRevenue: monthRevenue,
-          goal: goal,
+        // Kassa svetofori.
+        _KassaSvetofori(
+          paid: paid,
+          soon: soon,
+          debt: debt,
           debtTotal: debtTotal,
-          debtors: debtors,
-          active: active,
+          onTap: () => context.go(Routes.cash),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+
+        // Stat kartalar: Bugun keldi · Faol shogird.
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Expanded(
+              child: _StatCard(
+                label: s.cameToday,
+                value: '${d.attendanceToday.markedCount}',
+                accent: context.colors.ok,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(
+              child: _StatCard(
+                label: s.kpiActiveStudents,
+                value: '$active',
+                accent: context.colors.anor2,
+                onTap: () => context.go(Routes.students),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: AppSpacing.sectionGapDense),
 
-        // 3) BUGUN.
+        // BUGUN.
         Text(s.todaySection, style: _sectionStyle(context)),
         const SizedBox(height: AppSpacing.md),
         if (today.isEmpty)
@@ -163,39 +175,9 @@ class _DashboardBody extends ConsumerWidget {
             ),
           ),
 
-        // 4) Tezkor amallar — bitta qatorda 3 kichik.
+        // Tezkor amallar.
         const SizedBox(height: AppSpacing.sectionGapDense),
         const _QuickActions(),
-
-        // 5) So'nggi faoliyat.
-        const SizedBox(height: AppSpacing.sectionGapDense),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(s.recentActivity, style: _sectionStyle(context)),
-            ),
-            GestureDetector(
-              onTap: () => context.go(Routes.students),
-              child: Text(
-                s.seeAll,
-                style: AppText.body13Bold.copyWith(color: context.colors.anor2),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        if (activity.isEmpty)
-          Container(
-            decoration: _cardDecoration(context.colors),
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-            child: EmptyState(emoji: '💪', title: s.allClear),
-          )
-        else
-          for (final DashboardStudent st in activity)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _ActivityRow(student: st),
-            ),
       ],
     );
   }
@@ -207,15 +189,10 @@ TextStyle _sectionStyle(BuildContext context) =>
 // ---------------------------------------------------------------- salom qatori
 
 class _GreetingRow extends StatelessWidget {
-  const _GreetingRow({
-    required this.name,
-    required this.notif,
-    required this.collectedPct,
-  });
+  const _GreetingRow({required this.name, required this.notif});
 
   final String name;
   final int notif;
-  final int collectedPct;
 
   @override
   Widget build(BuildContext context) {
@@ -226,22 +203,11 @@ class _GreetingRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                s.greeting(name),
-                style: AppText.h20.copyWith(color: c.anor2),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                s.collectedPercent(collectedPct),
-                style: AppText.caption125.copyWith(color: c.soft),
-              ),
-            ],
+          child: Text(
+            s.greeting(name),
+            style: AppText.h20.copyWith(color: c.anor2),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         GestureDetector(
@@ -272,7 +238,11 @@ class _BellButton extends StatelessWidget {
             width: 44,
             height: 44,
             alignment: Alignment.center,
-            decoration: BoxDecoration(color: c.glassHi, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: c.glassHi,
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              border: Border.all(color: c.line),
+            ),
             child: Icon(
               Icons.notifications_none_rounded,
               size: 21,
@@ -304,136 +274,134 @@ class _BellButton extends StatelessWidget {
   }
 }
 
-// ------------------------------------------------------------------ hero + ring
+// ------------------------------------------------------------- Kassa svetofori
 
-class _GoalHero extends StatelessWidget {
-  const _GoalHero({
-    required this.monthRevenue,
-    required this.goal,
+class _KassaSvetofori extends StatelessWidget {
+  const _KassaSvetofori({
+    required this.paid,
+    required this.soon,
+    required this.debt,
     required this.debtTotal,
-    required this.debtors,
-    required this.active,
+    required this.onTap,
   });
 
-  final int monthRevenue;
-  final int? goal;
+  final int paid;
+  final int soon;
+  final int debt;
   final int debtTotal;
-  final int debtors;
-  final int active;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final AppColors c = context.colors;
     final AppStrings s = context.s;
-    final int? goal = this.goal;
-    final double pct = (goal == null || goal == 0)
-        ? 0
-        : (monthRevenue / goal).clamp(0.0, 1.0);
-    final int pctInt = (pct * 100).round();
 
-    return Container(
-      decoration: _cardDecoration(c),
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      s.kpiMonthRevenue,
-                      style: AppText.caption125.copyWith(color: c.soft),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    MoneyText(
-                      monthRevenue,
-                      style: AppText.money24,
-                      color: c.anor2,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    if (goal != null && goal > 0)
-                      _GoalProgressLine(
-                        revenue: monthRevenue,
-                        goal: goal,
-                        pct: pctInt,
-                      )
-                    else
-                      PressScale(
-                        onTap: () => showGoalSheet(context),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Icon(Icons.flag_outlined, size: 15, color: c.anor2),
-                            const SizedBox(width: AppSpacing.xxs),
-                            Flexible(
-                              child: Text(
-                                s.setGoalPrompt,
-                                style: AppText.body13Bold.copyWith(
-                                  color: c.anor2,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
+    return PressScale(
+      onTap: onTap,
+      child: Container(
+        decoration: _cardDecoration(c),
+        padding: const EdgeInsets.all(AppSpacing.x3l),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    s.kassaTrafficLight,
+                    style: AppText.caption125.copyWith(color: c.soft),
+                  ),
                 ),
-              ),
-              if (goal != null && goal > 0) ...<Widget>[
-                const SizedBox(width: AppSpacing.md),
-                GestureDetector(
-                  onTap: () => showGoalSheet(context, current: goal),
-                  child: PlitaRing(
-                    value: pct,
-                    size: RingSize.profile,
-                    tone: RingTone.gradient,
-                    label: '$pctInt%',
-                    labelStyle: AppText.ringValue17.copyWith(color: c.ink),
-                    sublabel: s.goal.toUpperCase(),
-                    sublabelStyle: AppText.ringSub9.copyWith(color: c.soft),
+                Icon(Icons.chevron_right_rounded, size: 18, color: c.dim),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: _TrafficTile(
+                    icon: Icons.check_rounded,
+                    count: paid,
+                    label: s.tlPaid,
+                    fg: c.ok,
+                    bg: c.okSoft,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _TrafficTile(
+                    icon: Icons.schedule_rounded,
+                    count: soon,
+                    label: s.tlSoon,
+                    fg: c.warn,
+                    bg: c.warnSoft,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _TrafficTile(
+                    icon: Icons.warning_amber_rounded,
+                    count: debt,
+                    label: s.tlDebt,
+                    fg: c.debt,
+                    bg: c.debtSoft,
                   ),
                 ),
               ],
+            ),
+            if (debt > 0) ...<Widget>[
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                s.redsDebt(Money.compact(debtTotal)),
+                style: AppText.body13Bold.copyWith(color: c.debt),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TrafficTile extends StatelessWidget {
+  const _TrafficTile({
+    required this.icon,
+    required this.count,
+    required this.label,
+    required this.fg,
+    required this.bg,
+  });
+
+  final IconData icon;
+  final int count;
+  final String label;
+  final Color fg;
+  final Color bg;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 62,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: fg.withValues(alpha: 0.22)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Icon(icon, size: 13, color: fg),
+              const SizedBox(width: 5),
+              Text('$count', style: _numStyle(24).copyWith(color: fg)),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Divider(height: 1, color: c.line),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: _MiniStat(
-                  label: s.overdue,
-                  value: MoneyText(
-                    debtTotal,
-                    style: AppText.money15,
-                    color: c.debt,
-                    compact: true,
-                  ),
-                  hint: s.studentsCount(debtors),
-                  dot: c.debt,
-                ),
-              ),
-              Container(width: 1, height: 30, color: c.line),
-              Expanded(
-                child: _MiniStat(
-                  label: s.kpiActiveStudents,
-                  value: Text(
-                    '$active',
-                    style: AppText.money15.copyWith(color: c.ok),
-                  ),
-                  hint: s.statusPaidShort,
-                  dot: c.ok,
-                ),
-              ),
-            ],
+          const SizedBox(height: 1),
+          Text(
+            label,
+            style: AppText.label115.copyWith(color: context.colors.soft),
           ),
         ],
       ),
@@ -441,103 +409,41 @@ class _GoalHero extends StatelessWidget {
   }
 }
 
-class _GoalProgressLine extends StatelessWidget {
-  const _GoalProgressLine({
-    required this.revenue,
-    required this.goal,
-    required this.pct,
-  });
+// ------------------------------------------------------------------ stat karta
 
-  final int revenue;
-  final int goal;
-  final int pct;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppColors c = context.colors;
-    final double frac = (revenue / goal).clamp(0.0, 1.0);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Text(
-          '${Money.compact(revenue)} / ${Money.compact(goal)} — $pct%',
-          style: AppText.body13.copyWith(color: c.soft),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: SizedBox(
-            height: 5,
-            child: Stack(
-              children: <Widget>[
-                Positioned.fill(child: ColoredBox(color: c.glassHi)),
-                FractionallySizedBox(
-                  widthFactor: frac,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(gradient: c.anorGradient),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({
+class _StatCard extends StatelessWidget {
+  const _StatCard({
     required this.label,
     required this.value,
-    required this.hint,
-    required this.dot,
+    required this.accent,
+    this.onTap,
   });
 
   final String label;
-  final Widget value;
-  final String hint;
-  final Color dot;
+  final String value;
+  final Color accent;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final AppColors c = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Container(
-              width: 7,
-              height: 7,
-              decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Flexible(
-              child: Text(
-                label,
-                style: AppText.caption12.copyWith(color: c.soft),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xxs),
-        value,
-        Text(
-          hint,
-          style: AppText.caption12.copyWith(color: c.dim),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+    final Widget card = Container(
+      decoration: _cardDecoration(c),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(label, style: AppText.caption125.copyWith(color: c.soft)),
+          const SizedBox(height: AppSpacing.xs),
+          Text(value, style: _numStyle(30).copyWith(color: accent)),
+        ],
+      ),
     );
+    if (onTap == null) {
+      return card;
+    }
+    return PressScale(onTap: onTap!, child: card);
   }
 }
 
@@ -738,79 +644,7 @@ class _QuickAction extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------- faoliyat
-
-class _ActivityRow extends StatelessWidget {
-  const _ActivityRow({required this.student});
-
-  final DashboardStudent student;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppColors c = context.colors;
-    final AppStrings s = context.s;
-
-    final (String badge, BadgeTone tone) = switch (student.paymentState) {
-      PaymentState.overdue => (s.activityOverdue, BadgeTone.debt),
-      PaymentState.dueToday => (s.today, BadgeTone.warn),
-      PaymentState.dueSoon => (s.statusPendingShort, BadgeTone.warn),
-      PaymentState.paid || PaymentState.none => (s.activityPaid, BadgeTone.ok),
-    };
-
-    final String dateText = student.nextDueDate == null
-        ? ''
-        : s.dayMonth(student.nextDueDate!);
-
-    return GestureDetector(
-      onTap: () => context.push(Routes.student(student.id)),
-      child: Container(
-        decoration: _cardDecoration(c),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.cardPadDense,
-          vertical: AppSpacing.md,
-        ),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    student.name,
-                    style: AppText.body14Bold.copyWith(color: c.ink),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (dateText.isNotEmpty)
-                    Text(
-                      dateText,
-                      style: AppText.caption12.copyWith(color: c.soft),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                MoneyText(
-                  student.tariffPrice,
-                  style: AppText.money12,
-                  color: c.ink,
-                  compact: true,
-                ),
-                const SizedBox(height: 2),
-                StatusBadge(badge, tone: tone),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// ------------------------------------------------------------------ skeleton
 
 class _DashboardSkeleton extends StatelessWidget {
   const _DashboardSkeleton();
@@ -827,15 +661,21 @@ class _DashboardSkeleton extends StatelessWidget {
       children: const <Widget>[
         Skeleton(height: 44, width: 200),
         SizedBox(height: AppSpacing.xl),
-        Skeleton(height: 172, radius: 16),
+        Skeleton(height: 118, radius: AppRadius.card),
+        SizedBox(height: AppSpacing.lg),
+        Row(
+          children: <Widget>[
+            Expanded(child: Skeleton(height: 86, radius: AppRadius.card)),
+            SizedBox(width: AppSpacing.lg),
+            Expanded(child: Skeleton(height: 86, radius: AppRadius.card)),
+          ],
+        ),
         SizedBox(height: AppSpacing.sectionGapDense),
         Skeleton(height: 20, width: 100),
         SizedBox(height: AppSpacing.md),
-        Skeleton(height: 56, radius: 16),
+        Skeleton(height: 56, radius: AppRadius.card),
         SizedBox(height: AppSpacing.sm),
-        Skeleton(height: 56, radius: 16),
-        SizedBox(height: AppSpacing.sectionGapDense),
-        Skeleton(height: 78, radius: 16),
+        Skeleton(height: 56, radius: AppRadius.card),
       ],
     );
   }
