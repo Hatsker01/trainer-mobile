@@ -93,6 +93,7 @@ class DashboardResponse {
     this.totals,
     this.collectedThisMonth,
     this.expectedThisMonth,
+    this.streakDays = 0,
   });
 
   factory DashboardResponse.fromJson(Map<String, dynamic> json) =>
@@ -129,6 +130,10 @@ class DashboardResponse {
 
   @JsonKey(name: 'attendance_today')
   final AttendanceToday attendanceToday;
+
+  /// Trener faollik streaki — ketma-ket davomat belgilangan kunlar (§3.9 pili).
+  @JsonKey(name: 'streak_days')
+  final int streakDays;
 
   /// Hamma blok bo'sh — "Bugun hammasi joyida 💪" holati (T4).
   bool get isAllClear => dueToday.isEmpty && dueSoon.isEmpty && overdue.isEmpty;

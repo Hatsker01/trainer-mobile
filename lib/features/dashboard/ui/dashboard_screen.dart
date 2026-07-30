@@ -116,7 +116,11 @@ class _DashboardBody extends ConsumerWidget {
         AppSpacing.screenBottom,
       ),
       children: <Widget>[
-        _GreetingRow(name: d.greetingName, notif: d.overdue.length),
+        _GreetingRow(
+          name: d.greetingName,
+          notif: d.overdue.length,
+          streakDays: d.streakDays,
+        ),
         const SizedBox(height: AppSpacing.xl),
 
         // Kassa svetofori.
@@ -196,10 +200,15 @@ TextStyle _sectionStyle(BuildContext context) =>
 // ---------------------------------------------------------------- salom qatori
 
 class _GreetingRow extends StatelessWidget {
-  const _GreetingRow({required this.name, required this.notif});
+  const _GreetingRow({
+    required this.name,
+    required this.notif,
+    this.streakDays = 0,
+  });
 
   final String name;
   final int notif;
+  final int streakDays;
 
   @override
   Widget build(BuildContext context) {
@@ -217,11 +226,47 @@ class _GreetingRow extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
+        if (streakDays > 0) ...<Widget>[
+          _StreakPill(days: streakDays),
+          const SizedBox(width: AppSpacing.sm),
+        ],
         GestureDetector(
           onTap: () => context.push(Routes.notifications),
           child: _BellButton(count: notif),
         ),
       ],
+    );
+  }
+}
+
+/// Faollik streaki pili — alanga + "N kun" (prototip v3 header).
+class _StreakPill extends StatelessWidget {
+  const _StreakPill({required this.days});
+
+  final int days;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppColors c = context.colors;
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: c.warnSoft,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: c.warn.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(Icons.local_fire_department_rounded, size: 15, color: c.warn),
+          const SizedBox(width: AppSpacing.xxs),
+          Text(
+            context.s.streakLabel(days),
+            style: AppText.body13Bold.copyWith(color: c.warn),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -81,6 +81,7 @@ DashboardResponse _$DashboardResponseFromJson(Map<String, dynamic> json) =>
           : DashboardTotals.fromJson(json['totals'] as Map<String, dynamic>),
       collectedThisMonth: (json['collected_this_month'] as num?)?.toInt(),
       expectedThisMonth: (json['expected_this_month'] as num?)?.toInt(),
+      streakDays: (json['streak_days'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$DashboardResponseToJson(DashboardResponse instance) =>
@@ -94,6 +95,7 @@ Map<String, dynamic> _$DashboardResponseToJson(DashboardResponse instance) =>
       'collected_this_month': instance.collectedThisMonth,
       'expected_this_month': instance.expectedThisMonth,
       'attendance_today': instance.attendanceToday,
+      'streak_days': instance.streakDays,
     };
 
 StatsSeriesPoint _$StatsSeriesPointFromJson(Map<String, dynamic> json) =>
