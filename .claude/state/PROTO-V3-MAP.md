@@ -89,3 +89,25 @@ Task #3..#10 ga qarang. Boshlash: Dashboard backend gaplari (#10 ning dashboard 
 - Build/verify: `export PATH="$HOME/development/flutter/bin:$PATH"` → `flutter analyze`.
   To'liq run uchun emulyator (`ustoz_pixel_api34`) + `--dart-define=API_URL=http://169.58.51.242/api/v1`.
 - Server API: **port 80 (Caddy)**, `:8080` emas.
+
+---
+
+## Yangilanish 2026-07-30 (davom) — churn + streak to'liq-stack ULANDI
+- Backend: `AssessChurn` (churn.go) + `BuildChurnCards` → `GET /stats.churn[]` (D064);
+  `activityStreakDays` (streak.go) → `GET /dashboard.streak_days`. Testlar bilan.
+- Mobil: StatsResponse.churn, DashboardResponse.streak_days DTO (codegen);
+  dashboard churn kartasi + streak pili + statistika churn bo'limi. Hammasi REAL.
+- Commitlar: backend `600bac6`,`294013f`,`43bbb81`; mobil `f4a0812`,`d9cc720`.
+
+## Dashboard holati: ~1:1 (faqat "Bugungi lenta" qoldi)
+Header+streak · Kassa svetofori · stat kartalar (Bugun keldi/Faol shogird) ·
+churn kartasi · BUGUN · tezkor amallar — HAMMASI real. "Bugungi lenta" (vaqtli
+sessiyalar, swipe-davomat) session-schedule quyi-tizimini kutadi (pastda).
+
+## Keyingi katta bosqich — SESSION-SCHEDULE quyi-tizimi (yangi)
+Kerak: migratsiya (`training_sessions`: trainer_id, student_id|group, starts_at,
+duration_min, type, recurrence_rule, status) → CRUD service/repo/handler →
+recurrence kengaytirish → `GET /sessions?date=` → openapi+DECISIONS → mobil
+sessions provider/DTO → dashboard "Bugungi lenta" (swipe davomat) + kalendar
+slot yaratish + konflikt aniqlash. DIQQAT: DB migratsiyasi bu yerda ishga
+tushirilmaydi (DB yo'q) — ehtiyotkorlik bilan, ehtimol serverda sinaladi.
