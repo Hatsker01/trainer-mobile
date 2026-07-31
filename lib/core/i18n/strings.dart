@@ -34,6 +34,14 @@ class AppStrings {
   String get srSend => _p('Yuborish', 'Отправить');
   String get srDone => _p('Javob yuborildi', 'Ответ отправлен');
   String srReason(String r) => _p('Sabab: $r', 'Причина: $r');
+
+  // Yangi shogird bog'lanish so'rovlari (D122 sync)
+  String get lrTitle =>
+      _p('Bog\'lanish so\'rovlari', 'Запросы на привязку');
+  String get lrApprove => _p('Qabul qilish', 'Принять');
+  String get lrReject => _p('Rad etish', 'Отклонить');
+  String get lrApproved => _p('Shogird qo\'shildi', 'Ученик добавлен');
+  String get lrRejected => _p('Rad etildi', 'Отклонено');
   String get done => _p('Tayyor', 'Готово');
   String get delete => _p('Arxivlash', 'Архивировать');
   String get edit => _p('Tahrirlash', 'Редактировать');
