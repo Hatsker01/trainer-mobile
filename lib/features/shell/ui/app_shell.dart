@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ustoz_trainer/core/api/sse_client.dart';
 import 'package:ustoz_trainer/core/i18n/strings.dart';
 import 'package:ustoz_trainer/core/router/app_router.dart';
 import 'package:ustoz_trainer/core/theme/app_colors.dart';
@@ -25,6 +26,8 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Real-time sinxron (C4): shogird amali → trener ekrani yangilanadi.
+    ref.watch(trainerSseProvider);
     return Scaffold(
       extendBody: true,
       // H1 — status bar himoyasi BUTUN qobiq kontenti uchun (dashboard,
