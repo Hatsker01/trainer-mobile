@@ -17,6 +17,7 @@ import 'package:ustoz_trainer/features/attendance/ui/attendance_sheet.dart';
 import 'package:ustoz_trainer/features/dashboard/providers/dashboard_provider.dart';
 import 'package:ustoz_trainer/features/dashboard/providers/sessions_provider.dart';
 import 'package:ustoz_trainer/features/payments/ui/payment_sheet.dart';
+import 'package:ustoz_trainer/features/schedule_requests/ui/schedule_requests_card.dart';
 import 'package:ustoz_trainer/features/stats/ui/stats_screen.dart';
 
 /// S4 — Bosh sahifa (prototip v3 kompozitsiyasi): salom qatori · Kassa svetofori
@@ -130,6 +131,9 @@ class _DashboardBody extends ConsumerWidget {
           streakDays: d.streakDays,
         ),
         const SizedBox(height: AppSpacing.xl),
+
+        // «Kelolmayman» so'rovlari (D122) — bo'lsa ko'rinadi.
+        const ScheduleRequestsCard(),
 
         // Kassa svetofori.
         _KassaSvetofori(

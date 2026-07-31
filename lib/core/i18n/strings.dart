@@ -23,6 +23,17 @@ class AppStrings {
   String get retry => _p('Qayta urinish', 'Повторить');
   String get next => _p('Davom etish', 'Продолжить');
   String get skip => _p("O'tkazib yuborish", 'Пропустить');
+
+  // «Kelolmayman» so'rovlari (D122)
+  String get srTitle =>
+      _p("«Kelolmayman» so'rovlari", 'Запросы «не смогу»');
+  String get srApprove => _p('Tasdiqlash', 'Подтвердить');
+  String get srReject => _p('Rad etish', 'Отклонить');
+  String get srReschedule => _p('Yangi vaqt', 'Новое время');
+  String get srNewTime => _p('Yangi vaqt (HH:MM)', 'Новое время (ЧЧ:ММ)');
+  String get srSend => _p('Yuborish', 'Отправить');
+  String get srDone => _p('Javob yuborildi', 'Ответ отправлен');
+  String srReason(String r) => _p('Sabab: $r', 'Причина: $r');
   String get done => _p('Tayyor', 'Готово');
   String get delete => _p('Arxivlash', 'Архивировать');
   String get edit => _p('Tahrirlash', 'Редактировать');
